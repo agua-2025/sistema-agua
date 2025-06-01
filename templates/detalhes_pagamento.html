@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Fatura - Águas de Santa Maria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .fatura-container {
+            background-color: #fff;
+            max-width: 800px;
+            margin: auto;
+            padding: 40px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .fatura-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .fatura-header h1 {
+            margin: 0;
+            color: #2b7a2b;
+            font-size: 26px;
+        }
+
+        .fatura-header p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            color: #444;
+        }
+
+        .info-line {
+            margin: 6px 0;
+            font-size: 15px;
+        }
+
+        .info-line span {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+            margin-top: 15px;
+        }
+
+        .text-danger {
+            color: #b30000;
+        }
+
+        .buttons {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 16px;
+            margin: 5px;
+            font-size: 14px;
+            text-decoration: none;
+            color: white;
+            border-radius: 4px;
+        }
+
+        .btn-print { background-color: #007bff; }
+        .btn-pdf { background-color: #28a745; }
+        .btn-list { background-color: #6c757d; }
+
+        @media print {
+            .buttons { display: none; }
+            body { background-color: white; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fatura-container">
+        <div class="fatura-header">
+            <h1>Águas de Santa Maria</h1>
+            <p>Comprovante de Pagamento</p>
+            <p>Referência: #{{ pagamento.id }}</p>
+            <p>Data do Pagamento: {{ pagamento.data_pagamento }}</p>
+        </div>
+
+        <div class="section">
+            <h2>Dados do Consumidor</h2>
+            <div class="info-line"><span>Nome:</span> {{ pagamento.consumidor_nome }}</div>
+            <div class="info-line"><span>Endereço:</span> {{ pagamento.consumidor_endereco or "Não informado" }}</div>
+        </div>
+
+        <div class="section">
+            <h2>Detalhes da Leitura</h2>
+            <div class="info-line"><span>Vencimento da Fatura:</span> {{ pagamento.vencimento or "Não informado" }}</div>
+            <div class="info-line">
+            <span>Período de Consumo:</span>
+    {% if pagamento.data_leitura_anterior and pagamento.data_leitura_atual %}
+        {{ pagamento.data_leitura_anterior }} a {{ pagamento.data_leitura_atual }}
+    {% else %}
+        Não disponível
+    {% endif %}
+</div>
+           <div class="info-line"><span>Nº do Hidrômetro:</span> {{ pagamento.hidrometro or "Não cadastrado" }}</div>
+           <div class="info-line"><span>Litros Consumidos:</span> {{ "{:,}".format(litros_consumidos|int) }} L</div>
+        </div>
+
+        <div class="section">
+            <h2>Detalhes do Pagamento</h2>
+            <div class="info-line"><span>Valor Original:</span> R$ {{ "%.2f"|format(pagamento.valor_original) }}</div>
+            <div class="info-line"><span>Valor Pago:</span> R$ {{ "%.2f"|format(pagamento.valor_pago) }}</div>
+            <div class="info-line"><span>Forma de Pagamento:</span> {{ pagamento.forma_pagamento }}</div>
+            {% if dias_atraso > 0 %}
+                <div class="info-line text-danger">
+                    <span>Pagamento realizado com atraso de {{ dias_atraso }} dias.</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Resumo Financeiro</h2>
+            <div class="info-line"><span>Multa:</span> R$ {{ "%.2f"|format(multa) if dias_atraso > 0 else '0.00' }}</div>
+            <div class="info-line"><span>Juros:</span> R$ {{ "%.2f"|format(juros) if dias_atraso > 0 else '0.00' }}</div>
+            <div class="total">Total Corrigido: R$ {{ "%.2f"|format(pagamento.valor_original + multa + juros) }}</div>
+        </div>
+
+        <div class="buttons">
+            <button onclick="window.print()" class="btn btn-print">Imprimir</button>
+            <a href="{{ url_for('gerar_comprovante_pdf', leitura_id=pagamento.leitura_id) }}" class="btn btn-pdf">Baixar PDF</a>
+            <a href="{{ url_for('listar_pagamentos') }}" class="btn btn-list">Ver Todos</a>
+        </div>
+    </div>
+</body>
+</html>
+

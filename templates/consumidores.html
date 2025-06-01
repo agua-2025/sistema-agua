@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Consumidores Cadastrados</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f7fa;
+        }
+        tr:hover {
+            background-color: #f0f8ff;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .voltar {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #3498db;
+        }
+        .acoes {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-editar {
+            color: #fff;
+            background-color: #3498db;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .btn-excluir {
+            color: #fff;
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Consumidores Cadastrados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>RG</th>
+                    <th>Endereço</th>
+                    <th>Telefone</th>
+                    <th>Nº Hidrômetro</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in consumidores %}
+                <tr>
+                    <td>{{ c['nome'] }}</td>
+                    <td>{{ c['cpf'] }}</td>
+                    <td>{{ c['rg'] }}</td>
+                    <td>{{ c['endereco'] }}</td>
+                    <td>{{ c['telefone'] }}</td>
+                    <td>{{ c['hidrometro_num'] }}</td>
+                    <td class="acoes">
+                    <a href="{{ url_for('editar_consumidor', id=c.id) }}" class="btn-editar">Editar</a>
+                    <a href="{{ url_for('excluir_consumidor', id=c.id) }}" class="btn-excluir" onclick="return confirm('Tem certeza que deseja excluir?')">Excluir</a>
+                 </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a class="voltar" href="{{ url_for('dashboard') }}">← Voltar ao Dashboard</a>
+    </div>
+</body>
+</html>

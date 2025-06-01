@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel - Águas de Santa Maria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"  rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"  rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .btn-custom {
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-custom-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-custom-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .quick-actions {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Cabeçalho -->
+        <div class="welcome-banner d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-tint me-2"></i> Águas de Santa Maria</h2>
+                <p class="mb-0">Bem-vindo, {{ user }} <span class="badge bg-light text-dark ms-2">Admin</span></p>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn btn-light btn-custom">
+                <i class="fas fa-sign-out-alt me-1"></i> Sair
+            </a>
+        </div>
+
+        <!-- Cartões de Resumo -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="dashboard-card card text-white bg-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users card-icon"></i>
+                        <h5>Consumidores</h5>
+                        <h3>22</h3>
+                        <a href="{{ url_for('listar_consumidores') }}" class="btn btn-sm btn-light mt-2">Ver Todos</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="dashboard-card card text-white bg-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users card-icon"></i>
+                        <h5>Usuários</h5>
+                        <h3>2</h3>
+                        <a href="{{ url_for('cadastrar_usuario') }}" class="btn btn-sm btn-light mt-2">Usuários</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="dashboard-card card text-white bg-success">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-invoice-dollar card-icon"></i>
+                        <h5>Pagamentos Hoje</h5>
+                        <h3>42</h3>
+                        <a href="{{ url_for('listar_pagamentos') }}" class="btn btn-sm btn-light mt-2">Detalhes</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="dashboard-card card text-white bg-warning">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock card-icon"></i>
+                        <h5>Pendentes</h5>
+                        <h3>87</h3>
+                        <a href="#" class="btn btn-sm btn-light mt-2">Resolver</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="dashboard-card card text-white bg-info">
+                    <div class="card-body text-center">
+                        <i class="fas fa-cog card-icon"></i>
+                        <h5>Configurações</h5>
+                        <a href="{{ url_for('configuracoes') }}" class="btn btn-sm btn-light mt-4">Acessar</a>
+                    </div>
+                </div>
+            </div>
+
+           <!-- CARTÃO COMPLETO DE RELATÓRIOS -->
+<div class="col-md-3 mb-3">
+    <div class="dashboard-card card text-white bg-secondary">
+        <div class="card-body text-center">
+            <i class="fas fa-chart-bar card-icon"></i>
+            <h5>Relatórios</h5>
+            <div class="d-grid gap-2 mt-2">
+                <a href="{{ url_for('relatorios') }}" class="btn btn-sm btn-light">Ver Relatórios</a>
+                </div>
+        </div>
+    </div>
+</div>
+        <!-- Ações Rápidas -->
+        <div class="quick-actions mb-4">
+            <h4 class="mb-4"><i class="fas fa-bolt me-2"></i>Ações Rápidas</h4>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <a href="{{ url_for('cadastrar_consumidor') }}" class="btn btn-custom btn-custom-primary w-100">
+                        <i class="fas fa-user-plus me-2"></i>Novo Consumidor
+                    </a>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <a href="{{ url_for('cadastrar_leitura') }}" class="btn btn-success w-100 btn-custom">
+                        <i class="fas fa-water me-2"></i>Nova Leitura
+                    </a>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <a href="{{ url_for('registrar_pagamento') }}" class="btn btn-dark w-100 btn-custom">
+                        <i class="fas fa-hand-holding-usd me-2"></i>Registrar Pagamento
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atividades Recentes -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Atividades Recentes</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Pagamento registrado - R$ 150,00
+                        </div>
+                        <small class="text-muted">2 minutos atrás</small>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-plus text-primary me-2"></i>
+                            Novo consumidor cadastrado
+                        </div>
+                        <small class="text-muted">15 minutos atrás</small>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-water text-info me-2"></i>
+                            Leitura do hidrômetro registrada
+                        </div>
+                        <small class="text-muted">1 hora atrás</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>   
+    <script>
+        // Atualiza a hora automaticamente
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+</html>

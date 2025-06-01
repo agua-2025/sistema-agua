@@ -1,0 +1,180 @@
+/* style.css - Versão Modernizada */
+:root {
+  --primary: #4361ee;
+  --primary-hover: #3a56d4;
+  --text: #2b2d42;
+  --light-gray: #f8f9fa;
+  --border: #e9ecef;
+  --error: #f72585;
+  --radius: 8px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(to bottom right, #f4f7f9, #e6ebf0);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  margin: 1.5rem;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-container:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+h2 {
+  text-align: center;
+  color: var(--primary);
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  position: relative;
+}
+
+h2::after {
+  content: '';
+  display: block;
+  width: 50px;
+  height: 3px;
+  background: var(--primary);
+  margin: 0.5rem auto 0;
+  border-radius: 3px;
+}
+
+.erro {
+  color: var(--error);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0.5rem 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+label {
+  display: block;
+  margin-top: 1.2rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  margin-top: 0.3rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-sizing: border-box;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+button {
+  width: 100%;
+  padding: 0.9rem;
+  margin-top: 1.8rem;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.voltar {
+  display: block;
+  text-align: center;
+  margin-top: 1.2rem;
+  font-size: 0.9rem;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.voltar:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+/* Ícones (opcional - caso queira adicionar) */
+.input-icon {
+  position: relative;
+}
+
+.input-icon i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #adb5bd;
+}
+
+.input-icon input {
+  padding-left: 2.5rem !important;
+}
+
+.acoes {
+    display: flex;
+    gap: 10px;
+}
+.btn-editar {
+    color: #fff;
+    background-color: #3498db;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+}
+.btn-editar:hover {
+    background-color: #2980b9;
+}
+.btn-excluir {
+    color: #fff;
+    background-color: #e74c3c;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+}
+.btn-excluir:hover {
+    background-color: #c0392b;
+}

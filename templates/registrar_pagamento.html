@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Pagamento</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: #0d6efd;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        .readonly-field {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+        }
+        .valor-monetario {
+            font-weight: bold;
+            color: #212529;
+        }
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+        .btn-custom {
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+        .info-box {
+            background-color: #e7f1ff;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container py-4">
+    <div class="card card-section mb-4">
+        <h2 class="section-title mb-0">Registrar Pagamento</h2>
+        <p class="text-muted mb-0">Preencha os dados do pagamento</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('registrar_pagamento') }}">
+        <!-- Seção Consumidor -->
+        <div class="card card-section">
+            <h5 class="section-title">Dados do Consumidor</h5>
+            <div class="mb-3">
+                <label for="consumidorSelect" class="form-label required-field">Consumidor</label>
+                <select class="form-select" id="consumidorSelect" name="consumidor_id" required>
+                    <option value="">Escolha um consumidor</option>
+                    {% for c in consumidores %}
+                        <option value="{{ c.id }}">{{ c.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="leituraSelect" class="form-label required-field">Leitura</label>
+                <select class="form-select" id="leituraSelect" name="leitura_id" required>
+                    <option value="">Selecione primeiro um consumidor</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Seção Valores -->
+        <div class="card card-section">
+            <h5 class="section-title">Valores da Leitura</h5>
+            <div class="info-box">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Valor Original</label>
+                        <input type="text" class="form-control valor-monetario readonly-field" id="valorOriginal" readonly value="R$ 0,00">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Data de Vencimento</label>
+                        <input type="text" class="form-control readonly-field" id="vencimento" readonly value="--/--/----">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção Pagamento -->
+        <div class="card card-section">
+            <h5 class="section-title">Dados do Pagamento</h5>
+            <div class="mb-3">
+                <label for="data_pagamento" class="form-label required-field">Data do Pagamento</label>
+                <input type="date" class="form-control" name="data_pagamento" id="data_pagamento" required>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Multa</label>
+                    <input type="text" class="form-control valor-monetario readonly-field" id="valorMulta" readonly value="R$ 0,00">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Juros</label>
+                    <input type="text" class="form-control valor-monetario readonly-field" id="valorJuros" readonly value="R$ 0,00">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Total Corrigido</label>
+                    <input type="text" class="form-control valor-monetario readonly-field" id="totalCorrigido" readonly value="R$ 0,00">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="forma_pagamento" class="form-label required-field">Forma de Pagamento</label>
+                <select class="form-select" name="forma_pagamento" required>
+                    <option value="PIX">PIX</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Transferência">Transferência</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="valor_pago" class="form-label required-field">Valor Pago</label>
+                <input type="number" step="0.01" min="0" class="form-control" name="valor_pago" id="valorPago" required>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-success btn-custom">Registrar Pagamento</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-custom">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<!-- Scripts (mantidos exatamente iguais) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formata números para o padrão brasileiro
+    function formatarMoeda(valor) {
+        return 'R$ ' + parseFloat(valor || 0).toFixed(2).replace('.', ',');
+    }
+
+    // Formata data para exibição (dd/mm/aaaa)
+    function formatarData(dataISO) {
+        if (!dataISO) return '--/--/----';
+        const [ano, mes, dia] = dataISO.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    // Carrega as leituras quando seleciona um consumidor
+    document.getElementById('consumidorSelect').addEventListener('change', function() {
+        const consumidorId = this.value;
+        const leituraSelect = document.getElementById('leituraSelect');
+        
+        if (!consumidorId) {
+            leituraSelect.innerHTML = '<option value="">Selecione primeiro um consumidor</option>';
+            resetarCampos();
+            return;
+        }
+        
+        leituraSelect.innerHTML = '<option value="">Carregando...</option>';
+        
+        fetch(`/api/leituras/${consumidorId}`)
+            .then(res => {
+                if (!res.ok) throw new Error('Erro ao carregar leituras');
+                return res.json();
+            })
+            .then(data => {
+                leituraSelect.innerHTML = '<option value="">Selecione uma leitura</option>';
+                
+                data.forEach(leitura => {
+                    const option = document.createElement('option');
+                    option.value = leitura.id;
+                    option.textContent = `Leitura ${formatarData(leitura.data_leitura_atual)} | ${formatarMoeda(leitura.valor_original)}`;
+                    option.dataset.vencimento = leitura.vencimento;
+                    option.dataset.valor = leitura.valor_original;
+                    leituraSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                leituraSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+            });
+    });
+
+    // Mostra dados básicos ao selecionar leitura
+    document.getElementById('leituraSelect').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedOption.value) {
+            document.getElementById('valorOriginal').value = formatarMoeda(selectedOption.dataset.valor);
+            document.getElementById('vencimento').value = formatarData(selectedOption.dataset.vencimento);
+            document.getElementById('valorPago').value = parseFloat(selectedOption.dataset.valor || 0).toFixed(2);
+        } else {
+            resetarCampos();
+        }
+    });
+
+    // Calcula valores quando a data de pagamento é alterada
+    document.getElementById('data_pagamento').addEventListener('change', function() {
+        const leituraId = document.getElementById('leituraSelect').value;
+        const dataPagamento = this.value;
+        
+        if (!leituraId || !dataPagamento) return;
+        
+        fetch(`/api/leitura-detalhada/${leituraId}`)
+            .then(res => {
+                if (!res.ok) throw new Error('Erro ao calcular valores');
+                return res.json();
+            })
+            .then(data => {
+                const valorOriginal = parseFloat(data.valor_original || 0);
+                const vencimento = new Date(data.vencimento);
+                const pagamento = new Date(dataPagamento);
+                
+                // Calcula dias de atraso
+                const diasAtraso = Math.max(Math.ceil((pagamento - vencimento) / (1000 * 60 * 60 * 24)), 0);
+                
+                // Calcula multa e juros
+                const multa = diasAtraso > 0 ? valorOriginal * (data.multa_percentual / 100) : 0;
+                const juros = diasAtraso > 0 ? valorOriginal * (data.juros_diario_percentual / 100) * diasAtraso : 0;
+                const total = valorOriginal + multa + juros;
+                
+                // Atualiza os campos
+                document.getElementById('valorMulta').value = formatarMoeda(multa);
+                document.getElementById('valorJuros').value = formatarMoeda(juros);
+                document.getElementById('totalCorrigido').value = formatarMoeda(total);
+                document.getElementById('valorPago').value = total.toFixed(2);
+            })
+            .catch(error => {
+                console.error('Erro no cálculo:', error);
+            });
+    });
+
+    function resetarCampos() {
+        document.getElementById('valorOriginal').value = 'R$ 0,00';
+        document.getElementById('vencimento').value = '--/--/----';
+        document.getElementById('valorMulta').value = 'R$ 0,00';
+        document.getElementById('valorJuros').value = 'R$ 0,00';
+        document.getElementById('totalCorrigido').value = 'R$ 0,00';
+        document.getElementById('valorPago').value = '';
+    }
+});
+</script>
+</body>
+</html>
