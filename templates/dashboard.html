@@ -148,27 +148,32 @@
         </div>
     </div>
 </div>
-        <!-- Ações Rápidas -->
-        <div class="quick-actions mb-4">
-            <h4 class="mb-4"><i class="fas fa-bolt me-2"></i>Ações Rápidas</h4>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <a href="{{ url_for('cadastrar_consumidor') }}" class="btn btn-custom btn-custom-primary w-100">
-                        <i class="fas fa-user-plus me-2"></i>Novo Consumidor
-                    </a>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <a href="{{ url_for('cadastrar_leitura') }}" class="btn btn-success w-100 btn-custom">
-                        <i class="fas fa-water me-2"></i>Nova Leitura
-                    </a>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <a href="{{ url_for('registrar_pagamento') }}" class="btn btn-dark w-100 btn-custom">
-                        <i class="fas fa-hand-holding-usd me-2"></i>Registrar Pagamento
-                    </a>
-                </div>
-            </div>
+<!-- Ações Rápidas -->
+<div class="quick-actions mb-4">
+    <h4 class="mb-4"><i class="fas fa-bolt me-2"></i>Ações Rápidas</h4>
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('cadastrar_consumidor') }}" class="btn btn-custom btn-custom-primary w-100">
+                <i class="fas fa-user-plus me-2"></i>Novo Consumidor
+            </a>
         </div>
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('cadastrar_leitura') }}" class="btn btn-success w-100 btn-custom">
+                <i class="fas fa-water me-2"></i>Nova Leitura
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('registrar_pagamento') }}" class="btn btn-dark w-100 btn-custom">
+                <i class="fas fa-hand-holding-usd me-2"></i>Registrar Pagamento
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('baixar_db') }}" class="btn btn-outline-secondary w-100 btn-custom">
+                <i class="fas fa-database me-2"></i> Fazer Backup do Banco
+            </a>
+        </div>
+    </div>
+</div>
 
         <!-- Atividades Recentes -->
         <div class="card dashboard-card mb-4">

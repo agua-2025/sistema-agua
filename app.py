@@ -10,6 +10,7 @@ import smtplib
 from flask import make_response
 from email.mime.text import MIMEText
 from email.utils import formataddr
+from flask import send_file
 def enviar_email(destino, assunto, corpo):
     msg = MIMEText(corpo, 'plain', 'utf-8')
     msg['Subject'] = assunto
@@ -71,6 +72,7 @@ def atualizar_leituras_quitadas():
         )
     """)
     db.commit()
+
 
 # ---------- Rotas de Autenticação ----------
 @app.route('/')
@@ -1073,6 +1075,10 @@ def relatorios():
     if 'usuario' not in session:
         return redirect(url_for('login'))
     return render_template('relatorios.html')
+
+@app.route('/backup-db')
+def baixar_db():
+    return send_file(DATABASE, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
