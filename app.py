@@ -53,6 +53,25 @@ def close_db(error):
     if 'db' in g:
         g.db.close()
 
+def atualizar_leituras_quitadas():
+    db = get_db()
+    db.execute("""
+        UPDATE leituras
+        SET status_pagamento = 'Pago'
+        WHERE id IN (
+            SELECT l.id
+            FROM leituras l
+            LEFT JOIN (
+                SELECT leitura_id, SUM(valor_pago) AS total_pago
+                FROM pagamentos
+                GROUP BY leitura_id
+            ) pag ON pag.leitura_id = l.id
+            WHERE pag.total_pago >= l.valor_original
+              AND l.status_pagamento != 'Pago'
+        )
+    """)
+    db.commit()
+
 # ---------- Rotas de Autenticação ----------
 @app.route('/')
 def home():
