@@ -15,10 +15,40 @@ from weasyprint import HTML
 import click
 from flask.cli import with_appcontext
 
-# --- Configurações da Aplicação ---
+# --- CONFIGURAÇÕES DA APLICAÇÃO ---
 app = Flask(__name__)
 
-# --- Adicionar filtro de data para Jinja2 ---
+# Chave secreta, lida da variável de ambiente no Render
+app.secret_key = os.environ.get('SECRET_KEY', 'sua-chave-super-secreta-para-desenvolvimento')
+
+UPLOAD_FOLDER = 'static/fotos_hidrometros'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# --- FUNÇÕES DE CONEXÃO COM O BANCO POSTGRESQL ---
+
+def get_db():
+    """Abre uma nova conexão com o banco de dados se não houver uma."""
+    if 'db' not in g:
+        # Pega a URL de conexão da variável de ambiente que configuramos no Render
+        db_url = os.environ.get('DATABASE_URL')
+        if db_url is None:
+            raise RuntimeError('A variável de ambiente DATABASE_URL não está configurada.')
+        
+        # Conecta ao banco de dados PostgreSQL
+        g.db = psycopg2.connect(db_url)
+    return g.db
+
+@app.teardown_appcontext
+def close_db(e=None):
+    """Fecha a conexão com o banco de dados ao final da requisição."""
+    db = g.pop('db', None)
+
+    if db is not None:
+        db.close()
+
+# --- FILTRO JINJA2 (mantido como estava) ---
 @app.template_filter('date_format')
 def _jinja2_filter_date_format(value, fmt='%d/%m/%Y'):
     if not value:
@@ -31,18 +61,7 @@ def _jinja2_filter_date_format(value, fmt='%d/%m/%Y'):
         pass
     return str(value)
 
-# Chave secreta deve ser lida de variável de ambiente em produção
-app.secret_key = os.environ.get('SECRET_KEY', 'sua-chave-super-secreta-para-desenvolvimento')
-
-DATABASE = 'a_g_santa_maria.db'
-
-UPLOAD_FOLDER = 'static/fotos_hidrometros'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# --- Funções Auxiliares ---
-
+# --- FUNÇÕES AUXILIARES ---
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
