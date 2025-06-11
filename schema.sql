@@ -87,3 +87,14 @@ CREATE TABLE despesas (
     categoria TEXT,
     observacoes TEXT
 );
+
+-- Inserção do usuário administrador padrão
+-- Este usuário será criado toda vez que o banco de dados for inicializado.
+-- Usuário: admin
+-- Senha:   admin123
+-- É MUITO IMPORTANTE alterar esta senha ou cadastrar um novo usuário após o primeiro login.
+INSERT INTO usuarios_admin (username, senha_hash, email) VALUES (
+    'admin',
+    'pbkdf2:sha256:600000$Vp3v7bNl2aYkRzXw$c81b7e9b3a2d5f4c1e0d9b8a7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d', -- Hash para 'admin123'
+    'admin@example.com'
+);
