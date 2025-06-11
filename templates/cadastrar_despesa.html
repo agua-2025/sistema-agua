@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastrar Despesa{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card p-4 p-md-5 shadow-sm" style="border-radius: 12px; background-color: #ffffff;">
+
+        <h3 class="text-center fw-bold mb-4" style="color: #0056b3;"><i class="bi bi-file-earmark-plus-fill me-2"></i>Cadastrar Nova Despesa</h3>
+
+        {# As mensagens flash já são tratadas no base.html #}
+
+        <form method="POST" novalidate>
+            <!-- Linha 1: Descrição -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label for="descricao" class="form-label">Descrição da Despesa *</label>
+                    <input type="text" class="form-control" id="descricao" name="descricao" required value="{{ request.form.descricao or '' }}">
+                </div>
+            </div>
+
+            <!-- Linha 2: Valor e Data -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="valor" class="form-label">Valor (R$) *</label>
+                    <input type="text" class="form-control" id="valor" name="valor" placeholder="Ex: 150,00" required onkeyup="formatCurrency(this)" value="{{ request.form.valor or '' }}">
+                </div>
+                <div class="col-md-6 mt-3 mt-md-0">
+                    <label for="data_despesa" class="form-label">Data da Despesa *</label>
+                    <input type="date" class="form-control" id="data_despesa" name="data_despesa" value="{{ today_date }}" required>
+                </div>
+            </div>
+
+            <!-- Linha 3: Categoria -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label for="categoria" class="form-label">Categoria</label>
+                    <select class="form-select" id="categoria" name="categoria">
+                        <option value="" {% if not request.form.categoria %}selected{% endif %}>Selecione uma Categoria</option>
+                        <option value="Manutenção" {% if request.form.categoria == 'Manutenção' %}selected{% endif %}>Manutenção</option>
+                        <option value="Energia" {% if request.form.categoria == 'Energia' %}selected{% endif %}>Energia</option>
+                        <option value="Salários" {% if request.form.categoria == 'Salários' %}selected{% endif %}>Salários</option>
+                        <option value="Impostos" {% if request.form.categoria == 'Impostos' %}selected{% endif %}>Impostos e Taxas</option>
+                        <option value="Material" {% if request.form.categoria == 'Material' %}selected{% endif %}>Material de Escritório/Consumo</option>
+                        <option value="Combustível" {% if request.form.categoria == 'Combustível' %}selected{% endif %}>Combustível</option>
+                        <option value="Outros" {% if request.form.categoria == 'Outros' %}selected{% endif %}>Outros</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Linha 4: Observações -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label for="observacoes" class="form-label">Observações</label>
+                    <textarea class="form-control" id="observacoes" name="observacoes" rows="3">{{ request.form.observacoes or '' }}</textarea>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+
+            <!-- Ações do Formulário -->
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('listar_despesas') }}" class="btn btn-secondary px-4">
+                    <i class="bi bi-arrow-left-circle me-1"></i> Voltar
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light px-4">
+                    <i class="bi bi-house-door me-1"></i> Dashboard
+                </a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check-circle me-1"></i> Salvar Despesa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function formatCurrency(input) {
+    // Esta função foi mantida exatamente como no original para não alterar a lógica
+    let value = input.value;
+    value = value.replace(/\D/g, ""); // Remove tudo que não é dígito
+    if (value.length === 0) {
+        input.value = "";
+        return;
+    }
+    // Adiciona a vírgula antes dos 2 últimos dígitos (centavos)
+    value = (parseInt(value, 10) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (value === 'NaN') { // Previne que o campo mostre 'NaN'
+        input.value = "";
+    } else {
+        input.value = value;
+    }
+}
+</script>
+{% endblock %}

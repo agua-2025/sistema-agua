@@ -1,258 +1,375 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Cadastrar Leitura de Hidrômetro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastrar Leitura | Águas de Santa Maria</title>
+    <!-- Bootstrap e Ícones -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        .card-section {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
+        /* Estilo refinado para um visual compacto e profissional, alinhado com o sistema */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f4f7f9;
+            color: #343a40;
+            font-size: 0.9rem;
         }
-        .section-title {
-            color: #0d6efd;
-            border-bottom: 1px solid #dee2e6;
-            padding-bottom: 8px;
+        .container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+            margin-top: 20px;
             margin-bottom: 20px;
-            font-size: 1.1rem;
+            max-width: 900px;
+        }
+        h3 {
+            color: #0056b3;
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
         }
         .form-label {
             font-weight: 500;
-            margin-bottom: 5px;
+            color: #495057;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
         }
-        .readonly-field {
-            background-color: #f8f9fa;
-            border: 1px solid #ced4da;
+        .form-control,
+        .form-select {
+            border-radius: 6px;
+            font-size: 0.9rem;
+            padding: 0.55rem 0.75rem;
+        }
+        .form-control[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
         }
         .required-field::after {
-            content: " *";
+            content: ' *';
             color: #dc3545;
         }
-        .btn-custom {
-            min-width: 120px;
+        .flash-message {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        .erro {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
 <body class="bg-light">
-<div class="container py-4">
-    <div class="card card-section mb-4">
-        <h2 class="mb-3">Cadastrar Leitura</h2>
-        <p class="text-muted">Preencha os dados da nova leitura do hidrômetro</p>
+    <div class="container">
+        <h3 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Cadastrar Leitura</h3>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="erro flash-message">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>{{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('cadastrar_leitura') }}">
+            <div class="row">
+                <!-- Coluna da Esquerda -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="consumidor_id" class="form-label required-field"><i class="bi bi-person-fill me-1"></i> Consumidor</label>
+                        <select class="form-select" name="consumidor_id" id="consumidor_id" required>
+                            <option value="" disabled {% if not consumidor_selecionado %}selected{% endif %}>Selecione um consumidor</option>
+                            {% for consumidor in consumidores %}
+                            <option value="{{ consumidor.id }}" {% if consumidor_selecionado == consumidor.id %}selected{% endif %}>
+                                {{ consumidor.nome }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="leitura_anterior" class="form-label">Leitura Anterior (L)</label>
+                        <input type="text" name="leitura_anterior" id="leitura_anterior" readonly value="{{ leitura_anterior }}" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="leitura_atual" class="form-label required-field"><i class="bi bi-graph-up me-1"></i> Leitura Atual (L)</label>
+                        <input type="number" class="form-control" name="leitura_atual" id="leitura_atual" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="litros_consumidos" class="form-label">Litros Consumidos</label>
+                        <input type="number" class="form-control" name="litros_consumidos" id="litros_consumidos" value="{{ litros_consumidos }}" readonly />
+                    </div>
+
+                     <div class="mb-3">
+                        <label for="taxa_minima_aplicada" class="form-label">Aplicar Taxa Mínima?</label>
+                        <select class="form-select" name="taxa_minima_aplicada" id="taxa_minima_aplicada">
+                            <option value="NÃO">Não</option>
+                            <option value="SIM">Sim</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- Coluna da Direita -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="data_leitura_anterior" class="form-label">Data da Leitura Anterior</label>
+                        <input type="text" name="data_leitura_anterior" id="data_leitura_anterior" readonly value="{{ data_leitura_anterior }}" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="data_leitura_atual" class="form-label required-field"><i class="bi bi-calendar-event me-1"></i> Data da Leitura Atual</label>
+                        <!-- AJUSTE: Adicionado o atributo 'max' para bloquear datas futuras -->
+                        <input type="date" class="form-control" name="data_leitura_atual" id="data_leitura_atual" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="qtd_dias_utilizados" class="form-label">Dias Utilizados</label>
+                        <input type="number" name="qtd_dias_utilizados" id="qtd_dias_utilizados" value="{{ qtd_dias_utilizados }}" readonly class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="media_por_dia" class="form-label">Média por Dia (L)</label>
+                        <input type="number" step="0.01" name="media_por_dia" id="media_por_dia" value="{{ media_por_dia }}" readonly class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="valor_taxa_minima" class="form-label">Valor da Taxa (R$)</label>
+                        <input type="text" step="0.01" name="valor_taxa_minima" id="valor_taxa_minima" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <div id="dateError" class="erro flash-message" style="display: none;"></div>
+            
+            <hr class="my-4">
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="valor_original" class="form-label">Valor Original da Fatura (R$)</label>
+                    <input type="text" step="0.01" name="valor_original" id="valor_original" readonly required class="form-control" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="vencimento" class="form-label"><i class="bi bi-calendar-check me-1"></i> Data de Vencimento</label>
+                    <input type="date" name="vencimento" id="vencimento" value="{{ vencimento }}" readonly class="form-control" />
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="foto_hidrometro" class="form-label"><i class="bi bi-camera me-1"></i> Foto do Hidrômetro</label>
+                <input type="file" class="form-control" name="foto_hidrometro" id="foto_hidrometro" accept="image/*" />
+                <small class="form-text text-muted">Anexe uma foto legível do hidrômetro (opcional).</small>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary px-4">Voltar</a>
+                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i> Salvar Leitura</button>
+            </div>
+        </form>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" action="{{ url_for('cadastrar_leitura') }}">
-        <!-- Seção Consumidor -->
-        <div class="card card-section">
-            <h5 class="section-title">Dados do Consumidor</h5>
-            <div class="mb-3">
-                <label for="consumidor_id" class="form-label required-field">Consumidor</label>
-                <select class="form-select" name="consumidor_id" required>
-                    {% for consumidor in consumidores %}
-                        <option value="{{ consumidor.id }}" {% if consumidor_selecionado == consumidor.id %}selected{% endif %}>
-                            {{ consumidor.nome }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-
-        <!-- Seção Leituras -->
-        <div class="card card-section">
-            <h5 class="section-title">Leituras do Hidrômetro</h5>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Leitura Anterior (L)</label>
-                    <input type="number" class="form-control readonly-field" name="leitura_anterior" readonly value="{{ leitura_anterior }}">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label required-field">Leitura Atual (L)</label>
-                    <input type="number" class="form-control" name="leitura_atual" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Data da Leitura Anterior</label>
-                    <input type="date" class="form-control readonly-field" name="data_leitura_anterior" readonly value="{{ data_leitura_anterior }}">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label required-field">Data da Leitura Atual</label>
-                    <input type="date" class="form-control" name="data_leitura_atual" required>
-                </div>
-            </div>
-        </div>
-
-        <!-- Seção Cálculos -->
-        <div class="card card-section">
-            <h5 class="section-title">Cálculos Automáticos</h5>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Dias Utilizados</label>
-                    <input type="number" class="form-control readonly-field" name="qtd_dias_utilizados" value="{{ qtd_dias_utilizados }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Litros Consumidos</label>
-                    <input type="number" class="form-control readonly-field" name="litros_consumidos" id="litros_consumidos" value="{{ litros_consumidos }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Média por Dia (L)</label>
-                    <input type="number" step="0.01" class="form-control readonly-field" name="media_por_dia" value="{{ media_por_dia }}">
-                </div>
-            </div>
-        </div>
-
-        <!-- Seção Financeira -->
-        <div class="card card-section">
-            <h5 class="section-title">Informações Financeiras</h5>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Data de Vencimento</label>
-                    <input type="date" class="form-control" name="vencimento" value="{{ vencimento }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Valor Original (R$)</label>
-                    <input type="number" step="0.01" class="form-control readonly-field" name="valor_original" id="valor_original" readonly required>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Taxa Mínima</label>
-                    <select class="form-select" name="taxa_minima_aplicada">
-                        <option value="SIM">Sim</option>
-                        <option value="NÃO">Não</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Valor da Taxa (R$)</label>
-                    <input type="number" step="0.01" class="form-control" name="valor_taxa_minima">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Status do Pagamento</label>
-                    <select class="form-select" name="status_pagamento">
-                        <option value="pendente">Pendente</option>
-                        <option value="pago">Pago</option>
-                        <option value="vencido">Vencido</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Seção Foto -->
-        <div class="card card-section">
-            <h5 class="section-title">Registro Fotográfico</h5>
-            <div class="mb-3">
-                <label class="form-label">Foto do Hidrômetro</label>
-                <input type="file" class="form-control" name="foto_hidrometro" accept="image/*">
-                <small class="text-muted">Anexe uma foto legível do hidrômetro</small>
-            </div>
-        </div>
-
-        <!-- Botões -->
-        <div class="d-flex justify-content-end mt-4 gap-2">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-custom">Cancelar</a>
-            <button type="submit" class="btn btn-primary btn-custom">Salvar Leitura</button>
-        </div>
-    </form>
-</div>
-
-<!-- Scripts (MANTIDO EXATAMENTE IGUAL) -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const consumidorSelect = document.querySelector('select[name="consumidor_id"]');
-    const leituraAnteriorInput = document.querySelector('input[name="leitura_anterior"]');
-    const dataAnteriorInput = document.querySelector('input[name="data_leitura_anterior"]');
-    const leituraAtualInput = document.querySelector('input[name="leitura_atual"]');
-    const dataAtualInput = document.querySelector('input[name="data_leitura_atual"]');
-    const diasInput = document.querySelector('input[name="qtd_dias_utilizados"]');
-    const litrosInput = document.getElementById('litros_consumidos');
-    const mediaInput = document.querySelector('input[name="media_por_dia"]');
-    const valorOriginalInput = document.getElementById('valor_original');
-    const vencimentoInput = document.querySelector('input[name="vencimento"]');
-
-    function calcularCampos() {
-        const leituraAnterior = parseInt(leituraAnteriorInput.value);
-        const leituraAtual = parseInt(leituraAtualInput.value);
-        const dataAnterior = new Date(dataAnteriorInput.value);
-        const dataAtual = new Date(dataAtualInput.value);
-
-        if (!isNaN(leituraAnterior) && !isNaN(leituraAtual)) {
-            const litros = leituraAtual - leituraAnterior;
-            litrosInput.value = litros >= 0 ? litros : 0;
-        }
-
-        if (!isNaN(dataAnterior.getTime()) && !isNaN(dataAtual.getTime())) {
-            const diffTime = dataAtual - dataAnterior;
-            const dias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            diasInput.value = dias > 0 ? dias : 0;
-
-            const litros = parseInt(litrosInput.value);
-            if (!isNaN(litros) && dias > 0) {
-                mediaInput.value = (litros / dias).toFixed(2);
-            } else {
-                mediaInput.value = '';
+    <!-- SEU SCRIPT ORIGINAL, COM AJUSTES PONTUAIS DE VALIDAÇÃO -->
+    <script>
+        function formatar(valor) {
+            if (isNaN(parseFloat(valor)) || valor === null || valor === undefined || valor === '') { 
+                return ""; 
             }
+            return "R$ " + parseFloat(valor).toFixed(2).replace(".", ",");
         }
 
-        calcularValorOriginal();
-        calcularDataVencimento();
-    }
-
-    async function calcularValorOriginal() {
-        const litros = parseFloat(litrosInput.value);
-        if (isNaN(litros)) {
-            valorOriginalInput.value = "";
-            return;
+        function convertDdMmYyyyToYyyyMmDd(dateString) {
+            if (!dateString) return null;
+            const parts = dateString.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return null;
         }
 
-        try {
-            const response = await fetch("/api/valor_litro");
-            const data = await response.json();
-            const valorLitro = parseFloat(data.valor_litro);
-            const valorTotal = litros * valorLitro;
-            valorOriginalInput.value = valorTotal.toFixed(2);
-        } catch (error) {
-            console.error("Erro ao buscar valor do litro:", error);
-        }
-    }
+        document.addEventListener("DOMContentLoaded", function () {
+            const consumidorSelect = document.getElementById("consumidor_id");
+            const leituraAnteriorInput = document.getElementById("leitura_anterior");
+            const leituraAtualInput = document.getElementById("leitura_atual");
+            const dataAnteriorInput = document.getElementById("data_leitura_anterior");
+            const dataAtualInput = document.getElementById("data_leitura_atual");
+            const diasInput = document.getElementById("qtd_dias_utilizados");
+            const litrosInput = document.getElementById("litros_consumidos");
+            const mediaInput = document.getElementById("media_por_dia");
+            const valorOriginalInput = document.getElementById("valor_original");
+            const vencimentoInput = document.getElementById("vencimento");
+            const taxaMinimaAplicadaSelect = document.getElementById("taxa_minima_aplicada");
+            const valorTaxaMinimaInput = document.getElementById("valor_taxa_minima");
+            const dateErrorDiv = document.getElementById("dateError");
 
-    async function calcularDataVencimento() {
-        const dataAtualStr = dataAtualInput.value;
-        if (!dataAtualStr) return;
+            let valorLitroAtual = 0;
+            let diasUteisVencimento = 5;
 
-        try {
-            const response = await fetch("/api/dias_uteis");
-            const data = await response.json();
-            const diasUteis = parseInt(data.dias_uteis);
+            async function carregarConfiguracoes() {
+                try {
+                    const responseLitro = await fetch("/api/valor_litro");
+                    const dataLitro = await responseLitro.json();
+                    valorLitroAtual = parseFloat(dataLitro.valor_litro) || 0;
 
-            const dataLeitura = new Date(dataAtualStr);
-            let contador = 0;
-            let vencimento = new Date(dataLeitura);
+                    const responseDiasUteis = await fetch("/api/dias_uteis");
+                    const dataDiasUteis = await responseDiasUteis.json();
+                    diasUteisVencimento = parseInt(dataDiasUteis.dias_uteis) || 5;
 
-            while (contador < diasUteis) {
-                vencimento.setDate(vencimento.getDate() + 1);
-                if (vencimento.getDay() !== 0 && vencimento.getDay() !== 6) {
-                    contador++;
+                    const today = new Date();
+                    const todayString = today.toISOString().split("T")[0];
+                    
+                    // AJUSTE: Define a data máxima permitida para o input
+                    dataAtualInput.max = todayString;
+
+                    if (!dataAtualInput.value) {
+                        dataAtualInput.value = todayString;
+                    }
+                    calcularCampos();
+                } catch (error) {
+                    console.error("Erro ao carregar configurações iniciais:", error);
                 }
             }
 
-            const yyyy = vencimento.getFullYear();
-            const mm = String(vencimento.getMonth() + 1).padStart(2, '0');
-            const dd = String(vencimento.getDate()).padStart(2, '0');
-            vencimentoInput.value = `${yyyy}-${mm}-${dd}`;
-        } catch (err) {
-            console.error("Erro ao calcular vencimento:", err);
-        }
-    }
+            function calcularCampos() {
+                dateErrorDiv.textContent = ''; 
+                dateErrorDiv.style.display = 'none';
 
-    consumidorSelect.addEventListener('change', function () {
-        const consumidorId = this.value;
-        if (consumidorId) {
-            window.location.href = `/cadastrar-leitura?consumidor_id=${consumidorId}`;
-        }
-    });
+                // --- AJUSTE: Validações de data melhoradas ---
+                const dataAnteriorStr = dataAnteriorInput.value;
+                const dataAtualStr = dataAtualInput.value;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Zera o horário para comparar apenas a data
 
-    leituraAtualInput.addEventListener('input', calcularCampos);
-    dataAtualInput.addEventListener('input', calcularCampos);
-    litrosInput.addEventListener('input', calcularValorOriginal);
-});
-</script>
+                let dataAtualObj = null;
+                if (dataAtualStr) {
+                    dataAtualObj = new Date(dataAtualStr + 'T00:00:00');
+                    if (dataAtualObj > today) {
+                        dateErrorDiv.textContent = 'A Data da Leitura Atual não pode ser uma data futura.';
+                        dateErrorDiv.style.display = 'block';
+                        // Bloqueia cálculos se a data for inválida
+                        return; 
+                    }
+                }
+                
+                if (dataAnteriorStr && dataAtualObj) {
+                    const dataAnteriorISO = convertDdMmYyyyToYyyyMmDd(dataAnteriorStr);
+                    if (dataAnteriorISO) {
+                        const dataAnteriorObj = new Date(dataAnteriorISO + 'T00:00:00');
+                        if (dataAtualObj < dataAnteriorObj) {
+                            dateErrorDiv.textContent = 'A Data da Leitura Atual não pode ser anterior à Data da Leitura Anterior.';
+                            dateErrorDiv.style.display = 'block';
+                            // Bloqueia cálculos se a data for inválida
+                            return;
+                        }
+                    }
+                }
+                // --- Fim do ajuste de validações ---
+
+
+                const leituraAnterior = parseFloat(leituraAnteriorInput.value) || 0;
+                const leituraAtual = parseFloat(leituraAtualInput.value) || 0;
+                const litrosConsumidos = Math.max(leituraAtual - leituraAnterior, 0);
+                litrosInput.value = litrosConsumidos;
+                
+                let diffDays = 0;
+                if (dataAnteriorStr && dataAtualStr && dateErrorDiv.style.display === 'none') { 
+                    const dataAnteriorObj = new Date(convertDdMmYyyyToYyyyMmDd(dataAnteriorStr) + 'T00:00:00'); 
+                    const dataAtualObj = new Date(dataAtualStr + 'T00:00:00'); 
+                    const diffTime = Math.abs(dataAtualObj - dataAnteriorObj);
+                    diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    diasInput.value = diffDays;
+                    
+                    if (diffDays > 0) {
+                        mediaInput.value = (litrosConsumidos / diffDays).toFixed(2);
+                    } else {
+                        mediaInput.value = '0.00';
+                    }
+                } else {
+                    diasInput.value = '';
+                    mediaInput.value = '';
+                }
+
+                let valorBaseConsumo = litrosConsumidos * valorLitroAtual;
+                let valorTaxaMinimaLimpo = (valorTaxaMinimaInput && valorTaxaMinimaInput.value) ? parseFloat(valorTaxaMinimaInput.value.replace('R$', '').replace('.', '').replace(',', '.').trim()) : 0;
+                
+                let valorOriginalFinal = valorBaseConsumo;
+                if (taxaMinimaAplicadaSelect && taxaMinimaAplicadaSelect.value === "SIM") {
+                    valorOriginalFinal = valorTaxaMinimaLimpo; 
+                } else if (valorOriginalFinal === 0 && litrosConsumidos === 0) {
+                    valorOriginalFinal = 0; 
+                }
+                valorOriginalInput.value = formatar(valorOriginalFinal);
+
+                if (dataAtualInput.value && dateErrorDiv.style.display === 'none') {
+                    const dataLeitura = new Date(dataAtualInput.value + 'T00:00:00');
+                    let contador = 0;
+                    let vencimento = new Date(dataLeitura);
+                    while (contador < diasUteisVencimento) {
+                        vencimento.setDate(vencimento.getDate() + 1);
+                        if (vencimento.getDay() !== 0 && vencimento.getDay() !== 6) {
+                            contador++;
+                        }
+                    }
+                    vencimentoInput.value = vencimento.toISOString().split('T')[0];
+                } else {
+                    vencimentoInput.value = '';
+                }
+            }
+
+            if (consumidorSelect) {
+                consumidorSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        window.location.href = `/cadastrar-leitura?consumidor_id=${this.value}`;
+                    } else {
+                        leituraAnteriorInput.value = "";
+                        dataAnteriorInput.value = ""; 
+                        leituraAtualInput.value = "";
+                        dataAtualInput.value = new Date().toISOString().split("T")[0]; 
+                        if (dateErrorDiv) {
+                            dateErrorDiv.textContent = ''; 
+                            dateErrorDiv.style.display = 'none'; 
+                        }
+                        calcularCampos(); 
+                    }
+                });
+            }
+
+            if (leituraAtualInput) leituraAtualInput.addEventListener('input', calcularCampos); 
+            if (dataAtualInput) dataAtualInput.addEventListener('change', calcularCampos);   
+            if (taxaMinimaAplicadaSelect) taxaMinimaAplicadaSelect.addEventListener('change', calcularCampos); 
+            if (valorTaxaMinimaInput) valorTaxaMinimaInput.addEventListener('input', calcularCampos);     
+
+            if (valorOriginalInput) {
+                valorOriginalInput.addEventListener('blur', function() { 
+                    if(this.value) this.value = formatar(parseFloat(this.value.replace('R$', '').replace('.', '').replace(',', '.').trim())); 
+                });
+                if (valorOriginalInput.value) {
+                    valorOriginalInput.value = formatar(parseFloat(valorOriginalInput.value.replace('R$', '').replace('.', '').replace(',', '.').trim()));
+                }
+            }
+
+            if (valorTaxaMinimaInput) {
+                valorTaxaMinimaInput.addEventListener('blur', function() { 
+                    if(this.value) this.value = formatar(parseFloat(this.value.replace('R$', '').replace('.', '').replace(',', '.').trim())); 
+                });
+                if (valorTaxaMinimaInput.value) {
+                    valorTaxaMinimaInput.value = formatar(parseFloat(valorTaxaMinimaInput.value.replace('R$', '').replace('.', '').replace(',', '.').trim()));
+                }
+            }
+            
+            carregarConfiguracoes();
+            if (dateErrorDiv) dateErrorDiv.style.display = 'none';
+        });
+    </script>
 </body>
 </html>

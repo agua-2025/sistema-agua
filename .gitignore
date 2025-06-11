@@ -1,0 +1,13 @@
+# Ambiente Virtual
+venv/
+*.pyc
+__pycache__/
+
+# Banco de Dados Local
+# Não queremos que o nosso banco local seja enviado para o servidor.
+a_g_santa_maria.db
+*.sqlite3
+
+# Arquivos de IDEs
+.vscode/
+.idea/

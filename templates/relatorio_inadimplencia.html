@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatório de Inadimplência | Águas de Santa Maria</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f4f7f9;
+        color: #343a40;
+        font-size: 0.9rem;
+      }
+      .container-fluid {
+        padding: 1rem;
+      }
+      .main-card {
+        background-color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+        margin-top: 15px;
+      }
+      h3 {
+        color: #0056b3;
+        font-weight: 600;
+        font-size: 1.5rem;
+      }
+      .stats-box {
+        background-color: #e9ecef;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+      .stats-box strong {
+        color: #0056b3;
+      }
+      .table {
+        font-size: 0.85rem;
+      }
+      .table th {
+        background-color: #007bff;
+        color: white;
+        white-space: normal;
+        text-align: center;
+        vertical-align: middle;
+        padding: 0.6rem 0.4rem;
+      }
+      .table td {
+        vertical-align: middle;
+        padding: 0.5rem 0.4rem;
+        text-align: center;
+      }
+      .text-danger {
+        color: #dc3545 !important;
+      }
+      .text-numeric {
+        text-align: right !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="main-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3>
+            <i class="bi bi-file-earmark-excel-fill me-2"></i>Relatório de
+            Inadimplência
+          </h3>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Voltar ao Dashboard
+          </a>
+        </div>
+
+        <div class="stats-box mb-4 text-center">
+          <strong>Total Pendente (Histórico):</strong> R$ {{
+          "%.2f"|format(total_pendente) }} |
+          <strong class="text-danger"
+            >Total com Correções (Hoje): R$ {{ "%.2f"|format(total_atualizado)
+            }}</strong
+          >
+          <p class="text-muted small mb-0 mt-1">Gerado em: {{ data_hoje }}</p>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Consumidor</th>
+                <th>Endereço</th>
+                <th>Telefone</th>
+                <th>Vencimento</th>
+                <th class="text-numeric">Valor Original</th>
+                <th class="text-numeric">Valor Pago</th>
+                <th class="text-numeric">Pendente</th>
+                <th class="text-numeric">Valor Atualizado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pendencias %}
+              <tr>
+                <td style="white-space: normal; text-align: left">
+                  {{ p.consumidor }}
+                </td>
+                <td style="white-space: normal; text-align: left">
+                  {{ p.endereco }}
+                </td>
+                <td>{{ p.telefone }}</td>
+                <td class="{% if p.is_vencido %}text-danger fw-bold{% endif %}">
+                  {{ p.vencimento.split('-')[2] }}/{{ p.vencimento.split('-')[1]
+                  }}/{{ p.vencimento.split('-')[0] }}
+                </td>
+                <td class="text-numeric">
+                  R$ {{ "%.2f"|format(p.valor_original) }}
+                </td>
+                <td class="text-numeric">
+                  R$ {{ "%.2f"|format(p.total_pago) }}
+                </td>
+                <td class="text-numeric fw-bold">
+                  R$ {{ "%.2f"|format(p.valor_pendente) }}
+                </td>
+                <td class="text-numeric text-danger fw-bold">
+                  R$ {{ "%.2f"|format(p.valor_atualizado) }}
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="8" class="text-center p-5 text-muted">
+                  <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+                  <h5 class="mt-2">Nenhuma pendência encontrada.</h5>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

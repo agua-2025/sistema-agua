@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 data.forEach(leitura => {
                     const option = document.createElement('option');
                     option.value = leitura.id;
-                    option.textContent = `${leitura.data_leitura_atual} | R$ ${leitura.valor_restante.toFixed(2)} | ${leitura.status_pagamento}`;
+                    option.textContent = `${leitura.data_leitura_atual} | R$ ${leitura.faltando.toFixed(2)}`;
                     leituraSelect.appendChild(option);
                 });
             })

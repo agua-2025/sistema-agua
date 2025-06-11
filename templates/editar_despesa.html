@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Despesa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Despesa</h2>
+    {% include '_flash_messages.html' %}
+
+    <form method="POST">
+        <div class="mb-3">
+            <label for="descricao" class="form-label">Descrição da Despesa</label>
+            <input type="text" class="form-control" id="descricao" name="descricao" value="{{ despesa.descricao }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="valor" class="form-label">Valor (R$)</label>
+            <input type="text" class="form-control" id="valor" name="valor" value="{{ '%.2f'|format(despesa.valor) }}" required onkeyup="formatCurrency(this)">
+        </div>
+        <div class="mb-3">
+            <label for="data_despesa" class="form-label">Data da Despesa</label>
+            <input type="date" class="form-control" id="data_despesa" name="data_despesa" value="{{ despesa.data_despesa }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="categoria" class="form-label">Categoria</label>
+            <select class="form-select" id="categoria" name="categoria">
+                <option value="">Selecione a Categoria</option>
+                {% set categories = ['Manutenção', 'Energia', 'Salários', 'Impostos', 'Material', 'Combustível', 'Outros'] %}
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if despesa.categoria == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="observacoes" class="form-label">Observações</label>
+            <textarea class="form-control" id="observacoes" name="observacoes" rows="3">{{ despesa.observacoes }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Atualizar Despesa</button>
+        <a href="{{ url_for('listar_despesas') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<script>
+    function formatCurrency(input) {
+        let value = input.value;
+        value = value.replace(/\D/g, ""); // Remove tudo que não é dígito
+        if (value.length === 0) {
+            input.value = "";
+            return;
+        }
+        // Adiciona a vírgula antes dos 2 últimos dígitos (centavos)
+        value = (parseInt(value) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        input.value = value;
+    }
+</script>
+{% endblock %}

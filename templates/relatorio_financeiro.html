@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório Financeiro{% endblock %}
+
+{% block content %}
+{% if is_pdf %}
+    {# --- TEMPLATE EXCLUSIVO PARA O PDF --- #}
+    <style>
+        /* Estilos para um relatório profissional em PDF */
+        @font-face {
+            font-family: 'Inter';
+            src: url(https://fonts.gstatic.com/s/inter/v12/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2) format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Inter';
+            src: url(https://fonts.gstatic.com/s/inter/v12/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2) format('woff2');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+
+        @page {
+            size: A4;
+            margin: 2cm; /* Aumenta a margem para dar espaço ao cabeçalho/rodapé */
+
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 10px;
+                color: #777;
+            }
+        }
+        
+        /* Novo Cabeçalho Profissional */
+        .pdf-header {
+            text-align: center;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .pdf-header .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #004085; /* Azul escuro e sóbrio */
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .pdf-header .report-title {
+            font-size: 16px;
+            color: #6c757d; /* Cinza sutil */
+            margin: 5px 0 0;
+            text-transform: uppercase;
+        }
+
+        .report-period {
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .summary-table td {
+            padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            font-size: 14px;
+        }
+        
+        .summary-table tfoot td {
+            font-weight: bold;
+            font-size: 16px;
+            border-top: 2px solid #000;
+        }
+
+        .currency {
+            text-align: right;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+        }
+
+        .label-cell {
+            font-weight: bold;
+            width: 70%;
+        }
+
+        .success { color: #198754; }
+        .danger { color: #dc3545; }
+        .primary { color: #0056b3; }
+        
+        .footer-note {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 10px;
+            color: #888;
+        }
+    </style>
+
+    <div class="pdf-header">
+        <p class="company-name">Águas de Santa Maria</p>
+        <p class="report-title">Relatório Financeiro</p>
+    </div>
+
+    <p class="report-period">
+        Período de Referência: 
+        <strong>
+        {% if mes_filtro %}
+            Mês {{ mes_filtro }} de {{ ano_filtro }}
+        {% else %}
+            Ano de {{ ano_filtro }}
+        {% endif %}
+        </strong>
+    </p>
+
+    <table class="summary-table">
+        <tbody>
+            <tr>
+                <td class="label-cell">Total de Receitas (Pagamentos Recebidos)</td>
+                <td class="currency success">R$ {{ "%.2f"|format(total_receitas) | replace('.', ',') }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Total de Despesas</td>
+                <td class="currency danger">R$ {{ "%.2f"|format(total_despesas) | replace('.', ',') }}</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="label-cell">Saldo Final (Receitas - Despesas)</td>
+                <td class="currency {% if saldo >= 0 %}primary{% else %}danger{% endif %}">
+                    R$ {{ "%.2f"|format(saldo) | replace('.', ',') }}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <p class="footer-note">
+        Relatório gerado em: {{ "now"|date_format('%d/%m/%Y às %H:%M') }}.
+    </p>
+
+{% else %}
+    {# --- TEMPLATE PARA A PÁGINA WEB (EXISTENTE) --- #}
+    <div class="container my-4">
+        <div class="card p-4 p-md-5 shadow-sm" style="border-radius: 12px; background-color: #ffffff;">
+
+            <h3 class="text-center fw-bold mb-4" style="color: #0056b3;"><i class="bi bi-graph-up me-2"></i>Relatório Financeiro</h3>
+            <p class="text-center text-muted mb-4">Análise de Receitas vs. Despesas por período.</p>
+
+            <!-- Seção de Filtros -->
+            <div class="p-3 mb-4 border rounded" style="background-color: #f8f9fa;">
+                <form method="GET" action="{{ url_for('relatorio_financeiro') }}">
+                    <div class="row align-items-end">
+                        <div class="col-md-5 mb-2 mb-md-0">
+                            <label for="mes_filtro" class="form-label fw-bold">Mês:</label>
+                            <select class="form-select" id="mes_filtro" name="mes">
+                                <option value="">Anual (Todos os meses)</option>
+                                {% for i in range(1, 13) %}
+                                    <option value="{{ '%02d' % i }}" {% if mes_filtro == '%02d' % i %}selected{% endif %}>
+                                        Mês {{ '%02d' % i }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <label for="ano_filtro" class="form-label fw-bold">Ano:</label>
+                            <input type="number" class="form-control" id="ano_filtro" name="ano" 
+                                   value="{{ ano_filtro or ano_atual }}" 
+                                   min="2020" max="{{ ano_atual + 5 }}" 
+                                   placeholder="{{ ano_atual }}">
+                        </div>
+                        <div class="col-md-3 d-flex justify-content-start justify-content-md-end mt-3 mt-md-0">
+                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel-fill me-1"></i>Filtrar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Cards de Resumo -->
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm" style="border-left: 5px solid #198754;">
+                        <div class="card-body">
+                            <h5 class="card-title text-success"><i class="bi bi-arrow-up-circle-fill me-2"></i>Total de Receitas</h5>
+                            <p class="card-text fs-2 fw-bold">R$ {{ "%.2f"|format(total_receitas) | replace('.', ',') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm" style="border-left: 5px solid #dc3545;">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger"><i class="bi bi-arrow-down-circle-fill me-2"></i>Total de Despesas</h5>
+                            <p class="card-text fs-2 fw-bold">R$ {{ "%.2f"|format(total_despesas) | replace('.', ',') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm {% if saldo >= 0 %}border-primary{% else %}border-warning{% endif %}" style="border-left-width: 5px;">
+                        <div class="card-body">
+                            <h5 class="card-title {% if saldo >= 0 %}text-primary{% else %}text-warning{% endif %}"><i class="bi bi-bank me-2"></i>Saldo Final</h5>
+                            <p class="card-text fs-2 fw-bold">R$ {{ "%.2f"|format(saldo) | replace('.', ',') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <hr class="my-4">
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left-circle me-1"></i> Voltar ao Dashboard
+                </a>
+                <a href="{{ url_for('gerar_pdf_relatorio_financeiro', mes=mes_filtro, ano=ano_filtro) }}" class="btn btn-danger" target="_blank">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i> Gerar PDF
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

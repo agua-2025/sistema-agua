@@ -1,222 +1,206 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel - Águas de Santa Maria</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"  rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"  rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-            --accent-color: #e74c3c;
-        }
-        
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .dashboard-card {
-            border-radius: 10px;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-            height: 100%;
-        }
-        
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .card-icon {
-            font-size: 2rem;
-            margin-bottom: 15px;
-        }
-        
-        .welcome-banner {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .btn-custom {
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .btn-custom-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .btn-custom-primary:hover {
-            background-color: #2980b9;
-            border-color: #2980b9;
-        }
-        
-        .quick-actions {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f4f7f9;
+      }
+      .main-header {
+        background: linear-gradient(135deg, #0d6efd, #0056b3);
+        color: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 25px rgba(0, 91, 255, 0.2);
+      }
+      .main-header h2 {
+        font-weight: 700;
+      }
+      .section-card {
+        background-color: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        height: 100%;
+      }
+      .section-title {
+        font-weight: 600;
+        color: #343a40;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+      }
+      .action-link {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #212529;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+      .action-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        background-color: #e9ecef;
+      }
+      .action-link i {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        color: #007bff;
+      }
+      .stats-card {
+        padding: 1.5rem 1rem;
+        border-radius: 8px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+      .stats-card .icon {
+        position: absolute;
+        right: -10px;
+        bottom: -20px;
+        font-size: 4rem;
+        opacity: 0.2;
+      }
+      .stats-card h6 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .stats-card .display-5 {
+        font-weight: 700;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container py-4">
-        <!-- Cabeçalho -->
-        <div class="welcome-banner d-flex justify-content-between align-items-center">
-            <div>
-                <h2><i class="fas fa-tint me-2"></i> Águas de Santa Maria</h2>
-                <p class="mb-0">Bem-vindo, {{ user }} <span class="badge bg-light text-dark ms-2">Admin</span></p>
+      <div
+        class="main-header d-flex justify-content-between align-items-center"
+      >
+        <div>
+          <h2><i class="bi bi-speedometer2 me-2"></i> Painel de Controle</h2>
+          <p class="mb-0 lead fs-6">Bem-vindo, {{ user }}.</p>
+        </div>
+        <a href="{{ url_for('logout') }}" class="btn btn-light">
+          <i class="bi bi-box-arrow-right me-1"></i> Sair
+        </a>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card bg-primary">
+            <i class="bi bi-people-fill icon"></i>
+            <h6>Consumidores</h6>
+            <p class="display-5 mb-0">{{ total_consumidores }}</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card bg-success">
+            <i class="bi bi-cash-stack icon"></i>
+            <h6>Pagamentos Hoje</h6>
+            <p class="display-5 mb-0">{{ pagamentos_hoje }}</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card bg-warning text-dark">
+            <i class="bi bi-exclamation-triangle-fill icon"></i>
+            <h6>Faturas Pendentes</h6>
+            <p class="display-5 mb-0">{{ faturas_pendentes }}</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="stats-card bg-secondary">
+            <i class="bi bi-person-badge icon"></i>
+            <h6>Usuários</h6>
+            <p class="display-5 mb-0">{{ total_usuarios }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h5 class="section-title">
+              <i class="bi bi-lightning-charge-fill me-2"></i>Ações Rápidas
+            </h5>
+            <div class="vstack gap-3">
+              <a
+                href="{{ url_for('cadastrar_consumidor') }}"
+                class="action-link"
+              >
+                <i class="bi bi-person-plus-fill"></i>
+                <span>Cadastrar Novo Consumidor</span>
+              </a>
+              <a href="{{ url_for('cadastrar_leitura') }}" class="action-link">
+                <i class="bi bi-droplet-fill"></i>
+                <span>Lançar Nova Leitura</span>
+              </a>
+              <a
+                href="{{ url_for('registrar_pagamento') }}"
+                class="action-link"
+              >
+                <i class="bi bi-cash-coin"></i>
+                <span>Registrar um Pagamento</span>
+              </a>
+              {# Links de Despesa movidos para Central de Relatórios ou nova seção, como relatorios.html #}
+              <a href="{{ url_for('cadastrar_despesa') }}" class="action-link">
+                  <i class="bi bi-file-earmark-plus-fill"></i>
+                  <span>Cadastrar Despesa</span>
+              </a>
+              <a href="{{ url_for('listar_despesas') }}" class="action-link">
+                  <i class="bi bi-card-list"></i>
+                  <span>Listar Despesas</span>
+              </a>
             </div>
-            <a href="{{ url_for('logout') }}" class="btn btn-light btn-custom">
-                <i class="fas fa-sign-out-alt me-1"></i> Sair
-            </a>
+          </div>
         </div>
 
-        <!-- Cartões de Resumo -->
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="dashboard-card card text-white bg-primary">
-                    <div class="card-body text-center">
-                        <i class="fas fa-users card-icon"></i>
-                        <h5>Consumidores</h5>
-                        <h3>22</h3>
-                        <a href="{{ url_for('listar_consumidores') }}" class="btn btn-sm btn-light mt-2">Ver Todos</a>
-                    </div>
-                </div>
+        <div class="col-lg-6">
+          <div class="section-card">
+            <h5 class="section-title">
+              <i class="bi bi-collection-fill me-2"></i>Consultas e
+              Configurações
+            </h5>
+            <div class="vstack gap-3">
+              <a
+                href="{{ url_for('listar_consumidores') }}"
+                class="action-link"
+              >
+                <i class="bi bi-person-lines-fill"></i>
+                <span>Gerenciar Consumidores</span>
+              </a>
+              <a href="{{ url_for('relatorios') }}" class="action-link">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span>Central de Relatórios</span>
+              </a>
+              <a href="{{ url_for('configuracoes') }}" class="action-link">
+                <i class="bi bi-gear-fill"></i>
+                <span>Configurações do Sistema</span>
+              </a>
             </div>
-            <div class="col-md-3 mb-3">
-                <div class="dashboard-card card text-white bg-primary">
-                    <div class="card-body text-center">
-                        <i class="fas fa-users card-icon"></i>
-                        <h5>Usuários</h5>
-                        <h3>2</h3>
-                        <a href="{{ url_for('cadastrar_usuario') }}" class="btn btn-sm btn-light mt-2">Usuários</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3 mb-3">
-                <div class="dashboard-card card text-white bg-success">
-                    <div class="card-body text-center">
-                        <i class="fas fa-file-invoice-dollar card-icon"></i>
-                        <h5>Pagamentos Hoje</h5>
-                        <h3>42</h3>
-                        <a href="{{ url_for('listar_pagamentos') }}" class="btn btn-sm btn-light mt-2">Detalhes</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="dashboard-card card text-white bg-warning">
-                    <div class="card-body text-center">
-                        <i class="fas fa-clock card-icon"></i>
-                        <h5>Pendentes</h5>
-                        <h3>87</h3>
-                        <a href="#" class="btn btn-sm btn-light mt-2">Resolver</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="dashboard-card card text-white bg-info">
-                    <div class="card-body text-center">
-                        <i class="fas fa-cog card-icon"></i>
-                        <h5>Configurações</h5>
-                        <a href="{{ url_for('configuracoes') }}" class="btn btn-sm btn-light mt-4">Acessar</a>
-                    </div>
-                </div>
-            </div>
-
-           <!-- CARTÃO COMPLETO DE RELATÓRIOS -->
-<div class="col-md-3 mb-3">
-    <div class="dashboard-card card text-white bg-secondary">
-        <div class="card-body text-center">
-            <i class="fas fa-chart-bar card-icon"></i>
-            <h5>Relatórios</h5>
-            <div class="d-grid gap-2 mt-2">
-                <a href="{{ url_for('relatorios') }}" class="btn btn-sm btn-light">Ver Relatórios</a>
-                </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
-<!-- Ações Rápidas -->
-<div class="quick-actions mb-4">
-    <h4 class="mb-4"><i class="fas fa-bolt me-2"></i>Ações Rápidas</h4>
-    <div class="row">
-        <div class="col-md-3 mb-3">
-            <a href="{{ url_for('cadastrar_consumidor') }}" class="btn btn-custom btn-custom-primary w-100">
-                <i class="fas fa-user-plus me-2"></i>Novo Consumidor
-            </a>
-        </div>
-        <div class="col-md-3 mb-3">
-            <a href="{{ url_for('cadastrar_leitura') }}" class="btn btn-success w-100 btn-custom">
-                <i class="fas fa-water me-2"></i>Nova Leitura
-            </a>
-        </div>
-        <div class="col-md-3 mb-3">
-            <a href="{{ url_for('registrar_pagamento') }}" class="btn btn-dark w-100 btn-custom">
-                <i class="fas fa-hand-holding-usd me-2"></i>Registrar Pagamento
-            </a>
-        </div>
-        <div class="col-md-3 mb-3">
-            <a href="{{ url_for('baixar_db') }}" class="btn btn-outline-secondary w-100 btn-custom">
-                <i class="fas fa-database me-2"></i> Fazer Backup do Banco
-            </a>
-        </div>
-    </div>
-</div>
-
-        <!-- Atividades Recentes -->
-        <div class="card dashboard-card mb-4">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Atividades Recentes</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Pagamento registrado - R$ 150,00
-                        </div>
-                        <small class="text-muted">2 minutos atrás</small>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-user-plus text-primary me-2"></i>
-                            Novo consumidor cadastrado
-                        </div>
-                        <small class="text-muted">15 minutos atrás</small>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-water text-info me-2"></i>
-                            Leitura do hidrômetro registrada
-                        </div>
-                        <small class="text-muted">1 hora atrás</small>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>   
-    <script>
-        // Atualiza a hora automaticamente
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('current-time').textContent = now.toLocaleTimeString();
-        }
-        setInterval(updateTime, 1000);
-        updateTime();
-    </script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>

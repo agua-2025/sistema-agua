@@ -1,41 +1,158 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Relatórios | AquaGest</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container mt-5">
-    <h2 class="mb-4">Relatórios do Sistema</h2>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatórios | Águas de Santa Maria</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f4f7f9;
+      }
+      .report-card {
+        background-color: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: #343a40;
+        transition: all 0.3s ease;
+        display: block;
+        height: 100%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      }
+      .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        color: #0056b3;
+      }
+      .report-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+        color: #007bff;
+      }
+      .report-card h5 {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+      }
+      .report-card p {
+        font-size: 0.85rem;
+        color: #6c757d;
+      }
+      .main-header {
+        color: #0056b3;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container my-5">
+      <div class="text-center mb-5">
+        <h2 class="main-header">
+          <i class="bi bi-collection-fill me-2"></i>Central de Relatórios
+        </h2>
+        <p class="text-muted">
+          Selecione um dos relatórios abaixo para visualizar os dados do
+          sistema.
+        </p>
+      </div>
 
-    <div class="row g-3">
-        <div class="col-md-4">
-            <a href="{{ url_for('relatorio_consumidores') }}" class="btn btn-outline-primary w-100">
-                🔎 Relatório de Consumidores
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <a href="{{ url_for('relatorio_consumidores') }}" class="report-card">
+            <i class="bi bi-people-fill icon"></i>
+            <h5>Relatório de Consumidores</h5>
+            <p>
+              Liste e filtre todos os consumidores e suas últimas leituras
+              registradas.
+            </p>
+          </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="{{ url_for('listar_pagamentos') }}" class="report-card">
+            <i class="bi bi-cash-stack icon"></i>
+            <h5>Relatório de Pagamentos</h5>
+            <p>
+              Visualize o histórico completo de todos os pagamentos realizados
+              no sistema.
+            </p>
+          </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a
+            href="{{ url_for('relatorio_inadimplencia') }}"
+            class="report-card"
+          >
+            <i
+              class="bi bi-file-earmark-excel-fill icon"
+              style="color: #dc3545"
+            ></i>
+            <h5>Relatório de Inadimplência</h5>
+            <p>
+              Consulte todas as faturas com pagamentos pendentes e seus valores
+              atualizados.
+            </p>
+          </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="{{ url_for('listar_leituras') }}" class="report-card">
+            <i class="bi bi-droplet-half icon"></i>
+            <h5>Relatório de Leituras</h5>
+            <p>
+              Acesse o registro detalhado de todas as leituras feitas por
+              período.
+            </p>
+          </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="{{ url_for('relatorio_geral') }}" class="report-card">
+            <i class="bi bi-bar-chart-line-fill icon"></i>
+            <h5>Relatório Geral</h5>
+            <p>
+              Veja um resumo financeiro e estatísticas consolidadas do sistema.
+            </p>
+          </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <a href="{{ url_for('selecionar_comprovante') }}" class="report-card">
+            <i class="bi bi-receipt-cutoff icon"></i>
+            <h5>Consultar Fatura</h5>
+            <p>
+              Busque e visualize o extrato completo de uma fatura específica.
+            </p>
+          </a>
+        </div>
+        {# NOVO CARD: Relatório Financeiro #}
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ url_for('relatorio_financeiro') }}" class="report-card">
+                <i class="bi bi-currency-dollar icon"></i>
+                <h5>Relatório Financeiro (Receitas vs. Despesas)</h5>
+                <p>
+                    Visualize o balanço entre receitas e despesas do sistema para um período específico.
+                </p>
             </a>
         </div>
-        <div class="col-md-4">
-            <a href="{{ url_for('listar_pagamentos') }}" class="btn btn-outline-success w-100">
-                💰 Relatório de Pagamentos
-            </a>
-        </div>
-        <div class="col-md-4">
-            <a href="{{ url_for('listar_leituras') }}" class="btn btn-outline-info w-100">
-                💧 Relatório de Leituras
-            </a>
-        </div>
-        <div class="col-md-4">
-            <a href="{{ url_for('relatorio_geral') }}" class="btn btn-outline-dark w-100">
-                📊 Relatório Geral
-            </a>
-        </div>
-        <div class="col-md-4">
-            <a href="{{ url_for('selecionar_comprovante') }}" class="btn btn-outline-secondary w-100">
-                📄 Relatório de Comprovantes
-            </a>
-        </div>
+      </div>
+
+      <div class="text-center mt-5">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left me-1"></i> Voltar ao Dashboard
+        </a>
+      </div>
     </div>
-</div>
-</body>
+  </body>
 </html>
