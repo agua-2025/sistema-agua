@@ -12,6 +12,8 @@ from functools import wraps
 from urllib.parse import quote
 import math
 from weasyprint import HTML # Importado para gerar PDFs
+import click
+from flask.cli import with_appcontext
 
 # --- Configurações da Aplicação ---
 app = Flask(__name__)
@@ -55,6 +57,16 @@ def get_db():
         g.db = sqlite3.connect(DATABASE)
         g.db.row_factory = sqlite3.Row
     return g.db
+
+@click.command('init-db')
+@with_appcontext
+def init_db_command():
+    """Limpa os dados existentes e cria novas tabelas."""
+    init_db()
+    click.echo('Banco de dados inicializado.')
+
+# Esta linha registra o comando no Flask
+app.cli.add_command(init_db_command)
 
 @app.teardown_appcontext
 def close_db(error):
