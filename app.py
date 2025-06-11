@@ -2101,18 +2101,32 @@ if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
         
-    # Inicializa o banco de dados se o arquivo não existir
-    if not os.path.exists(DATABASE):
-        init_db()
-        # Opcional: Adicionar um usuário admin padrão na primeira inicialização
-        with app.app_context():
-            db = get_db()
-            existing_admin = db.execute("SELECT id FROM usuarios_admin WHERE username = 'admin'").fetchone()
-            if not existing_admin:
-                db.execute("INSERT INTO usuarios_admin (username, senha_hash, email) VALUES (?, ?, ?)",
-                           ('admin', generate_password_hash('admin123'), 'admin@example.com'))
-                db.commit()
-                print("Usuário admin padrão (admin/admin123) criado.")
+    # No seu app.py, substitua sua função init_db por esta:
+
+def init_db():
+    with app.app_context():
+        db = get_db()
+        # Abre o arquivo schema.sql e executa os comandos para criar as tabelas
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read().decode('utf8'))
+        
+        # AGORA, INSERE O USUÁRIO ADMIN DIRETAMENTE AQUI NO CÓDIGO
+        try:
+            db.execute(
+                """INSERT INTO usuarios_admin (username, senha_hash, email) VALUES (?, ?, ?)""",
+                (
+                    'admin',
+                    generate_password_hash('admin123'), # Gera o hash na hora
+                    'admin@example.com'
+                )
+            )
+            print("Usuário 'admin' padrão inserido com sucesso pelo app.py.")
+        except sqlite3.IntegrityError:
+            # Isso evita um erro caso a função seja rodada mais de uma vez
+            print("Usuário 'admin' já existia.")
+
+        db.commit()
+    print("Database initialized successfully.")
     
     # Rodar a aplicação em modo debug para desenvolvimento
     app.run(debug=True)
