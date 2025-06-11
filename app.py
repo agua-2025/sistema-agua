@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, g, jsonify, flash, make_response, send_file, Response # Adicionado Response
+from flask import Flask, render_template, request, redirect, url_for, session, g, jsonify, flash, make_response, send_file, Response
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
 from werkzeug.utils import secure_filename
-from datetime import datetime, timedelta, date # date e datetime importados
+from datetime import datetime, timedelta, date
 import secrets
 import smtplib
 from email.mime.text import MIMEText
@@ -11,7 +11,7 @@ from email.utils import formataddr
 from functools import wraps
 from urllib.parse import quote
 import math
-from weasyprint import HTML # Importado para gerar PDFs
+from weasyprint import HTML
 import click
 from flask.cli import with_appcontext
 
@@ -21,19 +21,14 @@ app = Flask(__name__)
 # --- Adicionar filtro de data para Jinja2 ---
 @app.template_filter('date_format')
 def _jinja2_filter_date_format(value, fmt='%d/%m/%Y'):
-    if not value: # Lida com valores nulos ou vazios
+    if not value:
         return ""
-    # Tenta converter de objeto datetime.date ou datetime.datetime
     if isinstance(value, (datetime, date)):
         return value.strftime(fmt)
-    
-    # Tenta parsear string do formato AAAA-MM-DD (comum de banco de dados)
     try:
         return datetime.strptime(str(value), '%Y-%m-%d').strftime(fmt)
     except ValueError:
-        pass # Se não for AAAA-MM-DD, tenta outros formatos ou deixa passar
-
-    # Se 'value' já for uma string no formato desejado ou não puder ser parseado, retorna como está.
+        pass
     return str(value)
 
 # Chave secreta deve ser lida de variável de ambiente em produção
@@ -58,12 +53,44 @@ def get_db():
         g.db.row_factory = sqlite3.Row
     return g.db
 
+# Função para inicializar o banco de dados (criar tabelas)
+def init_db():
+    with app.app_context():
+        db = get_db()
+        # Abre o arquivo schema.sql em modo texto ('r')
+        with app.open_resource('schema.sql', mode='r') as f:
+            # CORREÇÃO: f.read() já retorna uma string, então removemos o .decode()
+            db.cursor().executescript(f.read())
+        
+        # Insere o usuário admin diretamente via código
+        try:
+            db.execute(
+                """INSERT INTO usuarios_admin (username, senha_hash, email) VALUES (?, ?, ?)""",
+                (
+                    'admin',
+                    generate_password_hash('admin123'),
+                    'admin@example.com'
+                )
+            )
+            print("Usuário 'admin' padrão inserido com sucesso pelo app.py.")
+        except sqlite3.IntegrityError:
+            print("Usuário 'admin' já existia. Nenhuma ação necessária.")
+
+        db.commit()
+    print("Database initialized successfully.")
+
+
+# Comando de terminal para inicializar o banco de dados
 @click.command('init-db')
 @with_appcontext
 def init_db_command():
     """Limpa os dados existentes e cria novas tabelas."""
     init_db()
     click.echo('Banco de dados inicializado.')
+
+# Registra o comando no Flask
+app.cli.add_command(init_db_command)
+
 
 # Esta linha registra o comando no Flask
 app.cli.add_command(init_db_command)
@@ -2101,32 +2128,6 @@ if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
         
-    # No seu app.py, substitua sua função init_db por esta:
-
-def init_db():
-    with app.app_context():
-        db = get_db()
-        # Abre o arquivo schema.sql e executa os comandos para criar as tabelas
-        with app.open_resource('schema.sql', mode='r') as f:
-            db.cursor().executescript(f.read().decode('utf8'))
-        
-        # AGORA, INSERE O USUÁRIO ADMIN DIRETAMENTE AQUI NO CÓDIGO
-        try:
-            db.execute(
-                """INSERT INTO usuarios_admin (username, senha_hash, email) VALUES (?, ?, ?)""",
-                (
-                    'admin',
-                    generate_password_hash('admin123'), # Gera o hash na hora
-                    'admin@example.com'
-                )
-            )
-            print("Usuário 'admin' padrão inserido com sucesso pelo app.py.")
-        except sqlite3.IntegrityError:
-            # Isso evita um erro caso a função seja rodada mais de uma vez
-            print("Usuário 'admin' já existia.")
-
-        db.commit()
-    print("Database initialized successfully.")
-    
+     
     # Rodar a aplicação em modo debug para desenvolvimento
     app.run(debug=True)
