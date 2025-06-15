@@ -17,11 +17,9 @@
       rel="stylesheet"
     />
     <style>
-      /* Estilo refinado para um visual compacto e profissional, alinhado com o sistema */
       body {
         font-family: "Inter", sans-serif;
         background-color: #f4f7f9;
-        color: #343a40;
         font-size: 0.9rem;
       }
       .container {
@@ -30,18 +28,14 @@
         border-radius: 12px;
         box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
         margin-top: 20px;
-        margin-bottom: 20px;
         max-width: 900px;
       }
       h3 {
         color: #0056b3;
         font-weight: 600;
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
         text-align: center;
       }
       .section-title {
-        font-size: 0.9rem;
         font-weight: 600;
         color: #007bff;
         margin-bottom: 1rem;
@@ -50,39 +44,15 @@
       }
       .form-label {
         font-weight: 500;
-        color: #495057;
-        margin-bottom: 0.3rem;
         font-size: 0.85rem;
-      }
-      .form-control,
-      .form-select {
-        border-radius: 6px;
-        font-size: 0.9rem;
-        padding: 0.55rem 0.75rem;
-      }
-      .form-control[readonly] {
-        background-color: #e9ecef;
-        cursor: not-allowed;
       }
       .info-display-box {
         background-color: #e9ecef;
         border-radius: 6px;
         padding: 0.55rem 0.75rem;
-        font-size: 0.9rem;
-        color: #212529;
-        font-weight: 500;
         min-height: calc(1.5em + 1.1rem + 2px);
         display: flex;
         align-items: center;
-      }
-      .saldo-message {
-        font-weight: 600;
-        margin-top: 1rem;
-        font-size: 1rem;
-        text-align: center;
-        padding: 0.75rem;
-        border-radius: 6px;
-        background-color: #f8f9fa;
       }
       .total-box {
         background-color: #e9ecef;
@@ -97,13 +67,6 @@
       .total-box .display-value {
         font-size: 1.75rem;
         font-weight: 700;
-        color: #212529;
-      }
-      .text-success {
-        color: #198754 !important;
-      }
-      .text-danger {
-        color: #dc3545 !important;
       }
     </style>
   </head>
@@ -137,12 +100,10 @@
         <h5 class="section-title">Seleção da Fatura</h5>
         <div class="row mb-3">
           <div class="col-md-6 mb-3 mb-md-0">
-            <label for="consumidorSelect" class="form-label"
-              >Consumidor *</label
-            >
+            <label for="consumidor_id" class="form-label">Consumidor *</label>
             <select
               class="form-select"
-              id="consumidorSelect"
+              id="consumidor_id"
               name="consumidor_id"
               required
             >
@@ -155,12 +116,10 @@
             </select>
           </div>
           <div class="col-md-6">
-            <label for="leituraSelect" class="form-label"
-              >Fatura Pendente *</label
-            >
+            <label for="leitura_id" class="form-label">Fatura Pendente *</label>
             <select
               class="form-select"
-              id="leituraSelect"
+              id="leitura_id"
               name="leitura_id"
               required
             >
@@ -172,31 +131,28 @@
         <hr class="my-4" />
 
         <div class="row">
-          <!-- Coluna da Esquerda: Dados e Entradas -->
           <div class="col-lg-7">
             <h5 class="section-title">Cálculo de Valores</h5>
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label">Vencimento Original</label>
-                <div class="info-display-box" id="dataVencimentoDisplay">
+                <div class="info-display-box" id="vencimento_original">
                   DD/MM/AAAA
                 </div>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Saldo Devedor Anterior</label>
-                <div class="info-display-box" id="saldoPendenteOriginalDisplay">
-                  R$ 0,00
-                </div>
+                <div class="info-display-box" id="saldo_anterior">R$ 0,00</div>
               </div>
             </div>
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label">Multa</label>
-                <div class="info-display-box" id="valorMulta">R$ 0,00</div>
+                <div class="info-display-box" id="multa">R$ 0,00</div>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Juros</label>
-                <div class="info-display-box" id="valorJuros">R$ 0,00</div>
+                <div class="info-display-box" id="juros">R$ 0,00</div>
               </div>
             </div>
 
@@ -212,7 +168,6 @@
                   id="data_pagamento"
                   name="data_pagamento"
                   required
-                  readonly
                 />
               </div>
               <div class="col-md-6 mb-3">
@@ -234,44 +189,32 @@
             </div>
           </div>
 
-          <!-- Coluna da Direita: Totais e Valor Pago -->
           <div class="col-lg-5">
             <h5 class="section-title">Valores Finais</h5>
             <div class="mb-3">
               <div class="total-box">
                 <label class="form-label">TOTAL A PAGAR HOJE</label>
-                <div class="display-value" id="totalCorrigido">R$ 0,00</div>
+                <div class="display-value" id="total_a_pagar">R$ 0,00</div>
               </div>
             </div>
             <div class="mb-3">
-              <label for="valorPago" class="form-label"
+              <label for="valor_pago" class="form-label"
                 >Valor Efetivamente Pago *</label
               >
               <input
                 type="text"
                 class="form-control form-control-lg"
-                id="valorPago"
+                id="valor_pago"
                 name="valor_pago"
                 required
                 placeholder="R$ 0,00"
               />
             </div>
-            <div class="saldo-message" id="saldoMessage">
-              Aguardando preenchimento...
-            </div>
           </div>
         </div>
 
-        <input type="hidden" id="saldoCredor" name="saldo_credor" />
-        <input type="hidden" id="saldoDevedor" name="saldo_devedor" />
-
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-          <button
-            type="button"
-            class="btn btn-primary px-4"
-            data-bs-toggle="modal"
-            data-bs-target="#confirmacaoModal"
-          >
+          <button type="submit" class="btn btn-primary px-4">
             <i class="bi bi-check-circle-fill me-2"></i>Registrar Pagamento
           </button>
           <a href="{{ url_for('dashboard') }}" class="btn btn-secondary px-4"
@@ -281,240 +224,163 @@
       </form>
     </div>
 
-    <!-- Modal de Confirmação -->
-    <div
-      class="modal fade"
-      id="confirmacaoModal"
-      tabindex="-1"
-      aria-labelledby="confirmacaoModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="confirmacaoModalLabel">
-              Confirmar Pagamento
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            Você confirma o registro deste pagamento?
-            <div class="mt-3 p-3 bg-light rounded">
-              <strong>Valor a ser registrado:</strong>
-              <span
-                id="valorConfirmacao"
-                class="fw-bold fs-5 text-success"
-              ></span>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              id="confirmarPagamentoBtn"
-            >
-              Sim, confirmar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-      function formatar(valor) {
-        const numero = parseFloat(valor);
-        if (isNaN(numero)) return "R$ 0,00";
-        return "R$ " + numero.toFixed(2).replace(".", ",");
+      // Função para formatar um número para o padrão de moeda brasileiro (R$)
+      function formatCurrency(value) {
+        const number = parseFloat(value);
+        if (isNaN(number)) return "R$ 0,00";
+        return "R$ " + number.toFixed(2).replace(".", ",");
       }
 
+      // Função para formatar uma string de data (YYYY-MM-DD) para o padrão brasileiro (DD/MM/YYYY)
+      function formatDate(dateString) {
+        if (!dateString) {
+          // Se a data for nula ou vazia
+          return "N/A";
+        }
+        // Adiciona T00:00:00 para evitar problemas de fuso horário que podem mudar o dia
+        const date = new Date(dateString + "T00:00:00");
+        if (isNaN(date.getTime())) {
+          // Se a data criada é inválida
+          return "Data Inválida";
+        }
+        return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+      }
+
+      // Função para formatar a data de referência da fatura (Mês/Ano)
+      function formatRefDate(dateString) {
+        if (!dateString) {
+          return "Ref. N/A";
+        }
+        const date = new Date(dateString + "T00:00:00");
+        if (isNaN(date.getTime())) {
+          return "Ref. Inválida";
+        }
+
+        const mes = String(date.getMonth() + 1).padStart(2, "0");
+        const ano = date.getFullYear();
+        return `Fatura Ref. ${mes}/${ano}`;
+      }
+
+      // Espera o documento carregar para executar o código
       document.addEventListener("DOMContentLoaded", function () {
-        const consumidorSelect = document.getElementById("consumidorSelect");
-        const leituraSelect = document.getElementById("leituraSelect");
-        const valorMultaDisplay = document.getElementById("valorMulta");
-        const valorJurosDisplay = document.getElementById("valorJuros");
-        const totalCorrigidoDisplay = document.getElementById("totalCorrigido");
+        // IDs CORRIGIDOS PARA BATER COM O HTML
+        const consumidorSelect = document.getElementById("consumidor_id");
+        const faturaSelect = document.getElementById("leitura_id");
         const dataPagamentoInput = document.getElementById("data_pagamento");
-        const valorPagoInput = document.getElementById("valorPago");
-        const saldoCredorInput = document.getElementById("saldoCredor");
-        const saldoDevedorInput = document.getElementById("saldoDevedor");
-        const saldoMessage = document.getElementById("saldoMessage");
-        const saldoPendenteOriginalDisplay = document.getElementById(
-          "saldoPendenteOriginalDisplay"
+
+        const vencimentoDisplay = document.getElementById(
+          "vencimento_original"
         );
-        const dataVencimentoDisplay = document.getElementById(
-          "dataVencimentoDisplay"
-        );
+        const saldoAnteriorDisplay = document.getElementById("saldo_anterior");
+        const multaDisplay = document.getElementById("multa");
+        const jurosDisplay = document.getElementById("juros");
+        const totalPagarDisplay = document.getElementById("total_a_pagar");
+        const valorPagoInput = document.getElementById("valor_pago");
 
-        // --- CORREÇÃO DE FUSO HORÁRIO APLICADA AQUI ---
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, "0"); // Mês de 1-12
-        const day = String(today.getDate()).padStart(2, "0");
-        dataPagamentoInput.value = `${year}-${month}-${day}`;
-        // ---------------------------------------------
+        // Define a data de hoje como padrão no campo de data de pagamento
+        dataPagamentoInput.value = new Date().toISOString().split("T")[0];
 
-        consumidorSelect.addEventListener("change", function () {
-          fetchLecturesForConsumer(this.value);
-        });
+        function clearValueFields() {
+          vencimentoDisplay.textContent = "DD/MM/AAAA";
+          saldoAnteriorDisplay.textContent = "R$ 0,00";
+          multaDisplay.textContent = "R$ 0,00";
+          jurosDisplay.textContent = "R$ 0,00";
+          totalPagarDisplay.textContent = "R$ 0,00";
+          valorPagoInput.value = "";
+        }
 
-        function fetchLecturesForConsumer(consumidorId) {
-          leituraSelect.innerHTML = '<option value="">Carregando...</option>';
-          fetchLeituraDetails(null);
+        function fetchFaturas(consumidorId) {
+          const dataPagamentoRef = dataPagamentoInput.value;
+          faturaSelect.innerHTML = '<option value="">Carregando...</option>';
+          clearValueFields();
+
           if (!consumidorId) {
-            leituraSelect.innerHTML =
-              '<option value="">Selecione um consumidor</option>';
+            faturaSelect.innerHTML =
+              '<option value="">Selecione um Consumidor</option>';
             return;
           }
-          const dataPagamentoRef = dataPagamentoInput.value;
+
           fetch(
             `/api/leituras/${consumidorId}?data_pagamento_ref=${dataPagamentoRef}`
           )
-            .then((res) =>
-              res.ok ? res.json() : Promise.reject(new Error("Falha na rede"))
-            )
-            .then((data) => {
-              if (data.length === 0) {
-                leituraSelect.innerHTML =
+            .then((response) => {
+              if (!response.ok) throw new Error("Falha de rede");
+              return response.json();
+            })
+            .then((faturas) => {
+              faturaSelect.innerHTML =
+                '<option value="" disabled selected>Selecione uma Fatura</option>';
+              if (faturas && faturas.length > 0) {
+                faturas.forEach(function (fatura) {
+                  const displayText = `${formatRefDate(
+                    fatura.data_leitura_atual
+                  )} | Saldo: ${formatCurrency(
+                    fatura.valor_corrigido_total_para_proximo_pagamento
+                  )}`;
+                  const option = new Option(displayText, fatura.id);
+                  faturaSelect.add(option);
+                });
+              } else {
+                faturaSelect.innerHTML =
                   '<option value="">Nenhuma fatura pendente</option>';
-                return;
               }
-              leituraSelect.innerHTML =
-                '<option value="" disabled selected>Selecione uma fatura</option>';
-              data.forEach((leitura) => {
-                const option = document.createElement("option");
-                option.value = leitura.id;
-                const dataFatura = new Date(
-                  leitura.data_leitura_atual + "T00:00:00"
-                );
-                const mesFatura = String(dataFatura.getMonth() + 1).padStart(
-                  2,
-                  "0"
-                );
-                const anoFatura = dataFatura.getFullYear();
-                const periodoTexto = `Ref. ${mesFatura}/${anoFatura}`;
-                option.textContent = `Fatura ${periodoTexto} | Saldo: ${formatar(
-                  leitura.valor_corrigido_total_para_proximo_pagamento
-                )}`;
-                leituraSelect.appendChild(option);
-              });
             })
             .catch((error) => {
-              console.error("Erro ao buscar leituras:", error);
-              leituraSelect.innerHTML =
-                '<option value="">Erro ao carregar leituras</option>';
+              console.error("Erro ao buscar faturas:", error);
+              faturaSelect.innerHTML =
+                '<option value="">Erro ao carregar faturas</option>';
             });
         }
 
-        function fetchLeituraDetails(leituraId) {
-          saldoPendenteOriginalDisplay.textContent = "R$ 0,00";
-          dataVencimentoDisplay.textContent = "DD/MM/AAAA";
-          valorMultaDisplay.textContent = "R$ 0,00";
-          valorJurosDisplay.textContent = "R$ 0,00";
-          totalCorrigidoDisplay.textContent = "R$ 0,00";
-          valorPagoInput.value = "";
-          saldoMessage.innerHTML = "Aguardando preenchimento...";
-          saldoCredorInput.value = "";
-          saldoDevedorInput.value = "";
+        function fetchDetalhesFatura(leituraId) {
+          const dataPagamentoRef = dataPagamentoInput.value;
+          if (!leituraId) {
+            clearValueFields();
+            return;
+          }
 
-          if (!leituraId) return;
-
-          const dataPagamentoParaAPI = dataPagamentoInput.value;
           fetch(
-            `/get-leitura-details/${leituraId}?data_pagamento_ref=${dataPagamentoParaAPI}`
+            `/get-leitura-details/${leituraId}?data_pagamento_ref=${dataPagamentoRef}`
           )
-            .then((res) =>
-              res.ok ? res.json() : Promise.reject(new Error("Falha na rede"))
-            )
+            .then((response) => {
+              if (!response.ok) throw new Error("Falha de rede");
+              return response.json();
+            })
             .then((details) => {
-              saldoPendenteOriginalDisplay.textContent = formatar(
+              vencimentoDisplay.textContent = formatDate(
+                details.data_vencimento
+              );
+              saldoAnteriorDisplay.textContent = formatCurrency(
                 details.valor_base_para_novas_penalidades
               );
-              dataVencimentoDisplay.textContent = new Date(
-                details.data_vencimento + "T00:00:00"
-              ).toLocaleDateString("pt-BR", { timeZone: "UTC" });
-              valorMultaDisplay.textContent = formatar(details.multa);
-              valorJurosDisplay.textContent = formatar(details.juros);
-              totalCorrigidoDisplay.textContent = formatar(
+              multaDisplay.textContent = formatCurrency(details.multa);
+              jurosDisplay.textContent = formatCurrency(details.juros);
+              totalPagarDisplay.textContent = formatCurrency(
                 details.total_corrigido
               );
-              valorPagoInput.value = formatar(details.total_corrigido);
-              valorPagoInput.dispatchEvent(new Event("input"));
+              valorPagoInput.value = details.total_corrigido
+                .toFixed(2)
+                .replace(".", ",");
             })
-            .catch((error) => console.error("Erro ao buscar detalhes:", error));
+            .catch((error) => {
+              console.error("Erro ao buscar detalhes da fatura:", error);
+              clearValueFields();
+            });
         }
 
-        leituraSelect.addEventListener("change", function () {
-          fetchLeituraDetails(this.value);
-        });
-
-        valorPagoInput.addEventListener("input", function () {
-          let value = this.value.replace(/\D/g, "");
-          this.value = formatar(value / 100);
-          const pagoLimpo = parseFloat(value / 100) || 0;
-          const totalCorrigidoLimpo =
-            parseFloat(
-              totalCorrigidoDisplay.textContent
-                .replace("R$", "")
-                .replace(/\./g, "")
-                .replace(",", ".")
-            ) || 0;
-          const diferenca = pagoLimpo - totalCorrigidoLimpo;
-          saldoDevedorInput.value = "";
-          saldoCredorInput.value = "";
-          if (diferenca < -0.001) {
-            saldoMessage.innerHTML = `<span class='text-danger'>Saldo Devedor: ${formatar(
-              Math.abs(diferenca)
-            )}</span>`;
-            saldoDevedorInput.value = Math.abs(diferenca).toFixed(2);
-          } else if (diferenca > 0.001) {
-            saldoMessage.innerHTML = `<span class='text-success'>Saldo Credor: ${formatar(
-              diferenca
-            )}</span>`;
-            saldoCredorInput.value = diferenca.toFixed(2);
-          } else {
-            saldoMessage.innerHTML = `<span class='text-muted'>Dívida quitada!</span>`;
-          }
-        });
-
-        const pagamentoForm = document.getElementById("pagamentoForm");
-        const valorConfirmacaoSpan =
-          document.getElementById("valorConfirmacao");
-        const confirmarPagamentoBtn = document.getElementById(
-          "confirmarPagamentoBtn"
+        // Adiciona os "escutadores" de eventos
+        consumidorSelect.addEventListener("change", () =>
+          fetchFaturas(consumidorSelect.value)
         );
-
-        document
-          .querySelector('[data-bs-target="#confirmacaoModal"]')
-          .addEventListener("click", function () {
-            if (pagamentoForm.checkValidity()) {
-              const valorPago = valorPagoInput.value || "R$ 0,00";
-              valorConfirmacaoSpan.textContent = valorPago;
-              // Apenas mostra o modal, não o cria repetidamente
-              const modal = bootstrap.Modal.getOrCreateInstance(
-                document.getElementById("confirmacaoModal")
-              );
-              modal.show();
-            } else {
-              pagamentoForm.reportValidity();
-            }
-          });
-
-        confirmarPagamentoBtn.addEventListener("click", function () {
-          pagamentoForm.submit();
-        });
+        faturaSelect.addEventListener("change", () =>
+          fetchDetalhesFatura(faturaSelect.value)
+        );
+        dataPagamentoInput.addEventListener("change", () =>
+          fetchFaturas(consumidorSelect.value)
+        );
       });
     </script>
   </body>

@@ -1,13 +1,18 @@
-# Ambiente Virtual
+# Ambiente virtual do Python
 venv/
-*.pyc
-__pycache__/
+.venv/
 
-# Banco de Dados Local
-# Não queremos que o nosso banco local seja enviado para o servidor.
-a_g_santa_maria.db
+# Ficheiros de cache do Python
+__pycache__/
+*.pyc
+
+# Ficheiro de ambiente com senhas e chaves
+.env
+
+# Banco de dados antigo e ficheiros temporários
+*.db
+*.db.ANTIGO
 *.sqlite3
 
-# Arquivos de IDEs
+# Pasta de configurações do VSCode
 .vscode/
-.idea/

@@ -1,0 +1,1141 @@
+('C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+ '(2)\\build\\app\\app.pkg',
+ {'BINARY': True,
+  'DATA': True,
+  'EXECUTABLE': True,
+  'EXTENSION': True,
+  'PYMODULE': True,
+  'PYSOURCE': True,
+  'PYZ': False,
+  'SPLASH': True,
+  'SYMLINK': False},
+ [('pyi-contents-directory _internal', '', 'OPTION'),
+  ('PYZ-00.pyz',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\build\\app\\PYZ-00.pyz',
+   'PYZ'),
+  ('struct',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\build\\app\\localpycs\\struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\build\\app\\localpycs\\pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\build\\app\\localpycs\\pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\build\\app\\localpycs\\pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyimod04_pywin32',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\build\\app\\localpycs\\pyimod04_pywin32.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('pyi_rth_setuptools',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
+   'PYSOURCE'),
+  ('app',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia (2)\\app.py',
+   'PYSOURCE'),
+  ('python313.dll',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\python313.dll',
+   'BINARY'),
+  ('libharfbuzz-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libharfbuzz-0.dll',
+   'BINARY'),
+  ('libpango-1.0-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libpango-1.0-0.dll',
+   'BINARY'),
+  ('libpangoft2-1.0-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libpangoft2-1.0-0.dll',
+   'BINARY'),
+  ('libfontconfig-1.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libfontconfig-1.dll',
+   'BINARY'),
+  ('libgobject-2.0-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libgobject-2.0-0.dll',
+   'BINARY'),
+  ('_lzma.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_lzma.pyd',
+   'EXTENSION'),
+  ('_bz2.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_bz2.pyd',
+   'EXTENSION'),
+  ('_decimal.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_decimal.pyd',
+   'EXTENSION'),
+  ('_hashlib.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_hashlib.pyd',
+   'EXTENSION'),
+  ('_socket.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_socket.pyd',
+   'EXTENSION'),
+  ('select.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\select.pyd',
+   'EXTENSION'),
+  ('_overlapped.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_overlapped.pyd',
+   'EXTENSION'),
+  ('_ssl.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_ssl.pyd',
+   'EXTENSION'),
+  ('_queue.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_queue.pyd',
+   'EXTENSION'),
+  ('_ctypes.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_ctypes.pyd',
+   'EXTENSION'),
+  ('_multiprocessing.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_multiprocessing.pyd',
+   'EXTENSION'),
+  ('pyexpat.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\pyexpat.pyd',
+   'EXTENSION'),
+  ('_asyncio.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_asyncio.pyd',
+   'EXTENSION'),
+  ('_wmi.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_wmi.pyd',
+   'EXTENSION'),
+  ('unicodedata.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\unicodedata.pyd',
+   'EXTENSION'),
+  ('_cffi_backend.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\_cffi_backend.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('fontTools\\varLib\\iup.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\fontTools\\varLib\\iup.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('fontTools\\misc\\bezierTools.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\fontTools\\misc\\bezierTools.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('_brotli.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\_brotli.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('zopfli\\zopfli.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\zopfli\\zopfli.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('_elementtree.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_elementtree.pyd',
+   'EXTENSION'),
+  ('PIL\\_webp.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PIL\\_webp.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingtk.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PIL\\_imagingtk.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingcms.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PIL\\_imagingcms.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingmath.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PIL\\_imagingmath.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imaging.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\PIL\\_imaging.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('_uuid.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_uuid.pyd',
+   'EXTENSION'),
+  ('markupsafe\\_speedups.cp313-win_amd64.pyd',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\markupsafe\\_speedups.cp313-win_amd64.pyd',
+   'EXTENSION'),
+  ('_sqlite3.pyd',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\_sqlite3.pyd',
+   'EXTENSION'),
+  ('VCRUNTIME140.dll',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\VCRUNTIME140.dll',
+   'BINARY'),
+  ('libgcc_s_seh-1.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libgcc_s_seh-1.dll',
+   'BINARY'),
+  ('libfreetype-6.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libfreetype-6.dll',
+   'BINARY'),
+  ('libglib-2.0-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libglib-2.0-0.dll',
+   'BINARY'),
+  ('libstdc++-6.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libstdc++-6.dll',
+   'BINARY'),
+  ('libgraphite2.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libgraphite2.dll',
+   'BINARY'),
+  ('libgio-2.0-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libgio-2.0-0.dll',
+   'BINARY'),
+  ('libthai-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libthai-0.dll',
+   'BINARY'),
+  ('libfribidi-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libfribidi-0.dll',
+   'BINARY'),
+  ('libiconv-2.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libiconv-2.dll',
+   'BINARY'),
+  ('libexpat-1.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libexpat-1.dll',
+   'BINARY'),
+  ('libintl-8.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libintl-8.dll',
+   'BINARY'),
+  ('libffi-7.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libffi-7.dll',
+   'BINARY'),
+  ('libcrypto-3.dll',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\libcrypto-3.dll',
+   'BINARY'),
+  ('libssl-3.dll',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\libssl-3.dll',
+   'BINARY'),
+  ('libffi-8.dll',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\libffi-8.dll',
+   'BINARY'),
+  ('VCRUNTIME140_1.dll',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\VCRUNTIME140_1.dll',
+   'BINARY'),
+  ('MSVCP140.dll', 'C:\\Windows\\system32\\MSVCP140.dll', 'BINARY'),
+  ('sqlite3.dll',
+   'C:\\Users\\Micro\\AppData\\Local\\Programs\\Python\\Python313\\DLLs\\sqlite3.dll',
+   'BINARY'),
+  ('libwinpthread-1.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libwinpthread-1.dll',
+   'BINARY'),
+  ('zlib1.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\zlib1.dll',
+   'BINARY'),
+  ('libbrotlidec.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libbrotlidec.dll',
+   'BINARY'),
+  ('libpng16-16.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libpng16-16.dll',
+   'BINARY'),
+  ('libbz2-1.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libbz2-1.dll',
+   'BINARY'),
+  ('libpcre-1.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libpcre-1.dll',
+   'BINARY'),
+  ('libgmodule-2.0-0.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libgmodule-2.0-0.dll',
+   'BINARY'),
+  ('libdatrie-1.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libdatrie-1.dll',
+   'BINARY'),
+  ('libbrotlicommon.dll',
+   'C:\\Program Files\\GTK3-Runtime Win64\\bin\\libbrotlicommon.dll',
+   'BINARY'),
+  ('static\\fotos_hidrometros\\Ana_Paula_30.05.25.jpg',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Ana_Paula_30.05.25.jpg',
+   'DATA'),
+  ('static\\fotos_hidrometros\\ChatGPT_Image_5_de_jun._de_2025_22_53_30.png',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\ChatGPT_Image_5_de_jun._de_2025_22_53_30.png',
+   'DATA'),
+  ('static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_18.png',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_18.png',
+   'DATA'),
+  ('static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_33.png',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_33.png',
+   'DATA'),
+  ('static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_34.png',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_34.png',
+   'DATA'),
+  ('static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_39.png',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_39.png',
+   'DATA'),
+  ('static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_44.png',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Copia_de_This_Is_What_Makes_You_Lose_Your_Mind_44.png',
+   'DATA'),
+  ('static\\fotos_hidrometros\\Imagem_do_WhatsApp_de_2025-05-31_as_22.29.55_f282e81f.jpg',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Imagem_do_WhatsApp_de_2025-05-31_as_22.29.55_f282e81f.jpg',
+   'DATA'),
+  ('static\\fotos_hidrometros\\Luiz_Antonio_30.05.25.jpg',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Luiz_Antonio_30.05.25.jpg',
+   'DATA'),
+  ('static\\fotos_hidrometros\\Marcio_Luiz_30.25.jpg',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\Marcio_Luiz_30.25.jpg',
+   'DATA'),
+  ('static\\fotos_hidrometros\\thumbnail_17.jpeg',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\thumbnail_17.jpeg',
+   'DATA'),
+  ('static\\fotos_hidrometros\\thumbnail_20.jpeg',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\fotos_hidrometros\\thumbnail_20.jpeg',
+   'DATA'),
+  ('static\\style.css',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\static\\style.css',
+   'DATA'),
+  ('templates\\_flash_messages.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\_flash_messages.html',
+   'DATA'),
+  ('templates\\base.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\base.html',
+   'DATA'),
+  ('templates\\cadastrar_consumidor.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\cadastrar_consumidor.html',
+   'DATA'),
+  ('templates\\cadastrar_despesa.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\cadastrar_despesa.html',
+   'DATA'),
+  ('templates\\cadastrar_leitura.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\cadastrar_leitura.html',
+   'DATA'),
+  ('templates\\cadastrar_usuario.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\cadastrar_usuario.html',
+   'DATA'),
+  ('templates\\configuracoes.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\configuracoes.html',
+   'DATA'),
+  ('templates\\consumidores.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\consumidores.html',
+   'DATA'),
+  ('templates\\dashboard.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\dashboard.html',
+   'DATA'),
+  ('templates\\detalhes_pagamento.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\detalhes_pagamento.html',
+   'DATA'),
+  ('templates\\editar_consumidor.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\editar_consumidor.html',
+   'DATA'),
+  ('templates\\editar_despesa.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\editar_despesa.html',
+   'DATA'),
+  ('templates\\email_recuperacao.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\email_recuperacao.html',
+   'DATA'),
+  ('templates\\listar_despesas.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\listar_despesas.html',
+   'DATA'),
+  ('templates\\listar_leituras.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\listar_leituras.html',
+   'DATA'),
+  ('templates\\listar_pagamentos.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\listar_pagamentos.html',
+   'DATA'),
+  ('templates\\login.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\login.html',
+   'DATA'),
+  ('templates\\pagamentos.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\pagamentos.html',
+   'DATA'),
+  ('templates\\redefinir_senha.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\redefinir_senha.html',
+   'DATA'),
+  ('templates\\registrar_pagamento.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\registrar_pagamento.html',
+   'DATA'),
+  ('templates\\relatorio_consumidores.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\relatorio_consumidores.html',
+   'DATA'),
+  ('templates\\relatorio_financeiro.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\relatorio_financeiro.html',
+   'DATA'),
+  ('templates\\relatorio_geral.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\relatorio_geral.html',
+   'DATA'),
+  ('templates\\relatorio_inadimplencia.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\relatorio_inadimplencia.html',
+   'DATA'),
+  ('templates\\relatorios.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\relatorios.html',
+   'DATA'),
+  ('templates\\selecionar_comprovante.html',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\templates\\selecionar_comprovante.html',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-fallback-specifics.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-fallback-specifics.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-fallback-generics.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-fallback-generics.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-c059.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-c059.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\45-generic.conf',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\conf.d\\45-generic.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\10-hinting-slight.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\10-hinting-slight.conf',
+   'DATA'),
+  ('weasyprint\\css\\html5_ph.css',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\weasyprint\\css\\html5_ph.css',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\20-unhint-small-dejavu-sans.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\20-unhint-small-dejavu-sans.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-fallback-backwards.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-fallback-backwards.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-d050000l.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-d050000l.conf',
+   'DATA'),
+  ('weasyprint\\css\\html5_ua.css',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\weasyprint\\css\\html5_ua.css',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-bookman.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-bookman.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\20-unhint-small-dejavu-sans-mono.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\20-unhint-small-dejavu-sans-mono.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-p052.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-p052.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\50-user.conf',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\conf.d\\50-user.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\65-nonlatin.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\65-nonlatin.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-c059.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-c059.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-fallback-backwards.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-fallback-backwards.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\20-unhint-small-dejavu-sans.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\20-unhint-small-dejavu-sans.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\57-dejavu-serif.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\57-dejavu-serif.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-nimbus-roman.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-nimbus-roman.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-bookman.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-bookman.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-z003.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-z003.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-standard-symbols-ps.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-standard-symbols-ps.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-z003.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-z003.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-nimbus-roman.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-nimbus-roman.conf',
+   'DATA'),
+  ('weasyprint\\css\\html5_ua_form.css',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\weasyprint\\css\\html5_ua_form.css',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-fallback-generics.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-fallback-generics.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-nimbus-sans.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-nimbus-sans.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\20-unhint-small-dejavu-serif.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\20-unhint-small-dejavu-serif.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\80-delicious.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\80-delicious.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\10-scale-bitmap-fonts.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\10-scale-bitmap-fonts.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\57-dejavu-sans-mono.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\57-dejavu-sans-mono.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\90-synthetic.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\90-synthetic.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\57-dejavu-sans.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\57-dejavu-sans.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\60-latin.conf',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\conf.d\\60-latin.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\30-metric-aliases.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\30-metric-aliases.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-fallback-specifics.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-fallback-specifics.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\README',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\conf.d\\README',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\40-nonlatin.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\40-nonlatin.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-gothic.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-gothic.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-p052.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-p052.conf',
+   'DATA'),
+  ('weasyprint\\pdf\\sRGB2014.icc',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\weasyprint\\pdf\\sRGB2014.icc',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\60-generic.conf',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\conf.d\\60-generic.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-d050000l.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-d050000l.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\65-fonts-persian.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\65-fonts-persian.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-nimbus-sans.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-nimbus-sans.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\20-unhint-small-dejavu-serif.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\20-unhint-small-dejavu-serif.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-unifont.conf',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\conf.d\\69-unifont.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\20-unhint-small-dejavu-sans-mono.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\20-unhint-small-dejavu-sans-mono.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\51-local.conf',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\conf.d\\51-local.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\57-dejavu-sans-mono.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\57-dejavu-sans-mono.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\69-urw-nimbus-mono-ps.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\69-urw-nimbus-mono-ps.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\57-dejavu-sans.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\57-dejavu-sans.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\20-unhint-small-vera.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\20-unhint-small-vera.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\45-latin.conf',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\conf.d\\45-latin.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-gothic.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-gothic.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\49-sansserif.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\49-sansserif.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.d\\57-dejavu-serif.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.d\\57-dejavu-serif.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-nimbus-mono-ps.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-nimbus-mono-ps.conf',
+   'DATA'),
+  ('etc\\fonts\\fonts.conf',
+   'C:\\Program Files\\GTK3-Runtime Win64\\etc\\fonts\\fonts.conf',
+   'DATA'),
+  ('etc\\fonts\\conf.avail\\69-urw-standard-symbols-ps.conf',
+   'C:\\Program Files\\GTK3-Runtime '
+   'Win64\\etc\\fonts\\conf.avail\\69-urw-standard-symbols-ps.conf',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\RECORD',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\RECORD',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\LICENSE',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\LICENSE',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('setuptools\\_vendor\\jaraco\\text\\Lorem ipsum.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\setuptools\\_vendor\\jaraco\\text\\Lorem '
+   'ipsum.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_sa_IN.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_sa_IN.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_fr.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_fr.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_pa_IN.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_pa_IN.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_mn_MN.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_mn_MN.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_hr_HR.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_hr_HR.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_eu.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_eu.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_sq_AL.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_sq_AL.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_id_ID.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_id_ID.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_uk_UA.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_uk_UA.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_pl_PL.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_pl_PL.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_kn_IN.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_kn_IN.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_de_CH.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_de_CH.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_eu.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_eu.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_et_EE.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_et_EE.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_gl.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_gl.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_te_IN.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_te_IN.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_sr.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_sr.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_sl_SI.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_sl_SI.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_da_DK.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_da_DK.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_da_DK.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_da_DK.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_or_IN.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_or_IN.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_NO.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_NO.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_pt_BR.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_pt_BR.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_nn_NO.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_nn_NO.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_th_TH.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_th_TH.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_sv.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_sv.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_nl_NL.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_nl_NL.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_bg_BG.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_bg_BG.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_sr.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_sr.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_el_GR.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_el_GR.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_te_IN.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_te_IN.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_is.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_is.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_et_EE.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_et_EE.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_es.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_es.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_cs_CZ.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_cs_CZ.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_is.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_is.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_ro_RO.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_ro_RO.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_es.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_es.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_pt_PT.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_pt_PT.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_pt_BR.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_pt_BR.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_lt_LT.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_lt_LT.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_de_DE.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_de_DE.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_gl.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_gl.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_en_US.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_en_US.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_eo.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_eo.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_th_TH.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_th_TH.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_mr_IN.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_mr_IN.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_it_IT.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_it_IT.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_be_BY.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_be_BY.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_sl_SI.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_sl_SI.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_de.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_de.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_sr_Latn.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_sr_Latn.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_hu_HU.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_hu_HU.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_sk_SK.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_sk_SK.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_el_GR.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_el_GR.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_lv_LV.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_lv_LV.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_ca.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_ca.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_lv_LV.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_lv_LV.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_de_AT.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_de_AT.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_af_ZA.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_af_ZA.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_fr.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_fr.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_pl_PL.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_pl_PL.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_pt_PT.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_pt_PT.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_be_BY.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_be_BY.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_en_GB.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_en_GB.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_sk_SK.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_sk_SK.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_en_US.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_en_US.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_ro_RO.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_ro_RO.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_sv.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_sv.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\update.sh',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\update.sh',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_as_IN.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_as_IN.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_hr_HR.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_hr_HR.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_lt.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_lt.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_ca.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_ca.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_uk_UA.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_uk_UA.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_it_IT.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_it_IT.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_en_GB.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_en_GB.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_zu_ZA.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_zu_ZA.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_ru_RU.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_ru_RU.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_nb_NO.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_nb_NO.dic',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_cs_CZ.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_cs_CZ.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_hu_HU.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_hu_HU.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\README_hyph_sq_AL.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\README_hyph_sq_AL.txt',
+   'DATA'),
+  ('pyphen\\dictionaries\\hyph_bg_BG.dic',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\pyphen\\dictionaries\\hyph_bg_BG.dic',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\METADATA',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\METADATA',
+   'DATA'),
+  ('click-8.2.1.dist-info\\RECORD',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\click-8.2.1.dist-info\\RECORD',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\RECORD',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\MarkupSafe-3.0.2.dist-info\\RECORD',
+   'DATA'),
+  ('flask-3.1.1.dist-info\\REQUESTED',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\flask-3.1.1.dist-info\\REQUESTED',
+   'DATA'),
+  ('flask-3.1.1.dist-info\\entry_points.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\flask-3.1.1.dist-info\\entry_points.txt',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\LICENSE.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\MarkupSafe-3.0.2.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\WHEEL',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\WHEEL',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\INSTALLER',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\top_level.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\MarkupSafe-3.0.2.dist-info\\top_level.txt',
+   'DATA'),
+  ('flask-3.1.1.dist-info\\METADATA',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\flask-3.1.1.dist-info\\METADATA',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\RECORD',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\RECORD',
+   'DATA'),
+  ('click-8.2.1.dist-info\\WHEEL',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\click-8.2.1.dist-info\\WHEEL',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\WHEEL',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\MarkupSafe-3.0.2.dist-info\\WHEEL',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\METADATA',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\MarkupSafe-3.0.2.dist-info\\METADATA',
+   'DATA'),
+  ('flask-3.1.1.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\flask-3.1.1.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('flask-3.1.1.dist-info\\INSTALLER',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\flask-3.1.1.dist-info\\INSTALLER',
+   'DATA'),
+  ('werkzeug-3.1.3.dist-info\\LICENSE.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\werkzeug-3.1.3.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('werkzeug-3.1.3.dist-info\\WHEEL',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\werkzeug-3.1.3.dist-info\\WHEEL',
+   'DATA'),
+  ('click-8.2.1.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\click-8.2.1.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('click-8.2.1.dist-info\\INSTALLER',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\click-8.2.1.dist-info\\INSTALLER',
+   'DATA'),
+  ('MarkupSafe-3.0.2.dist-info\\INSTALLER',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\MarkupSafe-3.0.2.dist-info\\INSTALLER',
+   'DATA'),
+  ('flask-3.1.1.dist-info\\WHEEL',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\flask-3.1.1.dist-info\\WHEEL',
+   'DATA'),
+  ('flask-3.1.1.dist-info\\RECORD',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\flask-3.1.1.dist-info\\RECORD',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('werkzeug-3.1.3.dist-info\\RECORD',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\werkzeug-3.1.3.dist-info\\RECORD',
+   'DATA'),
+  ('click-8.2.1.dist-info\\METADATA',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\click-8.2.1.dist-info\\METADATA',
+   'DATA'),
+  ('werkzeug-3.1.3.dist-info\\METADATA',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\werkzeug-3.1.3.dist-info\\METADATA',
+   'DATA'),
+  ('werkzeug-3.1.3.dist-info\\INSTALLER',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\venv\\Lib\\site-packages\\werkzeug-3.1.3.dist-info\\INSTALLER',
+   'DATA'),
+  ('base_library.zip',
+   'C:\\Users\\Micro\\Desktop\\Agua Santa Maria 06.06.25 - Copia '
+   '(2)\\build\\app\\base_library.zip',
+   'DATA')],
+ 'python313.dll',
+ False,
+ False,
+ False,
+ [],
+ None,
+ None,
+ None)
