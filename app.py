@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, g, jsonify, flash, make_response, send_file, Response
+from flask import Flask, render_template, request, redirect, url_for, session, g, jsonify, flash, make_response, send_file
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
@@ -8,60 +8,51 @@ import secrets
 import smtplib
 from email.mime.text import MIMEText
 from email.utils import formataddr
-from functools import wraps
+from functools import wraps # Importar para o decorador de login - AGORA NO TOPO E ÚNICO
+# from flask import render_template, flash, redirect, url_for, session # LINHA DUPLICADA REMOVIDA
+# from datetime import date, datetime # LINHA DUPLICADA REMOVIDA
 from urllib.parse import quote
 import math
-from weasyprint import HTML
-import click
-from flask.cli import with_appcontext
+from flask import Response # Importado para o PDF
+from weasyprint import HTML # Importado para o PDF
+import logging # Adicionado para usar app.logger
+from dotenv import load_dotenv 
 
-# --- CONFIGURAÇÕES DA APLICAÇÃO ---
+# Configuração básica do logger para ver mensagens INFO e ERROR no console
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s in %(module)s: %(message)s')
+
+load_dotenv(override=True) # <--- ADICIONE ESTA LINHA AQUI! Isso carregará as variáveis do .env
+
+# --- Configurações da Aplicação ---
 app = Flask(__name__)
+# Chave secreta deve ser lida de variável de ambiente em produção
+app.secret_key = os.environ.get('SECRET_KEY', 'sua-chave-super-secreta-para-desenvolvimento') # Mantenha esta linha para segurança
 
-# Chave secreta, lida da variável de ambiente no Render
-app.secret_key = os.environ.get('SECRET_KEY', 'sua-chave-super-secreta-para-desenvolvimento')
+DATABASE = 'a_g_santa_maria.db' # Agora no local esperado
 
 UPLOAD_FOLDER = 'static/fotos_hidrometros'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# --- FUNÇÕES DE CONEXÃO COM O BANCO POSTGRESQL ---
-
-def get_db():
-    """Abre uma nova conexão com o banco de dados se não houver uma."""
-    if 'db' not in g:
-        # Pega a URL de conexão da variável de ambiente que configuramos no Render
-        db_url = os.environ.get('DATABASE_URL')
-        if db_url is None:
-            raise RuntimeError('A variável de ambiente DATABASE_URL não está configurada.')
-        
-        # Conecta ao banco de dados PostgreSQL
-        g.db = psycopg2.connect(db_url)
-    return g.db
-
-@app.teardown_appcontext
-def close_db(e=None):
-    """Fecha a conexão com o banco de dados ao final da requisição."""
-    db = g.pop('db', None)
-
-    if db is not None:
-        db.close()
-
-# --- FILTRO JINJA2 (mantido como estava) ---
+# --- Filtros Jinja2 Personalizados --- (COLOQUE O CÓDIGO DO FILTRO AQUI!)
 @app.template_filter('date_format')
-def _jinja2_filter_date_format(value, fmt='%d/%m/%Y'):
+def date_format_filter(value, format="%d/%m/%Y"):
     if not value:
         return ""
-    if isinstance(value, (datetime, date)):
-        return value.strftime(fmt)
     try:
-        return datetime.strptime(str(value), '%Y-%m-%d').strftime(fmt)
+        dt_obj = datetime.strptime(str(value), '%Y-%m-%d %H:%M:%S.%f')
     except ValueError:
-        pass
-    return str(value)
+        try:
+            dt_obj = datetime.strptime(str(value), '%Y-%m-%d')
+        except ValueError:
+            app.logger.warning(f"Erro ao formatar data '{value}': formato inválido.")
+            return str(value) 
 
-# --- FUNÇÕES AUXILIARES ---
+    return dt_obj.strftime(format)
+
+# --- Funções Auxiliares ---
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -72,62 +63,26 @@ def get_db():
         g.db.row_factory = sqlite3.Row
     return g.db
 
-# Função para inicializar o banco de dados (criar tabelas)
-def init_db():
-    with app.app_context():
-        db = get_db()
-        # Abre o arquivo schema.sql em modo texto ('r')
-        with app.open_resource('schema.sql', mode='r') as f:
-            # CORREÇÃO: f.read() já retorna uma string, então removemos o .decode()
-            db.cursor().executescript(f.read())
-        
-        # Insere o usuário admin diretamente via código
-        try:
-            db.execute(
-                """INSERT INTO usuarios_admin (username, senha_hash, email) VALUES (?, ?, ?)""",
-                (
-                    'admin',
-                    generate_password_hash('admin123'),
-                    'admin@example.com'
-                )
-            )
-            print("Usuário 'admin' padrão inserido com sucesso pelo app.py.")
-        except sqlite3.IntegrityError:
-            print("Usuário 'admin' já existia. Nenhuma ação necessária.")
-
-        db.commit()
-    print("Database initialized successfully.")
-
-
-# Comando de terminal para inicializar o banco de dados
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
-    """Limpa os dados existentes e cria novas tabelas."""
-    init_db()
-    click.echo('Banco de dados inicializado.')
-
-# Registra o comando no Flask
-app.cli.add_command(init_db_command)
-
-
-# Esta linha registra o comando no Flask
-app.cli.add_command(init_db_command)
-
 @app.teardown_appcontext
 def close_db(error):
     if 'db' in g:
         g.db.close()
 
-# Função para inicializar o banco de dados (criar tabelas)
+# Função para inicializar o banco de dados (criar tabelas) - Se você tiver schema.sql
 def init_db():
     with app.app_context():
         db = get_db()
         # Abre o arquivo schema.sql e executa os comandos SQL
-        with app.open_resource('schema.sql', mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
-    print("Database initialized successfully from schema.sql.")
+        try:
+            with app.open_resource('schema.sql', mode='r') as f:
+                db.cursor().executescript(f.read())
+            db.commit()
+            logging.info("Database initialized successfully from schema.sql.")
+        except FileNotFoundError:
+            logging.warning("schema.sql not found. Database tables might not be created. Proceeding without initialization.")
+        except Exception as e:
+            logging.error(f"Error initializing database from schema.sql: {e}", exc_info=True)
+
 
 # Decorador para verificar se o usuário está logado
 def login_required(f):
@@ -136,6 +91,20 @@ def login_required(f):
         if 'usuario' not in session:
             flash('Você precisa estar logado para acessar esta página.', 'warning')
             return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# NOVO: Decorador para verificar se o usuário é ADMIN
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'usuario' not in session: # Se não estiver logado
+            flash('Você precisa estar logado para acessar esta página.', 'warning')
+            return redirect(url_for('login'))
+        # VERIFICA O PAPEL DO USUÁRIO NA SESSÃO
+        if session.get('papel') != 'admin': # Se logado, mas NÃO é admin
+            flash('Acesso negado: Você não tem permissão para acessar esta funcionalidade.', 'danger')
+            return redirect(url_for('dashboard')) # Redireciona para o dashboard
         return f(*args, **kwargs)
     return decorated_function
 
@@ -190,52 +159,39 @@ def calcular_penalidades(valor_original_fatura, valor_base_para_juros, venciment
         dias_atraso = 0 
 
     if dias_atraso > 0:
-        # Multa: Calculada UMA VEZ sobre o valor ORIGINAL da fatura.
-        # Esta multa será sempre o valor X% do valor original da fatura se a mesma estiver em atraso.
-        # Não se acumula em pagamentos parciais ou sobre juros/outras multas.
-        # AQUI, calculamos o valor máximo da multa. Se ela já foi aplicada, veremos na rota.
         multa = round(valor_original_fatura * (config_multa_percentual / 100), 2)
-        
-        # Juros: sobre o valor_base_para_juros (que é o saldo atual para cálculo de penalidades,
-        # podendo incluir a multa fixa e juros anteriores não pagos).
         juros = round(valor_base_para_juros * (config_juros_diario_percentual / 100) * dias_atraso, 2)
     
     return multa, juros, dias_atraso
 
-# NOVA FUNÇÃO DE PARSE SEGURA - Substitui a antiga currency_to_float e outras
+# NOVA FUNÇÃO DE PARSE SEGURA
 def parse_number_from_br_form(value_str):
     if not value_str:
         return 0.0
     
-    # 1. Converte para string e remove espaços em branco no início/fim
     s_value = str(value_str).strip()
-    
-    # 2. Remove símbolos de moeda (Ex: R$) e espaços extras
     s_value = s_value.replace('R$', '').replace(' ', '')
     
-    # 3. Lida com separadores de milhar (ponto) e decimal (vírgula) no formato BR.
-    if ',' in s_value: # Se a string contém vírgula, ela é o separador decimal.
-        s_value = s_value.replace('.', '') # Remove TODOS os pontos (são separadores de milhar)
-        s_value = s_value.replace(',', '.') # Troca a vírgula pelo ponto decimal (agora só tem 1 ponto)
-    # Se não tem vírgula, e tem ponto, assume que o ponto já é o decimal (Ex: "0.033")
-    # ou que é um número inteiro (Ex: "1500"). Nada a fazer aqui.
-
+    if ',' in s_value:
+        s_value = s_value.replace('.', '')
+        s_value = s_value.replace(',', '.')
+    
     try:
         return float(s_value)
     except ValueError:
         app.logger.warning(f"Falha ao converter '{value_str}' (limpo para '{s_value}') para float. Retornando 0.0.")
         return 0.0
 
-# As funções adicionar_dias_uteis e enviar_email permanecem inalteradas
 def adicionar_dias_uteis(data_inicial, dias_uteis):
     dias_adicionados = 0
     data_final = data_inicial
     while dias_adicionados < dias_uteis:
         data_final += timedelta(days=1)
-        if data_final.weekday() < 5:  # segunda a sexta (0=segunda, 4=sexta)
+        if data_final.weekday() < 5: # segunda a sexta (0=segunda, 4=sexta)
             dias_adicionados += 1
     return data_final
 
+# FUNÇÃO ENVIAR_EMAIL CORRIGIDA E ÚNICA
 def enviar_email(destino, assunto, corpo):
     msg = MIMEText(corpo, 'plain', 'utf-8')
     msg['Subject'] = assunto
@@ -243,6 +199,10 @@ def enviar_email(destino, assunto, corpo):
     msg['To'] = destino
 
     try:
+        # ADICIONE ESTAS DUAS LINHAS DE DEBUG AQUI:
+        print(f"DEBUG E-MAIL: EMAIL_USER visto: '{os.environ.get('EMAIL_USER')}'")
+        print(f"DEBUG E-MAIL: EMAIL_PASS visto: '{os.environ.get('EMAIL_PASS')}'")
+
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
             server.starttls()
             # Credenciais do Gmail lidas de variáveis de ambiente
@@ -253,6 +213,7 @@ def enviar_email(destino, assunto, corpo):
     except Exception as e:
         app.logger.error(f"❌ Erro ao enviar e-mail para {destino}: {e}", exc_info=True)
         return False
+
 # --- Rotas de Autenticação ---
 @app.route('/')
 def home():
@@ -268,6 +229,7 @@ def login():
         user = db.execute('SELECT * FROM usuarios_admin WHERE username = ?', (username,)).fetchone()
         if user and check_password_hash(user['senha_hash'], senha):
             session['usuario'] = username
+            session['papel'] = user['papel']
             flash('Login realizado com sucesso!', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -349,7 +311,7 @@ def dashboard():
 
 # --- Configurações do Sistema ---
 @app.route('/configuracoes', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def configuracoes():
     db = get_db()
     mensagem = None
@@ -1170,7 +1132,7 @@ def atualizar_senha():
 
 # --- Cadastrar Usuário ---
 @app.route('/cadastrar-usuario', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def cadastrar_usuario():
     db = get_db()
     
@@ -1686,7 +1648,7 @@ def relatorios():
     return render_template('relatorios.html')
 
 @app.route('/backup-db')
-@login_required
+@admin_required
 def baixar_db():
     try:
         # Apenas permite download se o arquivo existir
@@ -2146,7 +2108,9 @@ if __name__ == '__main__':
     # Cria a pasta de uploads se não existir
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
-        
-     
-    # Rodar a aplicação em modo debug para desenvolvimento
-    app.run(debug=True)
+
+    #-----init_db()---descomentar apenas se for recriar o banco de dados----
+
+     # Rodar a aplicação em modo debug para desenvolvimento
+    app.run(debug=True)    
+   
