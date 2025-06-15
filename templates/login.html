@@ -1,131 +1,178 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Águas de Santa Maria</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"  rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        .login-container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .login-card {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            overflow: hidden;
-            margin-top: 50px;
-        }
-        .login-header {
-            background-color: #0d6efd;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .login-body {
-            padding: 20px;
-        }
-        .btn-login {
-            background-color: #0d6efd;
-            border: none;
-            padding: 10px;
-            font-weight: 500;
-            transition: all 0.3s;
-            width: 100%;
-        }
-        .btn-login:hover {
-            background-color: #0b5ed7;
-        }
-        .forgot-password {
-            text-align: center;
-            margin-top: 15px;
-        }
-        .forgot-password a {
-            color: #6c757d;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        .forgot-password a:hover {
-            color: #0d6efd;
-            text-decoration: underline;
-        }
-        .form-control:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Inter", sans-serif;
+        background-color: #f0f2f5;
+      }
+      .login-card {
+        width: 100%;
+        max-width: 420px;
+        padding: 2.5rem;
+        background-color: #fff;
+        border-radius: 15px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        border: none;
+      }
+      .login-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+      .login-header h2 {
+        font-weight: 700;
+        color: #0d6efd;
+      }
+      .login-header p {
+        color: #6c757d;
+      }
+      .form-control:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      }
+      .btn-primary {
+        font-weight: 600;
+      }
+      .link-recuperar {
+        font-size: 0.9rem;
+      }
     </style>
-</head>
-<body class="bg-light">
+  </head>
+  <body>
+    <div class="login-card">
+      <div class="login-header">
+        <h2><i class="bi bi-droplet-half"></i> Águas de Santa Maria</h2>
+        <p>Sistema de Gestão</p>
+      </div>
 
-    <div class="container py-5">
-        <div class="login-container">
-            <div class="login-card">
-                <div class="login-header">
-                    <h3>Águas de Santa Maria</h3>
-                    <p class="mb-0">Sistema de Gestão</p>
-                </div>
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
 
-                <div class="login-body">
-                    <!-- Exibir mensagens Flash -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
-                    <!-- Formulário de Login -->
-                    <form method="POST" action="{{ url_for('login') }}">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Usuário</label>
-                            <input type="text" class="form-control" id="username" name="username" required autofocus>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Senha</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-login">Entrar</button>
-                    </form>
-
-                    <!-- Link Esqueci minha senha -->
-                    <div class="forgot-password">
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#recoveryModal">Esqueci minha senha</a>
-                    </div>
-                </div>
-            </div>
+      <form method="POST">
+        <div class="mb-3">
+          <label for="username" class="form-label">Usuário</label>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            name="username"
+            required
+          />
         </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Senha</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            required
+          />
+        </div>
+        <div class="d-grid mb-3">
+          <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+        </div>
+        <div class="text-center">
+          <a
+            href="#"
+            class="link-recuperar"
+            data-bs-toggle="modal"
+            data-bs-target="#recuperarSenhaModal"
+            >Esqueci minha senha</a
+          >
+        </div>
+      </form>
     </div>
 
     <!-- Modal de Recuperação de Senha -->
-    <div class="modal fade" id="recoveryModal" tabindex="-1" aria-labelledby="recoveryModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="recoveryModalLabel">Recuperar Senha</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <form method="POST" action="{{ url_for('recuperar_senha') }}">
-                    <div class="modal-body">
-                        <p>Digite o e-mail cadastrado para receber instruções de redefinição de senha.</p>
-                        <div class="mb-3">
-                            <label for="recoveryEmail" class="form-label">E-mail Cadastrado</label>
-                            <input type="email" class="form-control" id="recoveryEmail" name="email" required placeholder="seu@email.com">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Enviar Link</button>
-                    </div>
-                </form>
+    <div
+      class="modal fade"
+      id="recuperarSenhaModal"
+      tabindex="-1"
+      aria-labelledby="recuperarSenhaModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="recuperarSenhaModalLabel">
+              Recuperar Senha
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <form action="{{ url_for('recuperar_senha') }}" method="POST">
+            <div class="modal-body">
+              <p>
+                Digite o seu e-mail cadastrado para receber o link de
+                redefinição de senha.
+              </p>
+              <div class="mb-3">
+                <label for="email" class="form-label">E-mail</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  name="email"
+                  id="email"
+                  placeholder="seu.email@exemplo.com"
+                  required
+                />
+              </div>
             </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary">Enviar Link</button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> 
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>
