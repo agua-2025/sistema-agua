@@ -1,217 +1,206 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cadastrar Novo Consumidor | Águas de Santa Maria</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastrar Novo Consumidor - Águas de Santa Maria</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome para Ícones -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        /* Reset para mobile */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            padding: 16px;
-            background-color: #f5f7fa;
-            color: #333;
-        }
-        
-        .form-container {
-            max-width: 100%;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .form-header {
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        
-        .form-header h2 {
-            color: #2c3e50;
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-        }
-        
-        .form-header p {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1rem;
-            width: 100%;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #2c3e50;
-            font-size: 0.9rem;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border 0.3s;
-        }
-        
-        input:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-        
-        button:hover {
-            background-color: #2980b9;
-        }
-        
-        .erro {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-        
-        .voltar {
-            display: inline-block;
-            margin-top: 1.5rem;
-            color: #3498db;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        
-        /* Melhorias para ícones */
-        .fa-user-plus, .fa-user, .fa-id-card, 
-        .fa-map-marker-alt, .fa-address-card, 
-        .fa-phone, .fa-tint, .fa-save, 
-        .fa-arrow-left, .fa-exclamation-circle {
-            margin-right: 8px;
-            color: #3498db;
-        }
-        
-        /* Media query para tablets */
-        @media (min-width: 768px) {
-            .form-container {
-                max-width: 600px;
-                padding: 30px;
-            }
-            
-            .form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1.5rem;
-            }
-            
-            .form-group[style="grid-column: span 2;"] {
-                grid-column: span 2;
-            }
-        }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f4f7f9;
+      }
+      .container-form {
+        background-color: #ffffff;
+        padding: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+        margin: 20px auto;
+        max-width: 800px;
+      }
+      .form-header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .form-header h3 {
+        color: #0d6efd;
+        font-weight: 600;
+      }
+      .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+      }
+      .form-label .fas {
+        margin-right: 8px;
+        color: #0d6efd;
+      }
+      .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+      }
+      .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+      }
     </style>
-</head>
-<body>
-    <div class="form-container">
-        <div class="form-header">
-            <h2><i class="fas fa-user-plus"></i> Cadastrar Novo Consumidor</h2>
-            <p>Preencha todos os campos obrigatórios</p>
+  </head>
+  <body class="bg-light">
+    <div class="container container-form">
+      <div class="form-header">
+        <h3><i class="fas fa-user-plus"></i> Cadastrar Novo Consumidor</h3>
+        <p class="text-muted">Preencha todos os campos obrigatórios (*)</p>
+      </div>
+
+      <!-- Alertas de Mensagens -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="mb-3">
+        {% for category, message in messages %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show"
+          role="alert"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+
+      <form method="POST">
+        <!-- Linha 1: Nome e CPF -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="nome" class="form-label"
+              ><i class="fas fa-user"></i> Nome Completo *</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="nome"
+              name="nome"
+              placeholder="Nome completo do consumidor"
+              required
+            />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="cpf" class="form-label"
+              ><i class="fas fa-id-card"></i> CPF *</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="cpf"
+              name="cpf"
+              placeholder="000.000.000-00"
+              required
+            />
+          </div>
         </div>
 
-        {% if error %}
-            <div class="erro">
-                <i class="fas fa-exclamation-circle"></i> {{ error }}
-            </div>
-        {% endif %}
+        <!-- Linha 2: RG e Endereço -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="rg" class="form-label"
+              ><i class="fas fa-address-card"></i> RG</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="rg"
+              name="rg"
+              placeholder="00.000.000-0"
+            />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="endereco" class="form-label"
+              ><i class="fas fa-map-marker-alt"></i> Endereço *</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="endereco"
+              name="endereco"
+              placeholder="Rua, Número, Bairro"
+              required
+            />
+          </div>
+        </div>
 
-        <form method="POST" action="{{ url_for('cadastrar_consumidor') }}" class="form-grid">
-            <div class="form-group">
-                <label for="nome"><i class="fas fa-user"></i> Nome Completo</label>
-                <input type="text" id="nome" name="nome" placeholder="João da Silva" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="cpf"><i class="fas fa-id-card"></i> CPF</label>
-                <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="endereco"><i class="fas fa-map-marker-alt"></i> Endereço</label>
-                <input type="text" id="endereco" name="endereco" placeholder="Rua, Número, Bairro" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="rg"><i class="fas fa-address-card"></i> RG</label>
-                <input type="text" id="rg" name="rg" placeholder="00.000.000-0" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="telefone"><i class="fas fa-phone"></i> Telefone</label>
-                <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="hidrometro"><i class="fas fa-tint"></i> Nº Hidrômetro</label>
-                <input type="text" id="hidrometro" name="hidrometro" placeholder="Número do hidrômetro" required>
-            </div>
-            
-            <div class="form-group" style="grid-column: span 2;">
-                <button type="submit">
-                    <i class="fas fa-save"></i> Cadastrar Consumidor
-                </button>
-            </div>
-        </form>
+        <!-- Linha 3: Telefone e Hidrômetro -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="telefone" class="form-label"
+              ><i class="fas fa-phone"></i> Telefone</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="telefone"
+              name="telefone"
+              placeholder="(00) 00000-0000"
+            />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="hidrometro" class="form-label"
+              ><i class="fas fa-tint"></i> Nº Hidrômetro *</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="hidrometro"
+              name="hidrometro"
+              placeholder="Número do hidrômetro"
+              required
+            />
+          </div>
+        </div>
 
-        <a class="voltar" href="{{ url_for('dashboard') }}">
-            <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
-        </a>
+        <!-- Botões de Ação -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="fas fa-save me-2"></i>Salvar Consumidor
+          </button>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary px-4"
+            ><i class="fas fa-arrow-left me-2"></i>Cancelar</a
+          >
+        </div>
+      </form>
     </div>
 
-    <!-- Máscaras para os campos -->
+    <!-- Scripts: jQuery, jQuery Mask e Bootstrap -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function(){
-            $('#cpf').mask('000.000.000-00');
-            $('#rg').mask('00.000.000-0');
-            $('#telefone').mask('(00) 00000-0000');
-            
-            // Melhoria: Foco automático no primeiro campo
-            $('#nome').focus();
-            
-            // Previne zoom em inputs no iOS
-            document.addEventListener('gesturestart', function(e) {
-                e.preventDefault();
-            });
-        });
+      $(document).ready(function () {
+        $("#cpf").mask("000.000.000-00");
+        $("#rg").mask("00.000.000-0");
+        $("#telefone").mask("(00) 00000-0000");
+
+        // Foco automático no primeiro campo para melhor experiência do usuário
+        $("#nome").focus();
+      });
     </script>
-</body>
+  </body>
 </html>
-
-
