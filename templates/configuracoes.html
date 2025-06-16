@@ -122,26 +122,20 @@
             </div>
           </div>
 
-          <div class="section-card">
-            <div class="section-header">Parâmetros Financeiros</div>
-            <div class="section-body">
-              <div class="row">
-                <div class="col-md-6 mb-2">
-                  <label for="valor_litro" class="form-label"
-                    >Valor do Litro</label
-                  >
-                  <div class="input-group">
-                    <span class="input-group-text">R$</span>
-                    <input
-                      type="number"
-                      step="any"
-                      class="form-control"
-                      name="valor_litro"
-                      required
-                      value="{{ '%.4f'|format(config['valor_litro']) if config and config['valor_litro'] is not none else '' }}"
-                    />
-                  </div>
-                </div>
+<div class="col-md-6 mb-2">
+    <label for="valor_m3" class="form-label">Valor por m³ (1000 Litros)</label>
+    <div class="input-group">
+        <span class="input-group-text">R$</span>
+        <input
+          type="text"
+          class="form-control"
+          name="valor_m3"
+          id="valor_m3"
+          required
+          value="{{ '%.4f'|format(config.valor_m3|float) if config.valor_m3 is not none else '' }}"
+        />
+    </div>
+</div>
                 <div class="col-md-6 mb-2">
                   <label for="taxa_minima_consumo" class="form-label"
                     >Taxa Mínima de Consumo</label
