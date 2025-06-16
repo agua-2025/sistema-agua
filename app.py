@@ -139,35 +139,30 @@ def admin_required(f):
 # Função auxiliar para obter as configurações mais recentes (VERSÃO CORRIGIDA)
 def get_current_config():
     db = get_db()
-    # Primeiro, tenta buscar a última configuração do banco de dados
     resultado_bruto = db.execute(text('''
         SELECT COALESCE(multa_percentual, 2.0) AS multa_percentual,
                COALESCE(juros_diario_percentual, 0.033) AS juros_diario_percentual,
-               COALESCE(valor_litro, 0.0) AS valor_litro,
+               COALESCE(valor_m3, 0.0) AS valor_m3, -- ALTERADO
                COALESCE(taxa_minima_consumo, 0.0) AS taxa_minima_consumo,
                COALESCE(dias_uteis_para_vencimento, 5) AS dias_uteis_para_vencimento,
                COALESCE(hidr_geral_anterior, 0) AS hidr_geral_anterior,
                COALESCE(hidr_geral_atual, 0) AS hidr_geral_atual,
                COALESCE(data_ultima_config, NOW()) AS data_ultima_config,
                COALESCE(consumo_geral, 0) AS consumo_geral
-        FROM configuracoes
-        ORDER BY id DESC
-        LIMIT 1
+        FROM configuracoes ORDER BY id DESC LIMIT 1
     ''')).fetchone()
     
-    # Se uma configuração foi encontrada no banco, converte para dicionário e retorna
     if resultado_bruto:
-        # CORREÇÃO: Usando ._asdict() para evitar o TypeError
         return resultado_bruto._asdict()
     else:
-        # Se NENHUMA configuração foi encontrada, retorna um dicionário com valores padrão
         return {
             'multa_percentual': 2.0, 'juros_diario_percentual': 0.033,
-            'valor_litro': 0.0, 'taxa_minima_consumo': 0.0,
+            'valor_m3': 0.0, 'taxa_minima_consumo': 0.0, # ALTERADO
             'dias_uteis_para_vencimento': 5, 'hidr_geral_anterior': 0,
             'hidr_geral_atual': 0, 'data_ultima_config': date.today().strftime('%Y-%m-%d'),
             'consumo_geral': 0
         }
+    
 # FUNÇÃO `calcular_penalidades` CORRIGIDA
 def calcular_penalidades(valor_original_fatura, valor_base_para_juros, data_vencimento_obj, data_referencia_str, config_multa_percentual, config_juros_diario_percentual):
     """
@@ -364,41 +359,29 @@ def configuracoes():
     if request.method == 'POST':
         form = request.form
         try:
-            hidr_geral_anterior = int(form['hidr_geral_anterior'])
-            hidr_geral_atual = int(form['hidr_geral_atual'])
-            valor_litro = parse_number_from_br_form(form.get('valor_litro', ''))
-            taxa_minima_consumo = parse_number_from_br_form(form.get('taxa_minima_consumo', ''))
-            multa_percentual = parse_number_from_br_form(form.get('multa_percentual', ''))
-            juros_diario_percentual = parse_number_from_br_form(form.get('juros_diario_percentual', ''))
-            
-            # --- A MUDANÇA ESTÁ AQUI ---
-            # Se o campo de data vier vazio, usa a data de hoje como padrão.
-            data_selecionada = form.get('data_ultima_config')
-            data_ultima_config = data_selecionada if data_selecionada else date.today().strftime('%Y-%m-%d')
-            
-            dias_uteis_para_vencimento = int(form['dias_uteis_para_vencimento'])
-            consumo_geral = hidr_geral_atual - hidr_geral_anterior
-            
+            valor_m3 = parse_number_from_br_form(form.get('valor_m3', '')) # ALTERADO
             db = get_db()
             with db.begin():
                 db.execute(text("""
                     INSERT INTO configuracoes (
                         hidr_geral_anterior, hidr_geral_atual, consumo_geral,
-                        valor_litro, taxa_minima_consumo, data_ultima_config,
+                        valor_m3, taxa_minima_consumo, data_ultima_config,
                         dias_uteis_para_vencimento, multa_percentual, juros_diario_percentual
-                    ) VALUES (:h_ant, :h_atu, :c_ger, :v_litro, :t_min, :d_conf, :d_venc, :multa, :juros)
-                """), {
-                    'h_ant': hidr_geral_anterior, 'h_atu': hidr_geral_atual, 'c_ger': consumo_geral,
-                    'v_litro': valor_litro, 't_min': taxa_minima_consumo, 'd_conf': data_ultima_config,
-                    'd_venc': dias_uteis_para_vencimento, 'multa': multa_percentual, 'juros': juros_diario_percentual
+                    ) VALUES (:h_ant, :h_atu, :c_ger, :v_m3, :t_min, :d_conf, :d_venc, :multa, :juros)
+                """), { # ALTERADO
+                    'h_ant': int(form['hidr_geral_anterior']), 'h_atu': int(form['hidr_geral_atual']), 
+                    'c_ger': int(form['hidr_geral_atual']) - int(form['hidr_geral_anterior']),
+                    'v_m3': valor_m3, 't_min': parse_number_from_br_form(form.get('taxa_minima_consumo', '')), 
+                    'd_conf': form.get('data_ultima_config') or date.today().strftime('%Y-%m-%d'),
+                    'd_venc': int(form['dias_uteis_para_vencimento']), 
+                    'multa': parse_number_from_br_form(form.get('multa_percentual', '')), 
+                    'juros': parse_number_from_br_form(form.get('juros_diario_percentual', ''))
                 })
-            
             flash("Configuração salva com sucesso!", 'success')
         except Exception as e:
-            app.logger.error(f"Erro ao salvar configuração: {str(e)}", exc_info=True)
             flash(f"Erro ao salvar configuração: {str(e)}", 'danger')
-
-    # A busca pela configuração não muda e já estava correta
+        return redirect(url_for('configuracoes'))
+    
     config = get_current_config()
     return render_template('configuracoes.html', config=config)
 
@@ -538,80 +521,74 @@ def listar_consumidores():
     consumidores = db.execute(text("SELECT * FROM consumidores")).fetchall()
     return render_template('consumidores.html', consumidores=consumidores)
 
-# ---------- Cadastro de Leitura (VERSÃO FINAL E CORRIGIDA) ----------
+# ---------- Cadastro de Leitura (VERSÃO FINAL COM NOVAS REGRAS) ----------
+# ---------- Cadastro de Leitura (VERSÃO FINAL DEFINITIVA) ----------
 @app.route('/cadastrar-leitura', methods=['GET', 'POST'])
 @login_required
 def cadastrar_leitura():
-    db = get_db()
-    
-    # Parte que lida com o ENVIO do formulário (POST)
     if request.method == 'POST':
         try:
-            # Coleta de dados do formulário
+            # 1. Coleta todos os dados do formulário primeiro
             consumidor_id = request.form['consumidor_id']
             leitura_anterior = parse_number_from_br_form(request.form.get('leitura_anterior'))
             leitura_atual = parse_number_from_br_form(request.form.get('leitura_atual'))
+            data_leitura_anterior_str = request.form.get('data_leitura_anterior') or None
+            data_leitura_atual = request.form.get('data_leitura_atual')
+            taxa_minima_aplicada = request.form.get('taxa_minima_aplicada', 'NÃO')
+            taxa_minima = parse_number_from_br_form(request.form.get('valor_taxa_minima', '0'))
             
-            data_ant_str = request.form.get('data_leitura_anterior')
-            data_leitura_anterior = None # Padrão é Nulo
-            if data_ant_str:
+            # Converte a data anterior para o formato do banco
+            data_leitura_anterior = None
+            if data_leitura_anterior_str:
                 try:
-                    # Converte de DD/MM/YYYY para Laufe-MM-DD para salvar no banco
-                    data_leitura_anterior = datetime.strptime(data_ant_str, '%d/%m/%Y').strftime('%Y-%m-%d')
+                    data_leitura_anterior = datetime.strptime(data_leitura_anterior_str, '%d/%m/%Y').strftime('%Y-%m-%d')
                 except ValueError:
-                    app.logger.warning(f"Formato de data anterior inválido recebido: {data_ant_str}")
-                    # Mantém como None se o formato for inválido
-            
-            data_leitura_atual_str = request.form['data_leitura_atual'] # Renomeado para evitar conflito com data_leitura_atual_obj
-            qtd_dias_utilizados = int(request.form['qtd_dias_utilizados']) if request.form.get('qtd_dias_utilizados') else None
-            litros_consumidos = parse_number_from_br_form(request.form.get('litros_consumidos'))
-            media_por_dia = parse_number_from_br_form(request.form.get('media_por_dia'))
-            valor_original = parse_number_from_br_form(request.form.get('valor_original'))
-            taxa_minima_aplicada = request.form['taxa_minima_aplicada']
-            valor_taxa_minima = parse_number_from_br_form(request.form.get('valor_taxa_minima'))
-            
-            # --- CORREÇÃO PRINCIPAL AQUI: VALIDAÇÃO E CONVERSÃO DA DATA DE VENCIMENTO ---
-            vencimento_str = request.form.get('vencimento')
-            vencimento_to_save = None # Padrão para NULL no banco
+                    app.logger.warning(f"Formato de data anterior inválido: {data_leitura_anterior_str}")
 
-            if vencimento_str:
-                try:
-                    # Tenta converter de DD/MM/YYYY para Laufe-MM-DD (formato esperado pelo PostgreSQL)
-                    vencimento_to_save = datetime.strptime(vencimento_str, '%d/%m/%Y').strftime('%Y-%m-%d')
-                except ValueError:
-                    app.logger.error(f"Formato de data de vencimento inválido recebido: {vencimento_str}. Esperado DD/MM/YYYY.")
-                    flash("Formato da data de vencimento inválido. Por favor, use DD/MM/YYYY.", "danger")
-                    # Se houver erro, podemos renderizar o formulário novamente ou manter o vencimento_to_save como None
-                    # Para não travar, vou permitir que seja salvo como NULL se inválido, mas com flash message.
-                    # Se preferir parar o processo e exigir data válida, descomente a linha abaixo e remova a atribuição de None.
-                    # return redirect(url_for('cadastrar_leitura')) 
-            
-            nome_arquivo = None
-            if 'foto_hidrometro' in request.files:
-                foto_hidrometro = request.files['foto_hidrometro']
-                if foto_hidrometro and allowed_file(foto_hidrometro.filename):
-                    filename = secure_filename(foto_hidrometro.filename)
-                    caminho_foto = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    foto_hidrometro.save(caminho_foto)
-                    nome_arquivo = filename
-
+            db = get_db()
+            # 2. Inicia a transação e faz TODAS as operações com o banco aqui dentro
             with db.begin():
+                # Busca a configuração DENTRO da transação
+                config = get_current_config()
+                dias_para_vencimento = config.get('dias_uteis_para_vencimento', 5)
+                data_leitura_obj = datetime.strptime(data_leitura_atual, '%Y-%m-%d').date()
+                data_vencimento = adicionar_dias_uteis(data_leitura_obj, dias_para_vencimento)
+                vencimento = data_vencimento.strftime('%Y-%m-%d')
+
+                # Faz os cálculos no backend para garantir a integridade dos dados
+                litros_consumidos = 0
+                if leitura_anterior > 0 and leitura_atual > leitura_anterior:
+                    litros_consumidos = leitura_atual - leitura_anterior
+                
+                valor_calculado = (litros_consumidos / 1000) * config.get('valor_m3', 0.0)
+                valor_original = max(valor_calculado, taxa_minima)
+                
+                # Processa o arquivo de foto, se houver
+                nome_arquivo = None
+                if 'foto_hidrometro' in request.files:
+                    foto_hidrometro = request.files['foto_hidrometro']
+                    if foto_hidrometro and allowed_file(foto_hidrometro.filename):
+                        filename = secure_filename(foto_hidrometro.filename)
+                        caminho_foto = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                        foto_hidrometro.save(caminho_foto)
+                        nome_arquivo = filename
+                
+                # Insere a leitura no banco de dados
                 db.execute(text('''
                     INSERT INTO leituras (
                         consumidor_id, leitura_anterior, leitura_atual, data_leitura_anterior, 
-                        data_leitura_atual, qtd_dias_utilizados, litros_consumidos, media_por_dia,
-                        valor_original, taxa_minima_aplicada, valor_taxa_minima, vencimento, foto_hidrometro
+                        data_leitura_atual, litros_consumidos, valor_original, 
+                        taxa_minima_aplicada, valor_taxa_minima, vencimento, foto_hidrometro
                     ) VALUES (
-                        :cid, :l_ant, :l_atu, :d_ant, :d_atu, :dias, :litros, :media,
-                        :val_orig, :taxa_min_apl, :val_taxa_min, :venc, :foto
+                        :cid, :l_ant, :l_atu, :d_ant, :d_atu, 
+                        :litros, :val_orig, :taxa_min_apl, :val_taxa_min, :venc, :foto
                     )
                 '''), {
                     'cid': consumidor_id, 'l_ant': leitura_anterior, 'l_atu': leitura_atual,
-                    'd_ant': data_leitura_anterior, 'd_atu': data_leitura_atual_str, # Use a string original aqui
-                    'dias': qtd_dias_utilizados, 'litros': litros_consumidos, 'media': media_por_dia,
-                    'val_orig': valor_original, 'taxa_min_apl': taxa_minima_aplicada,
-                    'val_taxa_min': valor_taxa_minima, 'venc': vencimento_to_save, # Use a data convertida/validada
-                    'foto': nome_arquivo
+                    'd_ant': data_leitura_anterior, 'd_atu': data_leitura_atual,
+                    'litros': litros_consumidos, 'val_orig': valor_original,
+                    'taxa_min_apl': taxa_minima_aplicada, 'val_taxa_min': taxa_minima,
+                    'venc': vencimento, 'foto': nome_arquivo
                 })
             
             flash('Leitura cadastrada com sucesso!', 'success')
@@ -622,46 +599,36 @@ def cadastrar_leitura():
             flash(f'Erro ao cadastrar leitura: {str(e)}', 'danger')
             return redirect(url_for('cadastrar_leitura'))
 
-    # Parte que lida com o CARREGAMENTO da página (GET)
-    else:
+    else:  # Método GET (código para carregar a página)
+        db = get_db()
         consumidor_id = request.args.get('consumidor_id')
-        consumidores = db.execute(text('SELECT id, nome FROM consumidores ORDER BY nome')).fetchall()
-
-        leitura_anterior_val = ''
+        consumidores_brutos = db.execute(text('SELECT id, nome FROM consumidores ORDER BY nome')).fetchall()
+        consumidores = [c._asdict() for c in consumidores_brutos]
+        leitura_anterior_val = '0'
         data_leitura_anterior_val = ''
 
         if consumidor_id:
             resultado_bruto = db.execute(text('''
-                SELECT leitura_atual, data_leitura_atual
-                FROM leituras
-                WHERE consumidor_id = :cid
-                ORDER BY data_leitura_atual DESC, id DESC
-                LIMIT 1
+                SELECT leitura_atual, data_leitura_atual FROM leituras
+                WHERE consumidor_id = :cid ORDER BY date(data_leitura_atual) DESC, id DESC LIMIT 1
             '''), {'cid': consumidor_id}).fetchone()
 
             if resultado_bruto:
                 ultima_leitura = resultado_bruto._asdict()
-                leitura_anterior_val = str(ultima_leitura['leitura_atual']) if ultima_leitura['leitura_atual'] else ''
+                leitura_anterior_val = str(ultima_leitura['leitura_atual']) if ultima_leitura['leitura_atual'] else '0'
                 data_l_anterior_do_banco = ultima_leitura['data_leitura_atual']
                 if data_l_anterior_do_banco:
-                    # CORREÇÃO AQUI: Lida com objetos datetime.date/datetime diretamente
-                    if isinstance(data_l_anterior_do_banco, (date, datetime)):
-                        data_leitura_anterior_val = data_l_anterior_do_banco.strftime('%d/%m/%Y')
-                    else: # Se não for um objeto de data, tenta parsear como string (para compatibilidade)
-                        try:
-                            # Esta parte só será alcançada se o dado não for datetime.date/datetime
-                            date_obj = datetime.strptime(str(data_l_anterior_do_banco), '%Y-%m-%d').date()
-                            data_leitura_anterior_val = date_obj.strftime('%d/%m/%Y')
-                        except (ValueError, TypeError):
-                            app.logger.warning(f"Erro ao formatar data_leitura_anterior para exibição: {data_l_anterior_do_banco}. Tipo: {type(data_l_anterior_do_banco)}")
-                            data_leitura_anterior_val = '' # Define como vazio em caso de erro de formato
+                    try:
+                        date_obj = datetime.strptime(str(data_l_anterior_do_banco), '%Y-%m-%d').date()
+                        data_leitura_anterior_val = date_obj.strftime('%d/%m/%Y')
+                    except (ValueError, TypeError):
+                        data_leitura_anterior_val = ''
         
         return render_template('cadastrar_leitura.html',
                                consumidores=consumidores,
                                consumidor_selecionado=int(consumidor_id) if consumidor_id else None,
                                leitura_anterior=leitura_anterior_val,
                                data_leitura_anterior=data_leitura_anterior_val)
-  
     
 # --- API para Dias Úteis Após Vencimento ---
 @app.route('/api/dias_uteis')
@@ -892,10 +859,10 @@ def api_leituras(consumidor_id):
         return jsonify({'erro': 'Erro interno no servidor'}), 500
     
 # --- API para retornar o valor do litro atual ---
-@app.route('/api/valor_litro')
-def api_valor_litro():
-    config = get_current_config() # Usando a função auxiliar
-    return jsonify({'valor_litro': config['valor_litro']})
+@app.route('/api/valor_m3')
+def api_valor_m3():
+    config = get_current_config()
+    return jsonify({'valor_m3': config.get('valor_m3', 0.0)})
 
 # --- ROTA PRINCIPAL DE DETALHES (CORRIGIDA) ---
 @app.route('/detalhes-pagamento')
