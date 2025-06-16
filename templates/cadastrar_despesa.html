@@ -2,96 +2,273 @@
 
 {% block title %}Cadastrar Despesa{% endblock %}
 
+{% block head %}
+    {{ super() }} {# Mantém os elementos do head do base.html, como a meta viewport, etc. #}
+    <!-- Inclui Font Awesome para os ícones, essencial para o padrão desejado -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Inclui a fonte Inter do Google Fonts para consistência visual -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos globais para o body, centralizando o conteúdo do formulário na tela */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9; /* Fundo cinza claro, padrão do seu sistema */
+            min-height: 100vh; /* Garante que o body ocupe toda a altura da tela */
+            display: flex; /* Habilita o Flexbox para centralização */
+            align-items: center; /* Centraliza verticalmente o formulário */
+            justify-content: center; /* Centraliza horizontalmente o formulário */
+            padding: 15px; /* Adiciona um espaçamento seguro nas bordas para celulares */
+        }
+
+        /* Contêiner principal do formulário, estilizado como um card flutuante */
+        .container-form {
+            background-color: #ffffff; /* Fundo branco para o card, como no modelo */
+            padding: 2.5rem; /* Espaçamento interno generoso dentro do card */
+            border-radius: 12px; /* Cantos arredondados, padrão do seu sistema */
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08); /* Sombra suave para dar profundidade */
+            width: 100%; /* Garante que o card ocupe a largura total em telas pequenas */
+            max-width: 800px; /* Limita a largura máxima em telas grandes para manter a legibilidade */
+        }
+
+        /* Estilos para o cabeçalho do formulário, replicando o padrão "Cadastrar Novo Consumidor" */
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem; /* Espaçamento abaixo do cabeçalho */
+        }
+
+        .form-header h3 {
+            color: #0d6efd; /* Título em azul, exatamente como no seu modelo de consumidor */
+            font-weight: 600; /* Negrito para o título */
+            font-size: 1.75rem; /* Tamanho da fonte do título */
+            display: flex; /* Para alinhar o ícone e o texto do título */
+            align-items: center; /* Centraliza verticalmente ícone e texto */
+            justify-content: center; /* Centraliza horizontalmente ícone e texto */
+        }
+
+        .form-header h3 .fas {
+            margin-right: 10px; /* Espaçamento entre o ícone e o texto do título */
+            font-size: 1.5rem; /* Tamanho do ícone do título */
+        }
+
+        .form-header p {
+            font-size: 0.95rem; /* Tamanho da fonte do parágrafo de instrução */
+            color: #6c757d; /* Cor do texto "Preencha todos os campos..." (cinza sutil) */
+        }
+
+        /* Estilos para os labels dos campos do formulário */
+        .form-label {
+            font-weight: 500;
+            color: #495057; /* Cor do texto do label (quase preto/cinza escuro, como no modelo) */
+            margin-bottom: 0.5rem;
+            display: flex; /* Habilita flexbox para alinhar ícone e texto do label */
+            align-items: center; /* Alinha verticalmente ícone e texto */
+        }
+
+        /* Estilos para os ícones dentro dos labels */
+        .form-label .fas {
+            margin-right: 8px; /* Espaçamento entre o ícone e o texto do label */
+            color: #0d6efd; /* Cor azul dos ícones nos labels, como no modelo */
+            font-size: 1rem; /* Tamanho do ícone nos labels */
+        }
+
+        /* Estilos para botões primários (Salvar) */
+        .btn-primary {
+            background-color: #0d6efd; /* Fundo azul do botão principal, como no modelo */
+            border-color: #0d6efd; /* Borda azul do botão principal */
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7; /* Azul mais escuro no hover */
+            border-color: #0a58ca; /* Borda azul mais escura no hover */
+        }
+
+        /* Estilos para botões secundários (Cancelar, Voltar, Dashboard) */
+        .btn-secondary {
+            /* Bootstrap já define bem, sem necessidade de customização extra aqui para o padrão */
+        }
+        .btn-light {
+             /* Bootstrap já define bem, sem necessidade de customização extra aqui para o padrão */
+        }
+
+        /* Adaptação dos botões de ação para responsividade */
+        .form-actions {
+            display: flex;
+            flex-direction: column; /* Em telas pequenas, os botões ficam empilhados verticalmente */
+            gap: 10px; /* Espaçamento entre os botões empilhados */
+            justify-content: flex-end; /* Alinha os botões à direita (quando em linha) */
+        }
+
+        @media (min-width: 768px) { /* A partir de tablets (md), botões voltam a ficar lado a lado */
+            .form-actions {
+                flex-direction: row;
+            }
+        }
+        
+        /* Ajuste para espaçamento entre linhas de campos em mobile, se necessário */
+        @media (max-width: 767.98px) { /* Para telas menores que md (celulares) */
+            .row .col-12.mb-3,
+            .row .col-md-6.mb-3 {
+                margin-bottom: 1rem !important; /* Garante espaçamento entre campos quando empilhados */
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container my-4">
-    <div class="card p-4 p-md-5 shadow-sm" style="border-radius: 12px; background-color: #ffffff;">
-
-        <h3 class="text-center fw-bold mb-4" style="color: #0056b3;"><i class="bi bi-file-earmark-plus-fill me-2"></i>Cadastrar Nova Despesa</h3>
-
-        {# As mensagens flash já são tratadas no base.html #}
-
-        <form method="POST" novalidate>
-            <!-- Linha 1: Descrição -->
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label for="descricao" class="form-label">Descrição da Despesa *</label>
-                    <input type="text" class="form-control" id="descricao" name="descricao" required value="{{ request.form.descricao or '' }}">
-                </div>
-            </div>
-
-            <!-- Linha 2: Valor e Data -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="valor" class="form-label">Valor (R$) *</label>
-                    <input type="text" class="form-control" id="valor" name="valor" placeholder="Ex: 150,00" required onkeyup="formatCurrency(this)" value="{{ request.form.valor or '' }}">
-                </div>
-                <div class="col-md-6 mt-3 mt-md-0">
-                    <label for="data_despesa" class="form-label">Data da Despesa *</label>
-                    <input type="date" class="form-control" id="data_despesa" name="data_despesa" value="{{ today_date }}" required>
-                </div>
-            </div>
-
-            <!-- Linha 3: Categoria -->
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label for="categoria" class="form-label">Categoria</label>
-                    <select class="form-select" id="categoria" name="categoria">
-                        <option value="" {% if not request.form.categoria %}selected{% endif %}>Selecione uma Categoria</option>
-                        <option value="Manutenção" {% if request.form.categoria == 'Manutenção' %}selected{% endif %}>Manutenção</option>
-                        <option value="Energia" {% if request.form.categoria == 'Energia' %}selected{% endif %}>Energia</option>
-                        <option value="Salários" {% if request.form.categoria == 'Salários' %}selected{% endif %}>Salários</option>
-                        <option value="Impostos" {% if request.form.categoria == 'Impostos' %}selected{% endif %}>Impostos e Taxas</option>
-                        <option value="Material" {% if request.form.categoria == 'Material' %}selected{% endif %}>Material de Escritório/Consumo</option>
-                        <option value="Combustível" {% if request.form.categoria == 'Combustível' %}selected{% endif %}>Combustível</option>
-                        <option value="Outros" {% if request.form.categoria == 'Outros' %}selected{% endif %}>Outros</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Linha 4: Observações -->
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label for="observacoes" class="form-label">Observações</label>
-                    <textarea class="form-control" id="observacoes" name="observacoes" rows="3">{{ request.form.observacoes or '' }}</textarea>
-                </div>
-            </div>
-            
-            <hr class="my-4">
-
-            <!-- Ações do Formulário -->
-            <div class="d-flex justify-content-end gap-2">
-                <a href="{{ url_for('listar_despesas') }}" class="btn btn-secondary px-4">
-                    <i class="bi bi-arrow-left-circle me-1"></i> Voltar
-                </a>
-                <a href="{{ url_for('dashboard') }}" class="btn btn-light px-4">
-                    <i class="bi bi-house-door me-1"></i> Dashboard
-                </a>
-                <button type="submit" class="btn btn-primary px-4">
-                    <i class="bi bi-check-circle me-1"></i> Salvar Despesa
-                </button>
-            </div>
-        </form>
+<div class="container container-form">
+    <!-- Cabeçalho do formulário, padronizado com "Cadastrar Novo Consumidor" -->
+    <div class="form-header">
+        <h3><i class="fas fa-file-invoice-dollar"></i> Cadastrar Nova Despesa</h3> {# Ícone específico para despesa #}
+        <p class="text-muted">Preencha todos os campos obrigatórios (*)</p>
     </div>
+
+    <!-- Seção para mensagens flash (já tratada no base.html e mantida) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="mb-3">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST" novalidate>
+        <!-- Linha 1: Descrição da Despesa -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label for="descricao" class="form-label">
+                    <i class="fas fa-file-alt"></i> Descrição da Despesa *
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="descricao"
+                    name="descricao"
+                    placeholder="Ex: Manutenção da bomba d'água"
+                    required
+                    value="{{ request.form.descricao or '' }}"
+                />
+            </div>
+        </div>
+
+        <!-- Linha 2: Valor e Data da Despesa -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="valor" class="form-label">
+                    <i class="fas fa-money-bill-wave"></i> Valor (R$) *
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="valor"
+                    name="valor"
+                    placeholder="Ex: 150,00"
+                    required
+                    onkeyup="formatCurrency(this)"
+                    value="{{ request.form.valor or '' }}"
+                />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="data_despesa" class="form-label">
+                    <i class="fas fa-calendar-alt"></i> Data da Despesa *
+                </label>
+                <input
+                    type="date"
+                    class="form-control"
+                    id="data_despesa"
+                    name="data_despesa"
+                    value="{{ today_date }}"
+                    required
+                />
+            </div>
+        </div>
+
+        <!-- Linha 3: Categoria da Despesa -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label for="categoria" class="form-label">
+                    <i class="fas fa-tags"></i> Categoria
+                </label>
+                <select class="form-select" id="categoria" name="categoria">
+                    <option value="" {% if not request.form.categoria %}selected{% endif %}>Selecione uma Categoria</option>
+                    <option value="Manutenção" {% if request.form.categoria == 'Manutenção' %}selected{% endif %}>Manutenção</option>
+                    <option value="Energia" {% if request.form.categoria == 'Energia' %}selected{% endif %}>Energia</option>
+                    <option value="Salários" {% if request.form.categoria == 'Salários' %}selected{% endif %}>Salários</option>
+                    <option value="Impostos" {% if request.form.categoria == 'Impostos' %}selected{% endif %}>Impostos e Taxas</option>
+                    <option value="Material" {% if request.form.categoria == 'Material' %}selected{% endif %}>Material de Escritório/Consumo</option>
+                    <option value="Combustível" {% if request.form.categoria == 'Combustível' %}selected{% endif %}>Combustível</option>
+                    <option value="Outros" {% if request.form.categoria == 'Outros' %}selected{% endif %}>Outros</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Linha 4: Observações -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label for="observacoes" class="form-label">
+                    <i class="fas fa-comment-alt"></i> Observações
+                </label>
+                <textarea
+                    class="form-control"
+                    id="observacoes"
+                    name="observacoes"
+                    rows="3"
+                >{{ request.form.observacoes or '' }}</textarea>
+            </div>
+        </div>
+
+        <hr class="my-4" />
+
+        <!-- Botões de Ação do Formulário -->
+        <div class="form-actions mt-4">
+            <a href="{{ url_for('listar_despesas') }}" class="btn btn-secondary px-4">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-light px-4">
+                <i class="fas fa-home me-1"></i> Dashboard
+            </a> {# Ícone Font Awesome para consistência #}
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="fas fa-check-circle me-1"></i> Salvar Despesa
+            </button>
+        </div>
+    </form>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-function formatCurrency(input) {
-    // Esta função foi mantida exatamente como no original para não alterar a lógica
-    let value = input.value;
-    value = value.replace(/\D/g, ""); // Remove tudo que não é dígito
-    if (value.length === 0) {
-        input.value = "";
-        return;
-    }
-    // Adiciona a vírgula antes dos 2 últimos dígitos (centavos)
-    value = (parseInt(value, 10) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (value === 'NaN') { // Previne que o campo mostre 'NaN'
-        input.value = "";
-    } else {
-        input.value = value;
-    }
-}
-</script>
+    {# Inclui jQuery e jQuery Mask, se não estiverem no base.html #}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Inclui o script Font Awesome para os ícones funcionarem -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <script>
+        // Função para formatar o valor como moeda brasileira
+        function formatCurrency(input) {
+            let value = input.value;
+            value = value.replace(/\D/g, ""); // Remove tudo que não é dígito
+            if (value.length === 0) {
+                input.value = "";
+                return;
+            }
+            // Adiciona a vírgula antes dos 2 últimos dígitos (centavos)
+            value = (parseInt(value, 10) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (value === 'NaN') { // Previne que o campo mostre 'NaN'
+                input.value = "";
+            } else {
+                input.value = value;
+            }
+        }
+
+        // Se houver campos que precisam de máscara, adicione aqui (ex: se tivesse um CPF na despesa)
+        $(document).ready(function () {
+            // Exemplo de como aplicar máscara se houvesse campos (mantido para referência, mas não necessário para esta tela específica)
+            // $("#campo_com_mascara").mask("00.000.000/0000-00");
+        });
+    </script>
 {% endblock %}

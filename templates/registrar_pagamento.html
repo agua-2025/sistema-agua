@@ -68,6 +68,11 @@
         font-size: 1.75rem;
         font-weight: 700;
       }
+      /* Adicionado estilo para campos readonly/disabled */
+      .form-control[readonly], .form-control:disabled {
+          background-color: #e9ecef; /* Cor padrão do Bootstrap para campos desabilitados */
+          opacity: 1; /* Garante que não fique semi-transparente */
+      }
     </style>
   </head>
   <body class="bg-light">
@@ -168,7 +173,7 @@
                   id="data_pagamento"
                   name="data_pagamento"
                   required
-                />
+                  readonly="readonly" />
               </div>
               <div class="col-md-6 mb-3">
                 <label for="forma_pagamento" class="form-label"
@@ -237,13 +242,10 @@
       // Função para formatar uma string de data (YYYY-MM-DD) para o padrão brasileiro (DD/MM/YYYY)
       function formatDate(dateString) {
         if (!dateString) {
-          // Se a data for nula ou vazia
           return "N/A";
         }
-        // Adiciona T00:00:00 para evitar problemas de fuso horário que podem mudar o dia
         const date = new Date(dateString + "T00:00:00");
         if (isNaN(date.getTime())) {
-          // Se a data criada é inválida
           return "Data Inválida";
         }
         return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
@@ -266,7 +268,6 @@
 
       // Espera o documento carregar para executar o código
       document.addEventListener("DOMContentLoaded", function () {
-        // IDs CORRIGIDOS PARA BATER COM O HTML
         const consumidorSelect = document.getElementById("consumidor_id");
         const faturaSelect = document.getElementById("leitura_id");
         const dataPagamentoInput = document.getElementById("data_pagamento");
@@ -280,26 +281,34 @@
         const totalPagarDisplay = document.getElementById("total_a_pagar");
         const valorPagoInput = document.getElementById("valor_pago");
 
-        // Define a data de hoje como padrão no campo de data de pagamento
-        dataPagamentoInput.value = new Date().toISOString().split("T")[0];
+        // --- INÍCIO DAS MODIFICAÇÕES CRÍTICAS ---
 
+        // 1. Define a data de hoje como padrão no campo de data de pagamento e o mantém READONLY.
+        //    (Já estava correto, apenas reforçando a importância)
+        const today = new Date();
+        dataPagamentoInput.value = today.toISOString().split("T")[0];
+
+        // 2. Função para limpar campos de valores calculados
         function clearValueFields() {
           vencimentoDisplay.textContent = "DD/MM/AAAA";
           saldoAnteriorDisplay.textContent = "R$ 0,00";
           multaDisplay.textContent = "R$ 0,00";
           jurosDisplay.textContent = "R$ 0,00";
           totalPagarDisplay.textContent = "R$ 0,00";
-          valorPagoInput.value = "";
+          valorPagoInput.value = ""; // Limpa o valor pago também
         }
 
-        function fetchFaturas(consumidorId) {
-          const dataPagamentoRef = dataPagamentoInput.value;
+        // 3. Modifica fetchFaturas para considerar a fatura selecionada anteriormente (se houver)
+        //    e para usar a data de pagamento SOMENTE para o cálculo das multas/juros na API.
+        function fetchFaturas(consumidorId, keepSelectedFaturaId = null) {
+          const dataPagamentoRef = dataPagamentoInput.value; // Data de hoje, que é fixa
+          
           faturaSelect.innerHTML = '<option value="">Carregando...</option>';
-          clearValueFields();
+          clearValueFields(); // Limpa os campos enquanto carrega
 
           if (!consumidorId) {
             faturaSelect.innerHTML =
-              '<option value="">Selecione um Consumidor</option>';
+              '<option value="" disabled selected>Selecione um Consumidor</option>';
             return;
           }
 
@@ -323,6 +332,19 @@
                   const option = new Option(displayText, fatura.id);
                   faturaSelect.add(option);
                 });
+                
+                // Tenta re-selecionar a fatura se um ID foi passado
+                if (keepSelectedFaturaId) {
+                    faturaSelect.value = keepSelectedFaturaId;
+                    // Se a fatura foi re-selecionada, dispara o fetchDetalhesFatura para preencher os dados
+                    if (faturaSelect.value === String(keepSelectedFaturaId)) {
+                        fetchDetalhesFatura(keepSelectedFaturaId);
+                    } else {
+                        // Se não conseguiu re-selecionar, limpa os campos para evitar dados antigos
+                        clearValueFields();
+                    }
+                }
+
               } else {
                 faturaSelect.innerHTML =
                   '<option value="">Nenhuma fatura pendente</option>';
@@ -335,8 +357,9 @@
             });
         }
 
+        // 4. Modifica fetchDetalhesFatura para preencher o valor_pago
         function fetchDetalhesFatura(leituraId) {
-          const dataPagamentoRef = dataPagamentoInput.value;
+          const dataPagamentoRef = dataPagamentoInput.value; // Data de hoje, que é fixa
           if (!leituraId) {
             clearValueFields();
             return;
@@ -361,6 +384,7 @@
               totalPagarDisplay.textContent = formatCurrency(
                 details.total_corrigido
               );
+              // Preenche valor_pago com o total corrigido por padrão
               valorPagoInput.value = details.total_corrigido
                 .toFixed(2)
                 .replace(".", ",");
@@ -371,16 +395,36 @@
             });
         }
 
-        // Adiciona os "escutadores" de eventos
-        consumidorSelect.addEventListener("change", () =>
-          fetchFaturas(consumidorSelect.value)
-        );
-        faturaSelect.addEventListener("change", () =>
-          fetchDetalhesFatura(faturaSelect.value)
-        );
-        dataPagamentoInput.addEventListener("change", () =>
-          fetchFaturas(consumidorSelect.value)
-        );
+        // 5. Ajusta os "escutadores" de eventos
+        consumidorSelect.addEventListener("change", () => {
+          // Quando o consumidor muda, limpa a fatura e recarrega as faturas para ele
+          faturaSelect.innerHTML = '<option value="" disabled selected>Selecione uma Fatura</option>';
+          clearValueFields();
+          fetchFaturas(consumidorSelect.value);
+        });
+
+        faturaSelect.addEventListener("change", () => {
+          // Quando a fatura muda, busca os detalhes dela
+          fetchDetalhesFatura(faturaSelect.value);
+        });
+
+        // REMOVIDO: o event listener na dataPagamentoInput que estava chamando fetchFaturas
+        // e causando a perda da fatura selecionada. A data de pagamento agora é readonly
+        // e sempre a data atual. Se o backend precisar da data de referência, ele já a tem.
+
+        // --- FIM DAS MODIFICAÇÕES CRÍTICAS ---
+
+        // Inicia o carregamento das faturas se um consumidor já estiver selecionado (ex: após um postback)
+        // Isso é importante caso você esteja pré-selecionando o consumidor via Jinja2 no Flask.
+        if (consumidorSelect.value) {
+            // Guarda a fatura selecionada (se houver) antes de recarregar
+            const initialSelectedFatura = faturaSelect.value;
+            fetchFaturas(consumidorSelect.value, initialSelectedFatura);
+        } else {
+            // Garante que a fatura esteja desabilitada no início se nenhum consumidor for selecionado
+            faturaSelect.innerHTML = '<option value="" disabled selected>Aguardando seleção do consumidor</option>';
+        }
+
       });
     </script>
   </body>
