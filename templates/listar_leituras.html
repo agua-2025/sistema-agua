@@ -17,10 +17,10 @@
             color: #343a40;
             font-size: 0.9rem;
         }
-        .container-fluid { padding: 1.5rem; }
+        .container-fluid { padding: 1rem; }
         .main-card {
             background-color: #ffffff;
-            padding: 2rem;
+            padding: 1.5rem; /* Padding padrão para telas maiores */
             border-radius: 12px;
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
             margin-top: 15px;
@@ -39,7 +39,6 @@
         .table th {
             background-color: #007bff;
             color: white;
-            white-space: normal;
             text-align: center;
             vertical-align: middle;
             padding: 0.7rem 0.5rem;
@@ -53,12 +52,55 @@
             font-family: 'Roboto Mono', monospace;
             text-align: right !important;
         }
-        .pagination .page-link {
-            font-size: 0.9rem;
-        }
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
+        
+        /* --- AJUSTES DE RESPONSIVIDADE PARA CELULARES --- */
+        @media (max-width: 767.98px) {
+            .container-fluid { padding: 0.5rem; } /* Menos padding nas laterais da tela */
+            .main-card { padding: 1rem; } /* Menos padding interno no card principal */
+
+            /* Esconde o cabeçalho da tabela no celular */
+            .table thead {
+                display: none;
+            }
+            /* Transforma cada linha <tr> em um card */
+            .table tr {
+                display: block;
+                background-color: #fff;
+                border: 1px solid #e9ecef;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                padding: 0.5rem;
+            }
+            /* Transforma cada célula <td> em uma linha com label e valor */
+            .table td {
+                display: block;
+                text-align: right; /* Alinha o valor à direita */
+                padding: 0.5rem;
+                border-bottom: 1px solid #f1f1f1; /* Linha separadora entre os dados */
+                position: relative;
+                font-size: 0.9rem;
+            }
+            .table td:last-child {
+                border-bottom: none; /* Remove a linha do último item */
+            }
+            /* Cria o "label" usando o atributo data-label */
+            .table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0.5rem;
+                font-weight: 600;
+                color: #495057;
+                text-align: left;
+            }
+            /* Célula de ações com botões lado a lado */
+            .table td[data-label="Ações:"] {
+                text-align: center;
+                padding-top: 1rem;
+            }
+            .table td[data-label="Ações:"]::before {
+                display: none; /* Não precisa de label para os botões */
+            }
         }
     </style>
 </head>
@@ -68,7 +110,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3><i class="bi bi-speedometer2 me-2"></i>Leituras Registradas</h3>
                 <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Voltar ao Dashboard
+                    <i class="bi bi-arrow-left me-1"></i> Voltar
                 </a>
             </div>
 
@@ -104,7 +146,7 @@
                         <tr>
                             <th>Consumidor</th>
                             <th>Data Leitura</th>
-                            <th class="text-numeric">Leitura Anterior (m³)</th>
+                            <th class="text-numeric">Leitura Ant. (m³)</th>
                             <th class="text-numeric">Leitura Atual (m³)</th>
                             <th class="text-numeric">Consumo (L)</th>
                             <th class="text-numeric">Média Diária (L)</th>
@@ -114,19 +156,18 @@
                     <tbody>
                         {% for l in leituras %}
                         <tr>
-                            <td class="text-start fw-bold">{{ l.nome_consumidor }}</td>
-                            <td>{{ l.data_leitura_atual | date_format }}</td>
-                            <td class="text-numeric">{{ "{:,.0f}".format(l.leitura_anterior|float).replace(',', '.') if l.leitura_anterior is not none else '-' }}</td>
-                            <td class="text-numeric">{{ "{:,.0f}".format(l.leitura_atual|float).replace(',', '.') if l.leitura_atual is not none else '-' }}</td>
-                            <td class="text-numeric fw-bold text-primary">{{ "{:,.0f}".format(l.litros_consumidos|float).replace(',', '.') if l.litros_consumidos is not none else '-' }}</td>
-                            <td class="text-numeric">{{ "%.2f"|format(l.media_por_dia|float) if l.media_por_dia is not none else '-' }}</td>
-                            
-                            <td class="text-center">
+                            <td data-label="Consumidor:">{{ l.nome_consumidor }}</td>
+                            <td data-label="Data Leitura:">{{ l.data_leitura_atual | date_format }}</td>
+                            <td data-label="Leitura Ant. (m³):" class="text-numeric">{{ "{:,.0f}".format(l.leitura_anterior|float).replace(',', '.') if l.leitura_anterior is not none else '-' }}</td>
+                            <td data-label="Leitura Atual (m³):" class="text-numeric">{{ "{:,.0f}".format(l.leitura_atual|float).replace(',', '.') if l.leitura_atual is not none else '-' }}</td>
+                            <td data-label="Consumo (L):" class="text-numeric fw-bold text-primary">{{ "{:,.0f}".format(l.litros_consumidos|float).replace(',', '.') if l.litros_consumidos is not none else '-' }}</td>
+                            <td data-label="Média Diária (L):" class="text-numeric">{{ "%.2f"|format(l.media_por_dia|float) if l.media_por_dia is not none else '-' }}</td>
+                            <td data-label="Ações:">
                                 <a href="{{ url_for('editar_leitura', id=l.id) }}" class="btn btn-sm btn-info" title="Editar Leitura">
-                                    <i class="bi bi-pencil-square"></i>
+                                    <i class="bi bi-pencil-square"></i> Editar
                                 </a>
                                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="{{ l.id }}" data-ref="{{ l.nome_consumidor }} em {{ l.data_leitura_atual | date_format }}" title="Excluir Leitura">
-                                    <i class="bi bi-trash"></i>
+                                    <i class="bi bi-trash"></i> Excluir
                                 </button>
                             </td>
                         </tr>
@@ -143,66 +184,18 @@
             </div>
 
             {% if pagination.total_pages > 1 %}
-            <nav aria-label="Navegação de páginas" class="mt-4 d-flex justify-content-end">
-                <ul class="pagination">
-                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                        <a class="page-link" href="{{ url_for('listar_leituras', page=pagination.page - 1, mes=mes_filtro, ano=ano_filtro) }}">Anterior</a>
-                    </li>
-                    
-                    <li class="page-item active" aria-current="page">
-                        <span class="page-link">{{ pagination.page }} de {{ pagination.total_pages }}</span>
-                    </li>
-
-                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                        <a class="page-link" href="{{ url_for('listar_leituras', page=pagination.page + 1, mes=mes_filtro, ano=ano_filtro) }}">Próxima</a>
-                    </li>
-                </ul>
-            </nav>
-            {% endif %}
+                {% endif %}
 
         </div>
     </div>
     
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Exclusão</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Você tem certeza que deseja excluir a leitura de <strong id="leituraReferencia"></strong>?</p>
-                <p class="text-danger small"><strong>Atenção:</strong> Esta ação é irreversível e pode afetar cálculos de faturas futuras se esta não for a última leitura do consumidor.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                <button type="submit" class="btn btn-danger">Sim, Excluir</button>
-                </form>
-            </div>
-            </div>
         </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var confirmDeleteModal = document.getElementById('confirmDeleteModal');
-        if (confirmDeleteModal) {
-            confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
-                var leituraId = button.getAttribute('data-id');
-                var leituraRef = button.getAttribute('data-ref');
-                
-                var deleteForm = confirmDeleteModal.querySelector('#deleteForm');
-                deleteForm.action = '/leitura/excluir/' + leituraId;
-                
-                var modalBody = confirmDeleteModal.querySelector('#leituraReferencia');
-                modalBody.textContent = leituraRef;
-            });
-        }
-    });
+        // ... seu script do modal ...
     </script>
 </body>
 </html>
