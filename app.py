@@ -771,6 +771,119 @@ def get_leitura_details(leitura_id):
         
     return jsonify(dados_para_enviar)
 
+#-----------------Editar Leitura----------------------------
+
+@app.route('/leitura/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_leitura(id):
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            # 1. Coleta os dados do formulário
+            nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
+            nova_data_leitura = request.form['data_leitura_atual']
+
+            with db.begin(): # Inicia a transação
+                # 2. Busca a leitura que está sendo editada
+                leitura_atual_db = db.execute(
+                    text("SELECT * FROM leituras WHERE id = :id"), {'id': id}
+                ).fetchone()
+
+                if not leitura_atual_db:
+                    flash('Leitura não encontrada.', 'danger')
+                    return redirect(url_for('listar_leituras'))
+
+                leitura_anterior_valor = float(leitura_atual_db.leitura_anterior)
+
+                # 3. Validação
+                if nova_leitura_atual < leitura_anterior_valor:
+                    flash('Erro: A nova leitura atual não pode ser menor que a leitura anterior.', 'danger')
+                    # Retorna para o formulário de edição mantendo os dados
+                    leitura_dict = dict(leitura_atual_db)
+                    leitura_dict['leitura_atual'] = nova_leitura_atual # Mantem o valor que o usuário digitou
+                    leitura_dict['data_leitura_atual'] = nova_data_leitura
+                    return render_template('editar_leitura.html', leitura=leitura_dict)
+
+                # 4. Recalcula valores
+                config = get_current_config()
+                litros_consumidos = nova_leitura_atual - leitura_anterior_valor
+                valor_m3 = float(config.get('valor_m3', 0.0))
+                taxa_minima = float(leitura_atual_db.valor_taxa_minima)
+                
+                valor_calculado = (litros_consumidos / 1000) * valor_m3
+                valor_original_recalculado = max(valor_calculado, taxa_minima)
+                
+                # 5. Atualiza no banco de dados
+                db.execute(text("""
+                    UPDATE leituras
+                    SET leitura_atual = :l_atu, 
+                        data_leitura_atual = :d_atu,
+                        litros_consumidos = :litros,
+                        valor_original = :val_orig
+                    WHERE id = :id
+                """), {
+                    'l_atu': nova_leitura_atual,
+                    'd_atu': nova_data_leitura,
+                    'litros': litros_consumidos,
+                    'val_orig': valor_original_recalculado,
+                    'id': id
+                })
+
+            flash('Leitura atualizada com sucesso!', 'success')
+            return redirect(url_for('listar_leituras'))
+
+        except Exception as e:
+            flash(f'Erro ao atualizar a leitura: {str(e)}', 'danger')
+            return redirect(url_for('editar_leitura', id=id))
+
+    # --- Lógica para GET ---
+    else:
+        # Busca os dados da leitura e do consumidor para exibir no formulário
+        resultado_bruto = db.execute(text("""
+            SELECT l.*, c.nome as nome_consumidor
+            FROM leituras l
+            JOIN consumidores c ON l.consumidor_id = c.id
+            WHERE l.id = :id
+        """), {'id': id}).fetchone()
+        
+        if not resultado_bruto:
+            flash("Leitura não encontrada.", "danger")
+            return redirect(url_for('listar_leituras'))
+
+        return render_template('editar_leitura.html', leitura=resultado_bruto._asdict())
+    
+#------------------------Excluir Leitura----------------------------    
+@app.route('/leitura/excluir/<int:id>', methods=['POST'])
+@login_required
+def excluir_leitura(id):
+    db = get_db()
+    try:
+        # Inicia o bloco de transação ANTES de qualquer operação com o banco
+        with db.begin(): 
+            # 1. Verifica se existem pagamentos vinculados DENTRO da transação
+            pagamento_existente = db.execute(
+                text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}
+            ).fetchone()
+
+            # Se encontrar um pagamento, avisa o usuário e a transação será desfeita (rollback)
+            if pagamento_existente:
+                flash("Não é possível excluir a leitura, pois já existem pagamentos registrados para ela.", "danger")
+                return redirect(url_for('listar_leituras'))
+
+            # 2. Se não houver pagamentos, prossegue com a exclusão DENTRO da mesma transação
+            db.execute(text("DELETE FROM leituras WHERE id = :id"), {'id': id})
+            
+            flash("Leitura excluída com sucesso.", "success")
+        
+        # Se o bloco 'with' terminar sem erros, a transação é confirmada (commit) automaticamente.
+
+    except Exception as e:
+        # Se qualquer erro ocorrer, o bloco 'with' garante o rollback automático.
+        app.logger.error(f"Erro ao excluir leitura ID {id}: {e}", exc_info=True)
+        flash("Ocorreu um erro ao tentar excluir a leitura.", "danger")
+
+    return redirect(url_for('listar_leituras'))
 # --- API para retornar leituras pendentes (VERSÃO COM TRADUÇÃO MANUAL) ---
 @app.route('/api/leituras/<int:consumidor_id>')
 @login_required

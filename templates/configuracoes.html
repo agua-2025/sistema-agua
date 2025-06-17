@@ -4,255 +4,482 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Configurações do Sistema | Águas de Santa Maria</title>
+    <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <!-- Bootstrap Icons (já estava, mantido) -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
     />
+    <!-- Font Awesome para Ícones (adicionado para padronização) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Google Fonts Inter (já estava, mantido) -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <style>
+      /* Estilos globais para o body, centralizando o conteúdo do formulário na tela */
       body {
         font-family: "Inter", sans-serif;
-        background-color: #f4f7f9;
-        color: #343a40;
+        background-color: #f4f7f9; /* Fundo cinza claro, padrão do seu sistema */
+        min-height: 100vh; /* Garante que o body ocupe toda a altura da tela */
+        display: flex; /* Habilita o Flexbox para centralização */
+        align-items: center; /* Centraliza verticalmente o formulário */
+        justify-content: center; /* Centraliza horizontalmente o formulário */
+        padding: 15px; /* Adiciona um espaçamento seguro nas bordas para celulares */
+        color: #343a40; /* Cor de texto padrão */
         font-size: 0.9rem; /* Fonte base ajustada */
       }
-      .main-card {
-        background-color: #ffffff;
-        padding: 1.5rem; /* AJUSTE: Menos padding */
-        border-radius: 12px;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
-        margin-top: 20px;
+
+      /* Contêiner principal do formulário, estilizado como um card flutuante */
+      .container-form {
+        background-color: #ffffff; /* Fundo branco para o card, como no modelo */
+        padding: 2.5rem; /* Espaçamento interno generoso dentro do card */
+        border-radius: 12px; /* Cantos arredondados, padrão do seu sistema */
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08); /* Sombra suave para dar profundidade */
+        width: 100%; /* Garante que o card ocupe a largura total em telas pequenas */
+        max-width: 900px; /* Largura máxima, ajustada para caber bem o conteúdo */
       }
-      h3 {
-        color: #0056b3;
+
+      /* Estilos para o cabeçalho do formulário (Título da Página) */
+      .form-header {
+        text-align: center;
+        margin-bottom: 2rem; /* Espaçamento abaixo do cabeçalho */
+        display: flex; /* Para alinhar o título e o botão de voltar */
+        justify-content: space-between; /* Espaço entre título e botão */
+        align-items: center; /* Alinha verticalmente */
+        flex-wrap: wrap; /* Permite quebrar linha em telas pequenas */
+      }
+
+      .form-header h3 {
+        color: #0d6efd; /* Título em azul, como no seu padrão */
+        font-weight: 600; /* Negrito para o título */
+        font-size: 1.75rem; /* Tamanho da fonte do título */
+        display: flex; /* Para alinhar o ícone e o texto do título */
+        align-items: center; /* Centraliza verticalmente ícone e texto */
+        margin: 0; /* Remove margem padrão do h3 para melhor alinhamento no flex */
+      }
+
+      .form-header h3 .bi, .form-header h3 .fas { /* Suporte a Font Awesome e Bootstrap Icons no título */
+        margin-right: 10px; /* Espaçamento entre o ícone e o texto do título */
+        font-size: 1.5rem; /* Tamanho do ícone do título */
+      }
+
+      /* Estilos para os títulos das seções (ex: "Leitura Geral", "Regras de Negócio") */
+      .section-title {
         font-weight: 600;
-        font-size: 1.4rem; /* AJUSTE: Fonte do título menor */
+        color: #007bff; /* Cor azul para os títulos de seção */
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #007bff; /* Linha azul de separação */
       }
+
+      /* Card de cada seção (Leitura Geral, etc.) */
+      .section-card {
+        border: 1px solid #e9ecef; /* Borda suave */
+        border-radius: 8px; /* Cantos arredondados */
+        margin-bottom: 1.5rem; /* Espaço entre as seções */
+      }
+
+      .section-card .section-header {
+        background-color: #f8f9fa; /* Fundo do cabeçalho da seção */
+        padding: 0.8rem 1.2rem; /* Espaçamento no cabeçalho da seção */
+        font-weight: 600;
+        font-size: 1rem; /* Tamanho da fonte do cabeçalho da seção */
+        border-bottom: 1px solid #e9ecef;
+        border-top-left-radius: 8px; /* Cantos arredondados superiores */
+        border-top-right-radius: 8px;
+      }
+
+      .section-card .section-body {
+        padding: 1.2rem; /* Espaçamento no corpo da seção */
+      }
+
+      /* Estilos para os labels dos campos do formulário */
       .form-label {
         font-weight: 500;
-        font-size: 0.8rem; /* AJUSTE: Fonte do rótulo menor */
+        color: #495057; /* Cor do texto do label (quase preto/cinza escuro) */
+        font-size: 0.85rem; /* Tamanho da fonte do label */
+        margin-bottom: 0.5rem;
+        display: flex; /* Habilita flexbox para alinhar ícone e texto do label */
+        align-items: center; /* Alinha verticalmente ícone e texto */
       }
-      .input-group-text {
-        font-size: 0.8rem;
-        font-weight: 500;
+
+      /* Estilos para os ícones dentro dos labels */
+      .form-label .fas {
+        margin-right: 8px; /* Espaçamento entre o ícone e o texto do label */
+        color: #0d6efd; /* Cor azul dos ícones nos labels */
+        font-size: 0.9rem; /* Tamanho do ícone nos labels */
       }
-      .section-card {
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        margin-bottom: 1rem; /* AJUSTE: Menos espaço entre seções */
-      }
-      .section-header {
-        background-color: #f8f9fa;
-        padding: 0.6rem 1rem; /* AJUSTE: Cabeçalho da seção mais compacto */
-        font-weight: 600;
-        font-size: 0.9rem;
-        border-bottom: 1px solid #e9ecef;
-      }
-      .section-body {
-        padding: 1rem; /* AJUSTE: Corpo da seção mais compacto */
-      }
+
+      /* Ajuste para campos de input e select */
       .form-control,
       .form-select {
         font-size: 0.9rem;
       }
+
+      /* Estilo para o input-group-text (R$, %) */
+      .input-group-text {
+        font-size: 0.9rem; /* Tamanho da fonte do texto do input group */
+        font-weight: 500;
+      }
+
+      /* Adaptação dos botões de ação para responsividade */
+      .form-actions {
+        display: flex;
+        flex-direction: column; /* Em telas pequenas, os botões ficam empilhados verticalmente */
+        gap: 10px; /* Espaçamento entre os botões empilhados */
+        justify-content: flex-end; /* Alinha os botões à direita (quando em linha) */
+      }
+
+      @media (min-width: 768px) { /* A partir de tablets (md), botões voltam a ficar lado a lado */
+        .form-actions {
+          flex-direction: row;
+        }
+      }
+
+      /* Margem inferior para colunas em telas pequenas quando empilhadas */
+      .row .col-md-6, .row .col-12 { /* Ajuste mais abrangente para colunas */
+        margin-bottom: 1rem !important; /* Força um espaçamento inferior para campos em colunas */
+      }
+      /* Remove margem do último item em cada linha */
+      .row > div:last-child {
+        margin-bottom: 0 !important;
+      }
+      /* Corrige margem inferior para a última linha de uma seção, se houver múltiplas linhas */
+      .section-body .row:last-of-type > div {
+        margin-bottom: 0 !important;
+      }
+
+      /* Estilo para campos desabilitados/readonly */
+      .form-control[readonly], .form-control:disabled {
+          background-color: #e9ecef; /* Cor de fundo para campos não editáveis */
+          opacity: 1; /* Garante que não fiquem transparentes */
+      }
     </style>
   </head>
   <body class="bg-light">
-    <div class="container my-3">
-      <div class="main-card">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h3><i class="bi bi-gear-fill me-2"></i>Configurações do Sistema</h3>
-          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> Voltar ao Dashboard
-          </a>
-        </div>
+    <div class="container container-form">
+      <!-- Cabeçalho da página -->
+      <div class="form-header">
+        <h3><i class="fas fa-cog"></i> Configurações do Sistema</h3>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm px-3">
+          <i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard
+        </a>
+      </div>
 
-        {% if mensagem %}
-        <div
-          class="alert alert-success alert-dismissible fade show"
-          role="alert"
-        >
-          {{ mensagem }}
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-          ></button>
-        </div>
-        {% endif %}
+      <!-- Seção para mensagens flash -->
+      {% if mensagem %}
+      <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        {{ mensagem }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endif %}
 
-        <form method="POST">
-          <div class="section-card">
-            <div class="section-header">Leitura Geral</div>
-            <div class="section-body">
-              <div class="row">
-                <div class="col-md-6 mb-2">
-                  <label for="hidr_geral_anterior" class="form-label"
-                    >Leitura Geral Anterior</label
-                  >
-                  <input
-                    type="number"
-                    class="form-control"
-                    name="hidr_geral_anterior"
-                    required
-                    value="{{ config['hidr_geral_anterior'] if config and config['hidr_geral_anterior'] is not none else '' }}"
-                  />
-                </div>
-                <div class="col-md-6 mb-2">
-                  <label for="hidr_geral_atual" class="form-label"
-                    >Leitura Geral Atual</label
-                  >
-                  <input
-                    type="number"
-                    class="form-control"
-                    name="hidr_geral_atual"
-                    required
-                    value="{{ config['hidr_geral_atual'] if config and config['hidr_geral_atual'] is not none else '' }}"
-                  />
-                </div>
+      <form method="POST" id="configForm">
+        <!-- Seção: Leitura Geral (Editar) -->
+        <h5 class="section-title">Leitura Geral (Editar)</h5>
+        <div class="section-card">
+          <div class="section-body">
+            <div class="row">
+              <div class="col-md-6">
+                <label for="hidr_geral_anterior" class="form-label"
+                  ><i class="fas fa-water"></i> Leitura Geral Anterior</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="hidr_geral_anterior"
+                  id="hidr_geral_anterior"
+                  required
+                  value="{{ config['hidr_geral_anterior'] if config and config['hidr_geral_anterior'] is not none else '' }}"
+                />
+              </div>
+              <div class="col-md-6">
+                <label for="hidr_geral_atual" class="form-label"
+                  ><i class="fas fa-tint"></i> Leitura Geral Atual</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="hidr_geral_atual"
+                  id="hidr_geral_atual"
+                  required
+                  value="{{ config['hidr_geral_atual'] if config and config['hidr_geral_atual'] is not none else '' }}"
+                />
               </div>
             </div>
           </div>
+        </div>
 
-<div class="col-md-6 mb-2">
-    <label for="valor_m3" class="form-label">Valor por m³ (1000 Litros)</label>
-    <div class="input-group">
-        <span class="input-group-text">R$</span>
-        <input
-          type="text"
-          class="form-control"
-          name="valor_m3"
-          id="valor_m3"
-          required
-          value="{{ '%.4f'|format(config.valor_m3|float) if config.valor_m3 is not none else '' }}"
-        />
+        <!-- Seção: Valores e Taxas (Editar) -->
+        <h5 class="section-title">Valores e Taxas (Editar)</h5>
+        <div class="section-card">
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="valor_m3" class="form-label"><i class="fas fa-dollar-sign"></i> Valor por m³ (1000 Litros)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input
+                                type="text" {# Alterado para type="text" para permitir a formatação via JS #}
+                                class="form-control"
+                                name="valor_m3"
+                                id="valor_m3"
+                                required
+                                onkeyup="formatarMoeda(this)" {# Chamada à função JS para formatar #}
+                                value="{{ config.valor_m3 if config and config.valor_m3 is not none else '' }}" {# Removida a formatação Jinja2 para passar o valor bruto #}
+                            />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="taxa_minima_consumo" class="form-label"
+                            ><i class="fas fa-hand-holding-usd"></i> Taxa Mínima de Consumo</label
+                        >
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input
+                                type="text" {# Alterado para type="text" para permitir a formatação via JS #}
+                                class="form-control"
+                                name="taxa_minima_consumo"
+                                id="taxa_minima_consumo"
+                                required
+                                onkeyup="formatarMoeda(this)" {# Chamada à função JS para formatar #}
+                                value="{{ config.taxa_minima_consumo if config and config.taxa_minima_consumo is not none else '' }}" {# Removida a formatação Jinja2 para passar o valor bruto #}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="multa_percentual" class="form-label"
+                            ><i class="fas fa-percent"></i> Multa por Atraso</label
+                        >
+                        <div class="input-group">
+                            <input
+                                type="text" {# Alterado para type="text" para permitir a formatação via JS #}
+                                class="form-control"
+                                name="multa_percentual"
+                                id="multa_percentual"
+                                onkeyup="formatarPorcentagem(this, 3)" {# Ajustado para 3 casas decimais para 0,033% #}
+                                value="{{ config['multa_percentual'] if config and config['multa_percentual'] is not none else '' }}" {# Removida a formatação Jinja2 #}
+                            />
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="juros_diario_percentual" class="form-label"
+                            ><i class="fas fa-chart-line"></i> Juros Diário</label
+                        >
+                        <div class="input-group">
+                            <input
+                                type="text" {# Alterado para type="text" para permitir a formatação via JS #}
+                                class="form-control"
+                                name="juros_diario_percentual"
+                                id="juros_diario_percentual"
+                                onkeyup="formatarPorcentagem(this, 2)" {# Ajustado para 2 casas decimais para 2,00% #}
+                                value="{{ config['juros_diario_percentual'] if config and config['juros_diario_percentual'] is not none else '' }}" {# Removida a formatação Jinja2 #}
+                            />
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção: Regras de Negócio (Editar) -->
+        <h5 class="section-title">Regras de Negócio (Editar)</h5>
+        <div class="section-card">
+          <div class="section-body">
+            <div class="row">
+              <div class="col-md-6">
+                <label for="data_ultima_config" class="form-label"
+                  ><i class="fas fa-calendar-alt"></i> Data da Configuração</label
+                >
+                <input
+                  type="date"
+                  class="form-control"
+                  name="data_ultima_config"
+                  id="data_ultima_config"
+                  required
+                  value="{{ config['data_ultima_config'] if config and config['data_ultima_config'] is not none else '' }}"
+                />
+              </div>
+              <div class="col-md-6">
+                <label for="dias_uteis_para_vencimento" class="form-label"
+                  ><i class="fas fa-clock"></i> Dias úteis para vencimento</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="dias_uteis_para_vencimento"
+                  id="dias_uteis_para_vencimento"
+                  required
+                  value="{{ config['dias_uteis_para_vencimento'] if config and config['dias_uteis_para_vencimento'] is not none else '' }}"
+                  min="1"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botões de Ação do Formulário -->
+        <div class="form-actions mt-4">
+          <button type="button" id="cancelBtn" class="btn btn-secondary px-4">
+            <i class="fas fa-times me-1"></i> Cancelar
+          </button>
+          <button type="button" id="saveConfigBtn" class="btn btn-primary px-4">
+            <i class="fas fa-save me-1"></i> Salvar Configuração
+          </button>
+        </div>
+      </form>
+
     </div>
-</div>
-                <div class="col-md-6 mb-2">
-                  <label for="taxa_minima_consumo" class="form-label"
-                    >Taxa Mínima de Consumo</label
-                  >
-                  <div class="input-group">
-                    <span class="input-group-text">R$</span>
-                    <input
-                      type="number"
-                      step="any"
-                      class="form-control"
-                      name="taxa_minima_consumo"
-                      required
-                      value="{{ '%.2f'|format(config['taxa_minima_consumo']) if config and config['taxa_minima_consumo'] is not none else '' }}"
-                    />
-                  </div>
-                </div>
-                <div class="col-md-6 mb-2">
-                  <label for="multa_percentual" class="form-label"
-                    >Multa por Atraso</label
-                  >
-                  <div class="input-group">
-                    <input
-                      type="number"
-                      step="any"
-                      class="form-control"
-                      name="multa_percentual"
-                      value="{{ '%.2f'|format(config['multa_percentual']) if config and config['multa_percentual'] is not none else '' }}"
-                    />
-                    <span class="input-group-text">%</span>
-                  </div>
-                </div>
-                <div class="col-md-6 mb-2">
-                  <label for="juros_diario_percentual" class="form-label"
-                    >Juros Diário</label
-                  >
-                  <div class="input-group">
-                    <input
-                      type="number"
-                      step="any"
-                      class="form-control"
-                      name="juros_diario_percentual"
-                      value="{{ '%.5f'|format(config['juros_diario_percentual']) if config and config['juros_diario_percentual'] is not none else '' }}"
-                    />
-                    <span class="input-group-text">%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <div class="section-card">
-            <div class="section-header">Regras de Negócio</div>
-            <div class="section-body">
-              <div class="row">
-                <div class="col-md-6 mb-2">
-                  <label for="data_ultima_config" class="form-label"
-                    >Data da Configuração</label
-                  >
-                  <input
-                    type="date"
-                    class="form-control"
-                    name="data_ultima_config"
-                    required
-                    value="{{ config['data_ultima_config'] if config and config['data_ultima_config'] is not none else '' }}"
-                  />
-                </div>
-                <div class="col-md-6 mb-2">
-                  <label for="dias_uteis_para_vencimento" class="form-label"
-                    >Dias úteis para vencimento</label
-                  >
-                  <input
-                    type="number"
-                    class="form-control"
-                    name="dias_uteis_para_vencimento"
-                    required
-                    value="{{ config['dias_uteis_para_vencimento'] if config and config['dias_uteis_para_vencimento'] is not none else '' }}"
-                    min="1"
-                  />
-                </div>
-              </div>
-            </div>
+    <!-- Modal de Confirmação (Substitui confirm()/alert()) -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="confirmationModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmação de Salvamento</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-
-          <div class="d-flex justify-content-end gap-2 mt-3">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
-              >Cancelar</a
-            >
-            <button type="button" id="saveConfigBtn" class="btn btn-primary">
-              <i class="bi bi-save me-1"></i> Salvar Configuração
-            </button>
+          <div class="modal-body">
+            Você tem certeza que deseja salvar estas configurações? Esta é uma área sensível do sistema e as alterações podem afetar os cálculos futuros.
           </div>
-        </form>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não, Cancelar</button>
+            <button type="button" class="btn btn-primary" id="confirmSaveBtn">Sim, Salvar</button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Bootstrap JS (com bundle para modais) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const saveConfigBtn = document.getElementById("saveConfigBtn");
-        const form = document.querySelector("form"); // Seleciona o primeiro (e único) formulário
+    <!-- Font Awesome JS (para ícones) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
-        if (saveConfigBtn && form) {
-          saveConfigBtn.addEventListener("click", function () {
-            // Exibe o pop-up de confirmação
-            const confirmacao = confirm(
-              "Você tem certeza que deseja salvar estas configurações? Esta é uma área sensível do sistema."
-            );
+<script>
+    // Função genérica e robusta para formatar campos numéricos com decimais
+    function formatarCampoDecimal(input, casasDecimais) {
+        let value = input.value;
 
-            // Se o usuário clicar em "OK", envia o formulário
-            if (confirmacao) {
-              form.submit(); // Envia o formulário
-            } else {
-              // Se o usuário clicar em "Cancelar", não faz nada
-              alert("Operação de salvar configurações cancelada.");
-            }
-          });
+        // 1. Remove tudo que não for dígito ou a primeira vírgula
+        value = value.replace(/[^0-9,]/g, '');
+        const parts = value.split(',');
+        if (parts.length > 2) {
+            value = parts[0] + ',' + parts.slice(1).join('');
         }
-      });
-    </script>
+
+        // 2. Se o usuário começar com ',', adiciona '0' antes
+        if (value.startsWith(',')) {
+            value = '0' + value;
+        }
+
+        // 3. Garante que a parte decimal não exceda o limite de casas
+        const decimalParts = value.split(',');
+        if (decimalParts.length === 2 && decimalParts[1].length > casasDecimais) {
+            decimalParts[1] = decimalParts[1].substring(0, casasDecimais);
+            value = decimalParts.join(',');
+        }
+
+        // 4. Atualiza o valor no campo
+        input.value = value;
+    }
+
+    // Função para formatar o valor que vem do backend para exibição inicial
+    function formatarValorInicial(valor, casasDecimais) {
+        if (valor === null || valor === undefined || valor === '') return '';
+        
+        // Converte para número, tratando tanto '.' quanto ',' como decimal
+        const valorNumerico = parseFloat(String(valor).replace(',', '.'));
+        if (isNaN(valorNumerico)) return '';
+
+        // Formata para o padrão brasileiro (com vírgula)
+        return valorNumerico.toLocaleString('pt-BR', {
+            minimumFractionDigits: casasDecimais,
+            maximumFractionDigits: casasDecimais,
+        });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const configForm = document.getElementById("configForm");
+        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        
+        // Botões
+        const saveConfigBtn = document.getElementById("saveConfigBtn");
+        const confirmSaveBtn = document.getElementById('confirmSaveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        // Campos do Formulário
+        const valorM3Input = document.getElementById('valor_m3');
+        const taxaMinimaInput = document.getElementById('taxa_minima_consumo');
+        const multaPercentualInput = document.getElementById('multa_percentual');
+        const jurosDiarioInput = document.getElementById('juros_diario_percentual');
+        const dataUltimaConfigInput = document.getElementById('data_ultima_config');
+
+        // --- Lógica de Inicialização e Formatação ---
+
+        // 1. Formata os valores que vêm do backend para exibição correta na tela
+        valorM3Input.value = formatarValorInicial(valorM3Input.value, 2);
+        taxaMinimaInput.value = formatarValorInicial(taxaMinimaInput.value, 2);
+        multaPercentualInput.value = formatarValorInicial(multaPercentualInput.value, 3);
+        jurosDiarioInput.value = formatarValorInicial(jurosDiarioInput.value, 3);
+
+        // 2. Aplica as máscaras de digitação em tempo real
+        valorM3Input.addEventListener('input', () => formatarCampoDecimal(valorM3Input, 2));
+        taxaMinimaInput.addEventListener('input', () => formatarCampoDecimal(taxaMinimaInput, 2));
+        multaPercentualInput.addEventListener('input', () => formatarCampoDecimal(multaPercentualInput, 3));
+        jurosDiarioInput.addEventListener('input', () => formatarCampoDecimal(jurosDiarioInput, 3));
+
+        // 3. Preenche a "Data da Configuração" com a data de hoje se o campo estiver vazio
+        if (!dataUltimaConfigInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dataUltimaConfigInput.value = today;
+        }
+
+        // --- Lógica dos Botões (Salvar, Cancelar) ---
+
+        if (saveConfigBtn) {
+            saveConfigBtn.addEventListener("click", function () {
+                confirmationModal.show();
+            });
+        }
+
+        if (confirmSaveBtn) {
+            confirmSaveBtn.addEventListener("click", function() {
+                confirmationModal.hide();
+                
+                // Antes de submeter, converte a vírgula para ponto decimal
+                if (valorM3Input) valorM3Input.value = valorM3Input.value.replace(',', '.') || '0';
+                if (taxaMinimaInput) taxaMinimaInput.value = taxaMinimaInput.value.replace(',', '.') || '0';
+                if (multaPercentualInput) multaPercentualInput.value = multaPercentualInput.value.replace(',', '.') || '0';
+                if (jurosDiarioInput) jurosDiarioInput.value = jurosDiarioInput.value.replace(',', '.') || '0';
+
+                configForm.submit();
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                window.location.href = "{{ url_for('dashboard') }}";
+            });
+        }
+    });
+</script>
   </body>
 </html>
