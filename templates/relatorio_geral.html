@@ -59,7 +59,7 @@
                 <ul class="list-group">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Consumo de Água no Mês
-                        <span class="badge bg-info rounded-pill fs-6">{{ "%.0f"|format(resumo.consumo_total_mes) }} L</span>
+                        <span class="badge bg-info rounded-pill fs-6">{{ "%.3f"|format(resumo.consumo_total_mes|float) | replace('.', ',') }} m³</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Pagamentos Realizados Hoje

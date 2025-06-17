@@ -1,276 +1,142 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <title>Detalhes da Fatura - Águas de Santa Maria</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Adicionando Bootstrap e Google Fonts para um visual refinado -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-    <!-- Ícones do Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <style>
-      body {
-          font-family: 'Inter', sans-serif;
-          background-color: #f4f7f9;
-          color: #212529;
-          margin: 0;
-          padding: 15px;
-          font-size: 13px; /* Fonte base menor para um visual mais denso */
-          -webkit-font-smoothing: antialiased;
-      }
-
-      .fatura-container {
-          background-color: #fff;
-          max-width: 800px;
-          margin: auto;
-          padding: 2rem; /* Espaçamento interno controlado */
-          border: 1px solid #e9ecef;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-      }
-
-      .fatura-header {
-          text-align: center;
-          margin-bottom: 2rem;
-      }
-
-      .fatura-header h1 {
-          color: #0d6efd; /* Azul profissional */
-          font-size: 1.6rem;
-          font-weight: 600;
-      }
-
-      .fatura-header p {
-          font-size: 0.85rem;
-          color: #6c757d;
-      }
-
-      .section {
-          margin-bottom: 1.5rem; /* Espaçamento vertical reduzido entre seções */
-      }
-
-      .section:last-of-type {
-          margin-bottom: 0;
-      }
-
-      .section h2 {
-          font-size: 0.8rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 0.75rem;
-          padding-bottom: 0.5rem;
-          border-bottom: 1px solid #e9ecef;
-          color: #495057;
-      }
-
-      .info-line {
-          display: flex;
-          justify-content: space-between;
-          padding: 0.35rem 0; /* Linhas bem estreitas */
-          font-size: 0.85rem;
-      }
-
-      .info-line span:first-child {
-          font-weight: 500;
-          color: #6c757d;
-          padding-right: 1rem;
-      }
-
-      .total {
-          font-size: 0.95rem; /* Fonte do total um pouco maior */
-          font-weight: 600;
-      }
-
-      .text-danger { color: #dc3545 !important; }
-      .text-success { color: #198754 !important; }
-
-      .buttons {
-          text-align: center;
-          margin-top: 2rem;
-          padding-top: 1.5rem;
-          border-top: 1px solid #e9ecef;
-      }
-
-      .payment-history-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 0.5rem;
-          font-size: 0.8rem;
-      }
-      .payment-history-table th,
-      .payment-history-table td {
-          padding: 0.5rem;
-          text-align: left;
-          border-bottom: 1px solid #e9ecef;
-      }
-      .payment-history-table th {
-          background-color: #f8f9fa;
-          font-weight: 600;
-      }
-      .text-end { text-align: right !important; }
-      .btn-whatsapp { background-color: #25D366; color: white; }
-      .btn-whatsapp:hover { background-color: #1DA851; color: white; }
-
-      /* Lógica para esconder os botões ao imprimir ou gerar PDF */
-      .no-print { display: block; }
-      {% if is_pdf_render %}
-      .no-print { display: none !important; }
-      {% endif %}
-      @media print {
-          body { background-color: #fff; margin: 0; padding: 0; }
-          .fatura-container { max-width: 100%; margin: 0; padding: 0; border: none; box-shadow: none; }
-          .no-print { display: none !important; }
-      }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; color: #212529; margin: 0; padding: 15px; font-size: 13px; -webkit-font-smoothing: antialiased; }
+        .fatura-container { background-color: #fff; max-width: 800px; margin: auto; padding: 2rem; border: 1px solid #e9ecef; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+        .fatura-header { text-align: center; margin-bottom: 2rem; }
+        .fatura-header h1 { color: #0d6efd; font-size: 1.6rem; font-weight: 600; }
+        .fatura-header p { font-size: 0.85rem; color: #6c757d; }
+        .section { margin-bottom: 1.5rem; }
+        .section:last-of-type { margin-bottom: 0; }
+        .section h2 { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e9ecef; color: #495057; }
+        .info-line { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.85rem; }
+        .info-line span:first-child { font-weight: 500; color: #6c757d; padding-right: 1rem; }
+        .total { font-size: 0.95rem; font-weight: 600; }
+        .text-danger { color: #dc3545 !important; }
+        .text-success { color: #198754 !important; }
+        .buttons { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e9ecef; }
+        .payment-history-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.8rem; }
+        .payment-history-table th, .payment-history-table td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e9ecef; }
+        .payment-history-table th { background-color: #f8f9fa; font-weight: 600; }
+        .text-end { text-align: right !important; }
+        .btn-whatsapp { background-color: #25D366; color: white; }
+        .btn-whatsapp:hover { background-color: #1DA851; color: white; }
+        .no-print { display: block; }
+        {% if is_pdf_render %}
+        .no-print { display: none !important; }
+        {% endif %}
+        @media print {
+            body { background-color: #fff; margin: 0; padding: 0; }
+            .fatura-container { max-width: 100%; margin: 0; padding: 0; border: none; box-shadow: none; }
+            .no-print { display: none !important; }
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="fatura-container">
-      <div class="fatura-header">
-        <h1>Águas de Santa Maria</h1>
-        <p>Detalhes da Fatura e Pagamento(s)</p>
-        <p>
-          Referência da Leitura: #{{ leitura.id }} | Data da Leitura: {{
-          data_leitura_atual_formatada }}
-        </p>
-      </div>
+        <div class="fatura-header">
+            <h1>Águas de Santa Maria</h1>
+            <p>Detalhes da Fatura e Pagamento(s)</p>
+            <p>Referência da Leitura: #{{ leitura.id }} | Data da Leitura: {{ data_leitura_atual_formatada }}</p>
+        </div>
 
-      <div class="section">
-        <h2>Dados do Consumidor</h2>
-        <div class="info-line">
-          <span>Nome:</span> <span>{{ leitura.consumidor_nome }}</span>
+        <div class="section">
+            <h2>Dados do Consumidor</h2>
+            <div class="info-line"><span>Nome:</span> <span>{{ leitura.consumidor_nome }}</span></div>
+            <div class="info-line"><span>Endereço:</span> <span>{{ leitura.consumidor_endereco or "Não informado" }}</span></div>
+            <div class="info-line"><span>Nº do Hidrômetro:</span> <span>{{ leitura.hidrometro or "Não cadastrado" }}</span></div>
         </div>
-        <div class="info-line">
-          <span>Endereço:</span>
-          <span>{{ leitura.consumidor_endereco or "Não informado" }}</span>
-        </div>
-        <div class="info-line">
-          <span>Nº do Hidrômetro:</span>
-          <span>{{ leitura.hidrometro or "Não cadastrado" }}</span>
-        </div>
-      </div>
 
-      <div class="section">
-        <h2>Detalhes da Leitura</h2>
-        <div class="info-line">
-          <span>Vencimento da Fatura:</span>
-          <span>{{ vencimento_formatado or "Não informado" }}</span>
+        <div class="section">
+            <h2>Detalhes da Leitura</h2>
+            <div class="info-line">
+                <span>Vencimento da Fatura:</span>
+                <span>{{ vencimento_formatado or "Não informado" }}</span>
+            </div>
+            <div class="info-line">
+                <span>Período de Consumo:</span>
+                <span>{% if periodo_consumo %} {{ periodo_consumo }} {% else %} Não disponível {% endif %}</span>
+            </div>
+            
+            <div class="info-line">
+                <span class="fw-bold">Consumo (m³):</span>
+                <span class="fw-bold">{{ "%g"|format(consumo_m3|float) | replace('.', ',') }} m³</span>
+            </div>
+            <div class="info-line">
+                <span class="fw-bold">Valor Original da Fatura:</span>
+                <span class="fw-bold">R$ {{ "%.2f"|format(leitura.valor_original|float) | replace('.', ',') }}</span>
+            </div>
         </div>
-        <div class="info-line">
-          <span>Período de Consumo:</span>
-          <span
-            >{% if periodo_consumo %} {{ periodo_consumo }} {% else %} Não
-            disponível {% endif %}</span
-          >
-        </div>
-        <div class="info-line">
-          <span>Litros Consumidos:</span>
-          <span>{{ "{:,.0f}".format(litros_consumidos) }} L</span>
-        </div>
-        <div class="info-line">
-          <span class="fw-bold">Valor Original da Fatura:</span>
-          <span class="fw-bold"
-            >R$ {{ "%.2f"|format(leitura.valor_original) }}</span
-          >
-        </div>
-      </div>
 
-      {% if pagamentos_feitos %}
-      <div class="section">
-        <h2>Histórico de Pagamentos</h2>
-        <table class="payment-history-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Forma</th>
-              <th class="text-end">Valor Pago</th>
-              <th class="text-end">Multa</th>
-              <th class="text-end">Juros</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in pagamentos_feitos %}
-            <tr>
-              <td>
-                {{ p.data_pagamento.split('-')[2] }}/{{
-                p.data_pagamento.split('-')[1] }}/{{
-                p.data_pagamento.split('-')[0] }}
-              </td>
-              <td>{{ p.forma_pagamento }}</td>
-              <td class="text-end fw-bold text-success">
-                R$ {{ "%.2f"|format(p.valor_pago) }}
-              </td>
-              <td class="text-end">R$ {{ "%.2f"|format(p.valor_multa) }}</td>
-              <td class="text-end">R$ {{ "%.2f"|format(p.valor_juros) }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% endif %}
+        {% if pagamentos_feitos %}
+        <div class="section">
+            <h2>Histórico de Pagamentos</h2>
+            <table class="payment-history-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Forma</th>
+                        <th class="text-end">Valor Pago</th>
+                        <th class="text-end">Multa</th>
+                        <th class="text-end">Juros</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pagamentos_feitos %}
+                    <tr>
+                        <td>{{ p.data_pagamento | date_format }}</td>
+                        <td>{{ p.forma_pagamento }}</td>
+                        <td class="text-end fw-bold text-success">R$ {{ "%.2f"|format(p.valor_pago|float) | replace('.', ',') }}</td>
+                        <td class="text-end">R$ {{ "%.2f"|format(p.valor_multa|float) | replace('.', ',') }}</td>
+                        <td class="text-end">R$ {{ "%.2f"|format(p.valor_juros|float) | replace('.', ',') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
 
-      <div class="section">
-        <h2>Situação Atual da Fatura</h2>
-        <div class="info-line">
-          <span>Total Acumulado Pago:</span>
-          <span class="fw-bold text-success"
-            >R$ {{ "%.2f"|format(total_pago_acumulado) }}</span
-          >
+        <div class="section">
+            <h2>Situação Atual da Fatura</h2>
+            <div class="info-line">
+                <span>Total Acumulado Pago:</span>
+                <span class="fw-bold text-success">R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.', ',') }}</span>
+            </div>
+            <div class="info-line">
+                <span>Total Devido Atualmente:</span>
+                <span>R$ {{ "%.2f"|format(valor_total_devido|float) | replace('.', ',') }}</span>
+            </div>
+            <div class="info-line total">
+                <span>SALDO FINAL:</span>
+                <span>
+                    {% if situacao_da_fatura_texto == 'Fatura Quitada' %}
+                        <span class="text-success">FATURA QUITADA</span>
+                    {% elif situacao_da_fatura_texto == 'SALDO DEVEDOR' %}
+                        <span class="text-danger">DEVEDOR R$ {{ "%.2f"|format(saldo_devedor_final_display|float) | replace('.', ',') }}</span>
+                    {% elif situacao_da_fatura_texto == 'SALDO CREDOR' %}
+                        <span class="text-success">CREDOR R$ {{ "%.2f"|format(saldo_credor_final_display|float) | replace('.', ',') }}</span>
+                    {% else %}
+                        {{ situacao_da_fatura_texto }}
+                    {% endif %}
+                </span>
+            </div>
         </div>
-        <div class="info-line">
-          <span>Total Devido Atualmente:</span>
-          <span>R$ {{ "%.2f"|format(valor_total_devido) }}</span>
-        </div>
-        <div class="info-line total">
-          <span>SALDO FINAL:</span>
-          <span>
-            {% if situacao_da_fatura_texto == 'Fatura Quitada.' %} FATURA
-            QUITADA {% elif situacao_da_fatura_texto == 'SALDO DEVEDOR' %}
-            <span class="text-danger"
-              >DEVEDOR R$ {{ "%.2f"|format(saldo_devedor_final_display) }}</span
-            >
-            {% elif situacao_da_fatura_texto == 'SALDO CREDOR' %}
-            <span class="text-success"
-              >CREDOR R$ {{ "%.2f"|format(saldo_credor_final_display) }}</span
-            >
-            {% else %} {{ situacao_da_fatura_texto }} {% endif %}
-          </span>
-        </div>
-      </div>
 
-      <div class="buttons no-print">
-        <button onclick="window.print()" class="btn btn-primary">
-          <i class="bi bi-printer"></i> Imprimir
-        </button>
-        <a
-          href="{{ url_for('download_comprovante_pdf', leitura_id=leitura.id) }}"
-          class="btn btn-success"
-          target="_blank"
-          ><i class="bi bi-file-pdf"></i> Baixar PDF</a
-        >
-        <a
-          href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}"
-          target="_blank"
-          class="btn btn-whatsapp {% if not whatsapp_phone_number %}disabled{% endif %}"
-        >
-          <i class="bi bi-whatsapp"></i> Enviar via WhatsApp
-        </a>
-        <a href="{{ url_for('listar_pagamentos') }}" class="btn btn-secondary"
-          >Voltar à Lista</a
-        >
-      </div>
+        <div class="buttons no-print">
+            <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Imprimir</button>
+            <a href="{{ url_for('download_comprovante_pdf', leitura_id=leitura.id) }}" class="btn btn-success" target="_blank"><i class="bi bi-file-pdf"></i> Baixar PDF</a>
+            <a href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}" target="_blank" class="btn btn-whatsapp {% if not whatsapp_phone_number %}disabled{% endif %}"><i class="bi bi-whatsapp"></i> Enviar via WhatsApp</a>
+            <a href="{{ url_for('listar_pagamentos') }}" class="btn btn-secondary">Voltar à Lista</a>
+        </div>
     </div>
-  </body>
+</body>
 </html>
