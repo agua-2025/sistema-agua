@@ -139,28 +139,31 @@ def admin_required(f):
 # Função auxiliar para obter as configurações mais recentes (VERSÃO CORRIGIDA)
 def get_current_config():
     db = get_db()
+    # Query agora também seleciona o ID
     resultado_bruto = db.execute(text('''
-        SELECT COALESCE(multa_percentual, 2.0) AS multa_percentual,
+        SELECT id, COALESCE(multa_percentual, 2.0) AS multa_percentual,
                COALESCE(juros_diario_percentual, 0.033) AS juros_diario_percentual,
-               COALESCE(valor_m3, 0.0) AS valor_m3, -- ALTERADO
+               COALESCE(valor_m3, 0.0) AS valor_m3,
                COALESCE(taxa_minima_consumo, 0.0) AS taxa_minima_consumo,
                COALESCE(dias_uteis_para_vencimento, 5) AS dias_uteis_para_vencimento,
                COALESCE(hidr_geral_anterior, 0) AS hidr_geral_anterior,
                COALESCE(hidr_geral_atual, 0) AS hidr_geral_atual,
                COALESCE(data_ultima_config, NOW()) AS data_ultima_config,
-               COALESCE(consumo_geral, 0) AS consumo_geral
+               COALESCE(consumo_geral, 0) AS consumo_geral,
+               COALESCE(taxa_minima_franquia_m3, 10.0) AS taxa_minima_franquia_m3
         FROM configuracoes ORDER BY id DESC LIMIT 1
     ''')).fetchone()
     
     if resultado_bruto:
         return resultado_bruto._asdict()
     else:
+        # Se não houver nenhuma configuração, retorna um dicionário sem ID
         return {
-            'multa_percentual': 2.0, 'juros_diario_percentual': 0.033,
-            'valor_m3': 0.0, 'taxa_minima_consumo': 0.0, # ALTERADO
+            'id': None, 'multa_percentual': 2.0, 'juros_diario_percentual': 0.033,
+            'valor_m3': 0.0, 'taxa_minima_consumo': 0.0,
             'dias_uteis_para_vencimento': 5, 'hidr_geral_anterior': 0,
             'hidr_geral_atual': 0, 'data_ultima_config': date.today().strftime('%Y-%m-%d'),
-            'consumo_geral': 0
+            'consumo_geral': 0, 'taxa_minima_franquia_m3': 10.0
         }
     
 # FUNÇÃO `calcular_penalidades` CORRIGIDA
@@ -352,36 +355,63 @@ def dashboard():
         flash("Ocorreu um erro ao carregar os dados do painel. Tente novamente.", "danger")
         return redirect(url_for('login'))
 
-# --- Configurações do Sistema (VERSÃO FINAL E CORRIGIDA) ---
+#---------Configurações----------
 @app.route('/configuracoes', methods=['GET', 'POST'])
 @admin_required
 def configuracoes():
     if request.method == 'POST':
         form = request.form
         try:
-            valor_m3 = parse_number_from_br_form(form.get('valor_m3', '')) # ALTERADO
             db = get_db()
             with db.begin():
-                db.execute(text("""
-                    INSERT INTO configuracoes (
-                        hidr_geral_anterior, hidr_geral_atual, consumo_geral,
-                        valor_m3, taxa_minima_consumo, data_ultima_config,
-                        dias_uteis_para_vencimento, multa_percentual, juros_diario_percentual
-                    ) VALUES (:h_ant, :h_atu, :c_ger, :v_m3, :t_min, :d_conf, :d_venc, :multa, :juros)
-                """), { # ALTERADO
-                    'h_ant': int(form['hidr_geral_anterior']), 'h_atu': int(form['hidr_geral_atual']), 
-                    'c_ger': int(form['hidr_geral_atual']) - int(form['hidr_geral_anterior']),
-                    'v_m3': valor_m3, 't_min': parse_number_from_br_form(form.get('taxa_minima_consumo', '')), 
+                # Coleta todos os dados do formulário em um dicionário de parâmetros
+                params = {
+                    'h_ant': int(form.get('hidr_geral_anterior', 0)), 
+                    'h_atu': int(form.get('hidr_geral_atual', 0)), 
+                    'v_m3': parse_number_from_br_form(form.get('valor_m3')), 
+                    't_min': parse_number_from_br_form(form.get('taxa_minima_consumo')), 
                     'd_conf': form.get('data_ultima_config') or date.today().strftime('%Y-%m-%d'),
-                    'd_venc': int(form['dias_uteis_para_vencimento']), 
-                    'multa': parse_number_from_br_form(form.get('multa_percentual', '')), 
-                    'juros': parse_number_from_br_form(form.get('juros_diario_percentual', ''))
-                })
+                    'd_venc': int(form.get('dias_uteis_para_vencimento', 5)), 
+                    'multa': parse_number_from_br_form(form.get('multa_percentual')), 
+                    'juros': parse_number_from_br_form(form.get('juros_diario_percentual')),
+                    'franquia_m3': parse_number_from_br_form(form.get('taxa_minima_franquia_m3'))
+                }
+                params['c_ger'] = params['h_atu'] - params['h_ant']
+
+                # Verifica se já existe uma linha de configuração
+                config_row = db.execute(text("SELECT id FROM configuracoes LIMIT 1")).fetchone()
+
+                if config_row:
+                    # SE EXISTE: ATUALIZA a linha existente (lógica de EDIÇÃO)
+                    # Não precisamos de um WHERE, pois só haverá uma linha para ser atualizada.
+                    db.execute(text("""
+                        UPDATE configuracoes SET
+                            hidr_geral_anterior = :h_ant, hidr_geral_atual = :h_atu, consumo_geral = :c_ger,
+                            valor_m3 = :v_m3, taxa_minima_consumo = :t_min, data_ultima_config = :d_conf,
+                            dias_uteis_para_vencimento = :d_venc, multa_percentual = :multa, 
+                            juros_diario_percentual = :juros, taxa_minima_franquia_m3 = :franquia_m3
+                    """), params)
+                else:
+                    # SE NÃO EXISTE: INSERE a primeira linha
+                    db.execute(text("""
+                        INSERT INTO configuracoes (
+                            hidr_geral_anterior, hidr_geral_atual, consumo_geral, valor_m3, 
+                            taxa_minima_consumo, data_ultima_config, dias_uteis_para_vencimento, 
+                            multa_percentual, juros_diario_percentual, taxa_minima_franquia_m3
+                        ) VALUES (
+                            :h_ant, :h_atu, :c_ger, :v_m3, :t_min, :d_conf, :d_venc, 
+                            :multa, :juros, :franquia_m3
+                        )
+                    """), params)
+            
             flash("Configuração salva com sucesso!", 'success')
         except Exception as e:
+            app.logger.error(f"Erro ao salvar configuração: {e}", exc_info=True)
             flash(f"Erro ao salvar configuração: {str(e)}", 'danger')
+        
         return redirect(url_for('configuracoes'))
     
+    # A lógica GET para exibir a página continua a mesma
     config = get_current_config()
     return render_template('configuracoes.html', config=config)
 
@@ -392,6 +422,21 @@ def api_configuracoes():
     return jsonify({
         'multa_percentual': config['multa_percentual'],
         'juros_diario_percentual': config['juros_diario_percentual']
+    })
+
+
+#------------------------------Configurações de Leitura-------------
+@app.route('/api/configuracoes-leitura')
+@login_required 
+def api_configuracoes_leitura():
+    config = get_current_config()
+    return jsonify({
+        'valor_m3': config.get('valor_m3', 0.0),
+        'dias_uteis': config.get('dias_uteis_para_vencimento', 5),
+        # Renomeado para clareza
+        'taxa_minima_valor': config.get('taxa_minima_consumo', 0.0), 
+        # ADICIONADO: Envia a franquia em m³
+        'taxa_minima_franquia_m3': config.get('taxa_minima_franquia_m3', 10.0)
     })
 
 # --- CRUD Consumidores (VERSÃO CORRIGIDA) ---
@@ -521,14 +566,16 @@ def listar_consumidores():
     consumidores = db.execute(text("SELECT * FROM consumidores")).fetchall()
     return render_template('consumidores.html', consumidores=consumidores)
 
+# Em app.py
+
 @app.route('/cadastrar-leitura', methods=['GET', 'POST'])
 @login_required
 def cadastrar_leitura():
     db = get_db()
 
-    # --- LÓGICA PARA POST (SALVAR O FORMULÁRIO) ---
     if request.method == 'POST':
         try:
+            # --- LÓGICA DE SALVAMENTO (POST) ---
             consumidor_id = request.form.get('consumidor_id')
             leitura_atual_str = request.form.get('leitura_atual')
             data_leitura_atual_str = request.form.get('data_leitura_atual')
@@ -537,89 +584,81 @@ def cadastrar_leitura():
                 flash('Consumidor, Leitura Atual e Data da Leitura são obrigatórios.', 'danger')
                 return redirect(url_for('cadastrar_leitura'))
 
-            # Usa a função de parse que sempre retorna um número inteiro simples
-            leitura_atual = int(leitura_atual_str)
+            # CORREÇÃO: Garante que a leitura seja tratada como INTEIRO
+            leitura_atual = int(parse_number_from_br_form(leitura_atual_str))
             data_leitura_obj = datetime.strptime(data_leitura_atual_str, '%Y-%m-%d').date()
 
             with db.begin():
-                # Busca a configuração ATUAL do sistema
                 config = get_current_config()
-                # Pega o valor do m³ DIRETAMENTE da configuração.
-                valor_m3_configurado = float(config.get('valor_m3', 0.0))
-
                 leitura_anterior_db = db.execute(text("""
                     SELECT leitura_atual, data_leitura_atual FROM leituras
                     WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1
                 """), {'cid': consumidor_id}).fetchone()
 
-                # --- Validações ---
+                # Validações
                 hoje = date.today()
                 if data_leitura_obj > hoje:
                     raise ValueError('A data da leitura atual não pode ser uma data futura.')
-
                 if leitura_anterior_db and data_leitura_obj < leitura_anterior_db.data_leitura_atual:
                     raise ValueError('A data da leitura atual não pode ser anterior à data da leitura passada.')
                 
-                # --- Lógica de cálculo ---
-                if not leitura_anterior_db:
-                    leitura_anterior_valor, data_leitura_anterior_obj, consumo_m3, valor_original, data_vencimento = 0, None, 0, 0, data_leitura_obj
-                else:
-                    leitura_anterior_valor = int(float(leitura_anterior_db.leitura_atual))
-                    data_leitura_anterior_obj = leitura_anterior_db.data_leitura_atual
-                    if leitura_atual < leitura_anterior_valor:
-                        raise ValueError(f'A leitura atual ({leitura_atual}) não pode ser menor que a anterior ({leitura_anterior_valor}).')
-                    
-                    consumo_m3 = leitura_atual - leitura_anterior_valor
-                    
-                    # CÁLCULO DIRETO: Usa o valor_m3_configurado vindo do banco.
-                    valor_calculado = consumo_m3 * valor_m3_configurado
-                    
-                    taxa_minima = float(config.get('taxa_minima_consumo', 0.0))
-                    taxa_minima_aplicada = 'SIM' if request.form.get('taxa_minima_aplicada') == 'SIM' else 'NÃO'
-                    
-                    valor_original = valor_calculado
-                    if taxa_minima_aplicada == 'SIM' and valor_calculado < taxa_minima:
-                        valor_original = taxa_minima
+                leitura_anterior_valor = 0
+                if leitura_anterior_db:
+                    # CORREÇÃO: Garante que a leitura anterior também seja INTEIRA
+                    leitura_anterior_valor = int(parse_number_from_br_form(leitura_anterior_db.leitura_atual))
 
-                    dias_para_vencimento = int(config.get('dias_uteis_para_vencimento', 5))
-                    data_vencimento = adicionar_dias_uteis(data_leitura_obj, dias_para_vencimento)
+                if leitura_atual < leitura_anterior_valor:
+                    raise ValueError(f'A leitura atual ({leitura_atual}) não pode ser menor que a anterior ({leitura_anterior_valor}).')
+
+                consumo_m3 = leitura_atual - leitura_anterior_valor
                 
-                # --- Preparação e Inserção no Banco ---
-                # (O restante do seu código para salvar o arquivo e inserir no banco está mantido)
-                # ...
+                # Lógica de cálculo da franquia
+                valor_m3_configurado = float(config.get('valor_m3', 0.0))
+                taxa_minima_valor = float(config.get('taxa_minima_consumo', 0.0))
+                taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
+                
+                valor_original = 0.0
+                if consumo_m3 <= 0:
+                    valor_original = 0.0
+                elif consumo_m3 <= taxa_minima_franquia:
+                    valor_original = taxa_minima_valor
+                else:
+                    consumo_excedente = consumo_m3 - taxa_minima_franquia
+                    valor_excedente = consumo_excedente * valor_m3_configurado
+                    valor_original = taxa_minima_valor + valor_excedente
+
+                dias_para_vencimento = int(config.get('dias_uteis_para_vencimento', 5))
+                data_vencimento = adicionar_dias_uteis(data_leitura_obj, dias_para_vencimento)
                 
                 db.execute(text('''
                     INSERT INTO leituras (
                         consumidor_id, leitura_anterior, data_leitura_anterior,
-                        leitura_atual, data_leitura_atual, consumo_m3, valor_original,
-                        taxa_minima_aplicada, valor_taxa_minima, vencimento, foto_hidrometro
-                    ) VALUES (:cid, :l_ant, :d_ant, :l_atu, :d_atu, :consumo, :val_orig, :taxa_apl, :taxa_val, :venc, :foto)
+                        leitura_atual, data_leitura_atual, consumo_m3, valor_original, vencimento
+                    ) VALUES (:cid, :l_ant, :d_ant, :l_atu, :d_atu, :consumo, :val_orig, :venc)
                 '''), {
-                    'cid': consumidor_id, 'l_ant': leitura_anterior_valor, 'd_ant': data_leitura_anterior_obj,
+                    'cid': consumidor_id, 'l_ant': leitura_anterior_valor, 
+                    'd_ant': leitura_anterior_db.data_leitura_atual if leitura_anterior_db else None,
                     'l_atu': leitura_atual, 'd_atu': data_leitura_obj, 'consumo': consumo_m3,
-                    'val_orig': valor_original, 
-                    'taxa_apl': request.form.get('taxa_minima_aplicada', 'NÃO'),
-                    'taxa_val': parse_number_from_br_form(request.form.get('valor_taxa_minima', '0')),
-                    'venc': data_vencimento, 'foto': None # Adapte a lógica da foto se necessário
+                    'val_orig': valor_original, 'venc': data_vencimento
                 })
 
             flash('Leitura cadastrada com sucesso!', 'success')
             return redirect(url_for('listar_leituras'))
 
-        except ValueError as e: # Captura erros de validação específicos
+        except ValueError as e:
             flash(str(e), 'danger')
             return redirect(url_for('cadastrar_leitura', consumidor_id=request.form.get('consumidor_id')))
-        except Exception as e: # Captura outros erros
+        except Exception as e:
             app.logger.error(f'Erro ao salvar leitura: {e}', exc_info=True)
-            flash(f'Ocorreu um erro inesperado ao cadastrar a leitura.', 'danger')
+            flash('Ocorreu um erro inesperado ao cadastrar a leitura.', 'danger')
             return redirect(url_for('cadastrar_leitura'))
-
-    # --- LÓGICA PARA GET (CARREGAR A PÁGINA) ---
+    
+    # --- LÓGICA DE EXIBIÇÃO DA PÁGINA (GET) ---
     else:
         consumidores = db.execute(text('SELECT id, nome FROM consumidores ORDER BY nome')).fetchall()
         consumidor_selecionado = request.args.get('consumidor_id', type=int)
         
-        leitura_anterior_valor = '0' # Padrão como string de inteiro
+        leitura_anterior_valor = '0' # Valor padrão como string de inteiro
         data_leitura_anterior_str = 'N/A'
 
         if consumidor_selecionado:
@@ -629,9 +668,13 @@ def cadastrar_leitura():
             """), {'cid': consumidor_selecionado}).fetchone()
             
             if ultima_leitura:
-                # CORRIGIDO: Garante que o valor exibido na tela seja um inteiro simples.
+                # =============================================================
+                # AQUI ESTÁ A CORREÇÃO PRINCIPAL PARA A EXIBIÇÃO
+                # =============================================================
+                # Converte o número para inteiro e depois para string, sem decimais.
                 leitura_anterior_valor = str(int(float(ultima_leitura.leitura_atual)))
                 data_leitura_anterior_str = ultima_leitura.data_leitura_atual.strftime('%d/%m/%Y')
+                # =============================================================
         
         return render_template('cadastrar_leitura.html', 
                                 consumidores=consumidores, 
@@ -968,11 +1011,6 @@ def api_leituras(consumidor_id):
         app.logger.error(f"Erro ao buscar leituras via API: {str(e)}", exc_info=True)
         return jsonify({'erro': 'Erro interno no servidor'}), 500
     
-# --- API para retornar o valor do litro atual ---
-@app.route('/api/valor_m3')
-def api_valor_m3():
-    config = get_current_config()
-    return jsonify({'valor_m3': config.get('valor_m3', 0.0)})
 
 # --- ROTA PRINCIPAL DE DETALHES (CORRIGIDA) ---
 @app.route('/detalhes-pagamento')

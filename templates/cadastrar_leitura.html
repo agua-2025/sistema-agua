@@ -26,7 +26,7 @@
         
         {% include '_flash_messages.html' %}
 
-        <form method="POST" enctype="multipart/form-data" id="leitura-form">
+        <form method="POST" id="leitura-form">
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="consumidor_id" class="form-label">Consumidor <span class="text-danger">*</span></label>
@@ -44,7 +44,6 @@
                     <input type="text" class="form-control" id="data_leitura_anterior" name="data_leitura_anterior" value="{{ data_leitura_anterior or 'N/A' }}" readonly>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="leitura_anterior" class="form-label">Leitura Anterior (m³)</label>
@@ -56,15 +55,14 @@
                     <div id="data-atual-feedback" class="invalid-feedback"></div>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label for="leitura_atual" class="form-label">Leitura Atual (m³) <span class="text-danger">*</span></label>
-                    <input type="tel" class="form-control" id="leitura_atual" name="leitura_atual" required placeholder="0">
-                    <div id="leitura-atual-feedback" class="invalid-feedback">A leitura atual não pode ser menor que a anterior.</div>
+                    <input type="text" class="form-control" id="leitura_atual" name="leitura_atual" required placeholder="0">
+                    <div id="leitura-atual-feedback" class="invalid-feedback">Deve ser maior que a anterior.</div>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="qtd_dias_utilizados" class="form-label">Dias de Consumo</label>
+                    <label for="qtd_dias_utilizados" class="form-label">Dias Utilizados</label>
                     <input type="text" class="form-control" id="qtd_dias_utilizados" name="qtd_dias_utilizados" readonly>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -72,31 +70,16 @@
                     <input type="text" class="form-control" id="media_por_dia" name="media_por_dia" readonly>
                 </div>
             </div>
-
             <div class="row">
                 <div class="col-12 mb-3">
                     <label for="consumo_m3" class="form-label">Consumo (m³)</label>
                     <input type="text" class="form-control" id="consumo_m3" name="consumo_m3" readonly>
                 </div>
             </div>
-
-            <div class="row align-items-end">
-                <div class="col-md-6 mb-3">
-                    <label for="taxa_minima_aplicada" class="form-label">Aplicar Taxa Mínima?</label>
-                    <select class="form-select" id="taxa_minima_aplicada" name="taxa_minima_aplicada">
-                        <option value="NÃO" selected>Não</option>
-                        <option value="SIM">Sim</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="valor_taxa_minima" class="form-label">Valor da Taxa (R$)</label>
-                    <input type="text" class="form-control" id="valor_taxa_minima" name="valor_taxa_minima" placeholder="0,00">
-                </div>
-            </div>
             
             <div class="row">
                  <div class="col-md-6 mb-3">
-                    <label for="valor_original" class="form-label fw-bold">Valor da Fatura (R$)</label>
+                    <label for="valor_original" class="form-label fw-bold">Valor Original da Fatura (R$)</label>
                     <input type="text" class="form-control fs-5 fw-bold text-success" id="valor_original" name="valor_original" readonly>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -104,9 +87,7 @@
                     <input type="date" class="form-control" id="vencimento" name="vencimento" readonly>
                 </div>
             </div>
-
             <hr class="my-4">
-
             <div class="d-flex justify-content-end gap-2">
                 <a href="{{ url_for('dashboard') }}" class="btn btn-secondary px-4">Cancelar</a>
                 <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-1"></i>Salvar Leitura</button>
@@ -116,16 +97,12 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const consumidorSelect = document.getElementById('consumidor_id');
-            if (consumidorSelect) {
-                consumidorSelect.addEventListener('change', () => {
-                    if (consumidorSelect.value) {
-                        window.location.href = `/cadastrar-leitura?consumidor_id=${consumidorSelect.value}`;
-                    }
-                });
-            }
+            document.getElementById('consumidor_id')?.addEventListener('change', function() {
+                if (this.value) window.location.href = `/cadastrar-leitura?consumidor_id=${this.value}`;
+            });
 
             const DOM = {
+                form: document.getElementById('leitura-form'),
                 leituraAnterior: document.getElementById('leitura_anterior'),
                 leituraAtual: document.getElementById('leitura_atual'),
                 dataAnterior: document.getElementById('data_leitura_anterior'),
@@ -133,22 +110,23 @@
                 consumoM3: document.getElementById('consumo_m3'),
                 diasUtilizados: document.getElementById('qtd_dias_utilizados'),
                 mediaDiaria: document.getElementById('media_por_dia'),
-                aplicarTaxaMinima: document.getElementById('taxa_minima_aplicada'),
-                valorTaxaMinima: document.getElementById('valor_taxa_minima'),
                 valorOriginal: document.getElementById('valor_original'),
                 vencimento: document.getElementById('vencimento'),
-                dataAtualFeedback: document.getElementById('data-atual-feedback'),
-                leituraAtualFeedback: document.getElementById('leitura-atual-feedback')
+                feedbackLeitura: document.getElementById('leitura-atual-feedback'),
+                feedbackData: document.getElementById('data-atual-feedback')
             };
 
-            let appConfig = { valorM3: 0.0, diasVencimento: 10 };
+            let appConfig = { 
+                valorM3: 0.0, 
+                diasVencimento: 5, 
+                taxaMinimaValor: 0.0, 
+                taxaMinimaFranquiaM3: 10.0 
+            };
 
             const Utils = {
-                parseInteger: (str) => parseInt(String(str), 10) || 0,
-                parseFloat: (str) => parseFloat(String(str || '0').replace(/,/g, '.')) || 0,
-                formatInteger: (num) => String(Math.round(num || 0)),
-                formatDecimal: (num, casas = 3) => (num || 0).toFixed(casas).replace('.',','),
-                formatToBRL: (num) => (num || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                parsearFloat: (str) => parseFloat(String(str).replace(/[^0-9,.]/g, '').replace(',', '.')) || 0,
+                formatarBRL: (num) => (num || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                formatarDecimal: (num) => (num || 0).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
                 adicionarDiasUteis: (data, dias) => {
                     let d = new Date(data.valueOf());
                     let diasAdicionados = 0;
@@ -161,90 +139,87 @@
             };
             
             function validarEntradas() {
-                let dataValida = true;
-                let leituraValida = true;
+                let isFormValido = true;
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
 
-                DOM.dataAtual.classList.remove('is-invalid');
-                const dataAtualStr = DOM.dataAtual.value;
-                if (dataAtualStr) {
-                    const hoje = new Date();
-                    hoje.setHours(0, 0, 0, 0);
-                    const dataAtualObj = new Date(dataAtualStr + 'T00:00:00');
-                    if (dataAtualObj > hoje) {
-                        DOM.dataAtual.classList.add('is-invalid');
-                        DOM.dataAtualFeedback.textContent = 'A data não pode ser futura.';
-                        dataValida = false;
-                    }
-                    const dataAnteriorStr = DOM.dataAnterior.value;
-                    if (dataValida && dataAnteriorStr && dataAnteriorStr !== 'N/A') {
-                        try {
-                            const partes = dataAnteriorStr.split('/');
-                            const dataAnteriorObj = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`);
-                            if (dataAtualObj < dataAnteriorObj) {
-                                DOM.dataAtual.classList.add('is-invalid');
-                                DOM.dataAtualFeedback.textContent = 'A data não pode ser anterior à última leitura.';
-                                dataValida = false;
-                            }
-                        } catch(e) { dataValida = false; }
-                    }
-                } else { dataValida = false; }
-
-                DOM.leituraAtual.classList.remove('is-invalid');
-                const leituraAnterior = Utils.parseInteger(DOM.leituraAnterior.value);
-                const leituraAtual = Utils.parseInteger(DOM.leituraAtual.value);
-                if (DOM.leituraAtual.value === '') {
-                    leituraValida = false;
-                } else if (leituraAtual < leituraAnterior) {
+                const leituraAnterior = Utils.parsearFloat(DOM.leituraAnterior.value);
+                const leituraAtual = Utils.parsearFloat(DOM.leituraAtual.value);
+                if (leituraAtual > 0 && leituraAtual < leituraAnterior) {
                     DOM.leituraAtual.classList.add('is-invalid');
-                    leituraValida = false;
+                    isFormValido = false;
+                } else {
+                    DOM.leituraAtual.classList.remove('is-invalid');
                 }
-                
-                return { dataValida, leituraValida };
+
+                const dataAtualStr = DOM.dataAtual.value;
+                DOM.dataAtual.classList.remove('is-invalid');
+                if (dataAtualStr) {
+                    const dataAtual = new Date(dataAtualStr + 'T00:00:00');
+                    if (dataAtual > hoje) {
+                        DOM.dataAtual.classList.add('is-invalid');
+                        DOM.feedbackData.textContent = 'A data não pode ser futura.';
+                        isFormValido = false;
+                    } else {
+                        const dataAnteriorStr = DOM.dataAnterior.value;
+                        if (dataAnteriorStr !== 'N/A') {
+                            const partes = dataAnteriorStr.split('/');
+                            const dataAnterior = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`);
+                            if (dataAtual < dataAnterior) {
+                                DOM.dataAtual.classList.add('is-invalid');
+                                DOM.feedbackData.textContent = 'A data não pode ser anterior à passada.';
+                                isFormValido = false;
+                            }
+                        }
+                    }
+                } else {
+                    isFormValido = false;
+                }
+                return isFormValido;
             }
 
             function calcularEAtualizarTela() {
-                const { dataValida, leituraValida } = validarEntradas();
+                const isValido = validarEntradas();
+                const leituraAnterior = Utils.parsearFloat(DOM.leituraAnterior.value);
+                const leituraAtual = Utils.parsearFloat(DOM.leituraAtual.value);
                 
-                const leituraAnterior = Utils.parseInteger(DOM.leituraAnterior.value);
-                const leituraAtual = Utils.parseInteger(DOM.leituraAtual.value);
-                
-                const consumo = leituraValida ? (leituraAtual - leituraAnterior) : 0;
-                DOM.consumoM3.value = Utils.formatInteger(consumo);
-                
-                // --- CORREÇÃO DIAS E MÉDIA ---
-                let dias = 0;
-                let foiPossivelCalcularDias = false;
+                let consumo = 0;
+                if (leituraAtual > leituraAnterior) {
+                    consumo = leituraAtual - leituraAnterior;
+                }
+                DOM.consumoM3.value = consumo.toString();
 
-                if (dataValida && DOM.dataAnterior.value && DOM.dataAnterior.value !== 'N/A') {
+                const dataAnteriorStr = DOM.dataAnterior.value;
+                const dataAtualStr = DOM.dataAtual.value;
+                let dias = 0;
+                if (dataAnteriorStr !== 'N/A' && dataAtualStr && isValido) {
                     try {
-                        const partes = DOM.dataAnterior.value.split('/');
+                        const partes = dataAnteriorStr.split('/');
                         const dataAnterior = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`);
-                        const dataAtual = new Date(DOM.dataAtual.value + 'T00:00:00');
-                        dias = Math.max(0, Math.round((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24)));
-                        foiPossivelCalcularDias = true;
-                    } catch { 
-                        foiPossivelCalcularDias = false;
+                        const dataAtual = new Date(dataAtualStr + 'T00:00:00');
+                        dias = Math.round((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24));
+                    } catch { dias = 0; }
+                }
+                DOM.diasUtilizados.value = dias > 0 ? dias : 0;
+                
+                const media = (consumo > 0 && dias > 0) ? consumo / dias : 0;
+                DOM.mediaDiaria.value = Utils.formatarDecimal(media);
+
+                // --- LÓGICA DE CÁLCULO DA FRANQUIA ---
+                let valorFinal = 0;
+                if (consumo > 0 && isValido) {
+                    if (consumo <= appConfig.taxaMinimaFranquiaM3) {
+                        valorFinal = appConfig.taxaMinimaValor;
+                    } else {
+                        const consumoExcedente = consumo - appConfig.taxaMinimaFranquiaM3;
+                        const valorExcedente = consumoExcedente * appConfig.valorM3;
+                        valorFinal = appConfig.taxaMinimaValor + valorExcedente;
                     }
                 }
-                
-                // Mostra o valor de 'dias' se foi possível calcular, senão, mostra vazio.
-                DOM.diasUtilizados.value = foiPossivelCalcularDias ? dias : '';
+                DOM.valorOriginal.value = Utils.formatarBRL(valorFinal);
 
-                const media = (consumo > 0 && dias > 0) ? consumo / dias : 0;
-                DOM.mediaDiaria.value = Utils.formatDecimal(media, 3);
-                // --- FIM DA CORREÇÃO ---
-                
-                let valorFinal = 0;
-                if (consumo > 0) {
-                    const valorCalculado = consumo * appConfig.valorM3;
-                    const aplicarTaxa = DOM.aplicarTaxaMinima.value === 'SIM';
-                    const taxaMinima = aplicarTaxa ? Utils.parseFloat(DOM.valorTaxaMinima.value) : 0;
-                    valorFinal = Math.max(valorCalculado, taxaMinima);
-                }
-                DOM.valorOriginal.value = Utils.formatToBRL(valorFinal);
-
-                if (valorFinal > 0 && dataValida) {
-                    const dataLeitura = new Date(DOM.dataAtual.value + 'T00:00:00');
+                if (valorFinal > 0 && dataAtualStr && isValido) {
+                    const dataLeitura = new Date(dataAtualStr + 'T00:00:00');
                     const dataVencimento = Utils.adicionarDiasUteis(dataLeitura, appConfig.diasVencimento);
                     DOM.vencimento.value = dataVencimento.toISOString().split('T')[0];
                 } else {
@@ -252,42 +227,38 @@
                 }
             }
 
-            async function carregarConfiguracoesEIniciar() {
-                const leituraAnteriorInicial = Utils.parseInteger(DOM.leituraAnterior.value);
-                DOM.leituraAnterior.value = Utils.formatInteger(leituraAnteriorInicial);
-
+            async function carregarConfiguracoes() {
                 try {
-                    const response = await fetch('/api/valor_m3');
+                    const response = await fetch('/api/configuracoes-leitura');
                     if (!response.ok) {
-                        throw new Error(`Erro de rede: ${response.statusText}`);
+                        throw new Error(`Falha ao carregar configurações da API. Status: ${response.status}`);
                     }
                     const data = await response.json();
-                    appConfig.valorM3 = Utils.parseFloat(data.valor_m3);
-                } catch (error) {
-                    console.error('FALHA AO CARREGAR CONFIGURAÇÃO DE PREÇO:', error);
-                    alert('ATENÇÃO: Não foi possível carregar as configurações de preço do servidor. O cálculo do valor da fatura não funcionará.');
-                    appConfig.valorM3 = 0;
-                }
+                    
+                    appConfig.valorM3 = Utils.parsearFloat(data.valor_m3);
+                    appConfig.diasVencimento = parseInt(data.dias_uteis) || 5;
+                    appConfig.taxaMinimaValor = Utils.parsearFloat(data.taxa_minima_valor);
+                    appConfig.taxaMinimaFranquiaM3 = Utils.parsearFloat(data.taxa_minima_franquia_m3);
 
+                } catch (error) {
+                    console.error('Erro ao carregar configurações do sistema:', error);
+                    alert('Não foi possível carregar as configurações do sistema. Os cálculos podem não funcionar corretamente.');
+                }
                 calcularEAtualizarTela();
             }
 
-            ['input', 'change'].forEach(evento => {
-                ['leitura_atual', 'data_leitura_atual', 'taxa_minima_aplicada', 'valor_taxa_minima'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.addEventListener(evento, calcularEAtualizarTela);
-                });
+            ['leitura_atual', 'data_leitura_atual'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', calcularEAtualizarTela);
             });
 
-            document.getElementById('leitura-form').addEventListener('submit', function(event) {
-                const { dataValida, leituraValida } = validarEntradas();
-                if (!dataValida || !leituraValida) {
+            DOM.form.addEventListener('submit', function(event) {
+                if (!validarEntradas()) {
                     event.preventDefault();
                     alert('Por favor, corrija os erros indicados no formulário antes de salvar.');
                 }
             });
 
-            carregarConfiguracoesEIniciar();
+            carregarConfiguracoes();
         });
     </script>
 </body>

@@ -224,81 +224,50 @@
           </div>
         </div>
 
-        <!-- Seção: Valores e Taxas (Editar) -->
         <h5 class="section-title">Valores e Taxas (Editar)</h5>
-        <div class="section-card">
-            <div class="section-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <label for="valor_m3" class="form-label"><i class="fas fa-dollar-sign"></i> Valor por m³ (1000 Litros)</label>
-                        <div class="input-group">
-                            <span class="input-group-text">R$</span>
-                            <input
-                                type="text" {# Alterado para type="text" para permitir a formatação via JS #}
-                                class="form-control"
-                                name="valor_m3"
-                                id="valor_m3"
-                                required
-                                onkeyup="formatarMoeda(this)" {# Chamada à função JS para formatar #}
-                                value="{{ config.valor_m3 if config and config.valor_m3 is not none else '' }}" {# Removida a formatação Jinja2 para passar o valor bruto #}
-                            />
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="taxa_minima_consumo" class="form-label"
-                            ><i class="fas fa-hand-holding-usd"></i> Taxa Mínima de Consumo</label
-                        >
-                        <div class="input-group">
-                            <span class="input-group-text">R$</span>
-                            <input
-                                type="text" {# Alterado para type="text" para permitir a formatação via JS #}
-                                class="form-control"
-                                name="taxa_minima_consumo"
-                                id="taxa_minima_consumo"
-                                required
-                                onkeyup="formatarMoeda(this)" {# Chamada à função JS para formatar #}
-                                value="{{ config.taxa_minima_consumo if config and config.taxa_minima_consumo is not none else '' }}" {# Removida a formatação Jinja2 para passar o valor bruto #}
-                            />
-                        </div>
-                    </div>
+<div class="section-card">
+    <div class="section-body">
+        <div class="row mb-3">
+            <div class="col-md-4 mb-3 mb-md-0">
+                <label for="valor_m3" class="form-label"><i class="fas fa-dollar-sign"></i> Valor do m³ Excedente</label>
+                <div class="input-group">
+                    <span class="input-group-text">R$</span>
+                    <input type="text" class="form-control" name="valor_m3" id="valor_m3" required value="{{ config.valor_m3 }}">
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label for="multa_percentual" class="form-label"
-                            ><i class="fas fa-percent"></i> Multa por Atraso</label
-                        >
-                        <div class="input-group">
-                            <input
-                                type="text" {# Alterado para type="text" para permitir a formatação via JS #}
-                                class="form-control"
-                                name="multa_percentual"
-                                id="multa_percentual"
-                                onkeyup="formatarPorcentagem(this, 3)" {# Ajustado para 3 casas decimais para 0,033% #}
-                                value="{{ config['multa_percentual'] if config and config['multa_percentual'] is not none else '' }}" {# Removida a formatação Jinja2 #}
-                            />
-                            <span class="input-group-text">%</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="juros_diario_percentual" class="form-label"
-                            ><i class="fas fa-chart-line"></i> Juros Diário</label
-                        >
-                        <div class="input-group">
-                            <input
-                                type="text" {# Alterado para type="text" para permitir a formatação via JS #}
-                                class="form-control"
-                                name="juros_diario_percentual"
-                                id="juros_diario_percentual"
-                                onkeyup="formatarPorcentagem(this, 2)" {# Ajustado para 2 casas decimais para 2,00% #}
-                                value="{{ config['juros_diario_percentual'] if config and config['juros_diario_percentual'] is not none else '' }}" {# Removida a formatação Jinja2 #}
-                            />
-                            <span class="input-group-text">%</span>
-                        </div>
-                    </div>
+            </div>
+            <div class="col-md-4 mb-3 mb-md-0">
+                <label for="taxa_minima_consumo" class="form-label"><i class="fas fa-hand-holding-usd"></i> Valor da Taxa Mínima</label>
+                <div class="input-group">
+                    <span class="input-group-text">R$</span>
+                    <input type="text" class="form-control" name="taxa_minima_consumo" id="taxa_minima_consumo" required value="{{ config.taxa_minima_consumo }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label for="taxa_minima_franquia_m3" class="form-label"><i class="fas fa-box-open"></i> Faixa da Franquia (m³)</label>
+                 <div class="input-group">
+                    <input type="text" class="form-control" name="taxa_minima_franquia_m3" id="taxa_minima_franquia_m3" required value="{{ config.taxa_minima_franquia_m3 }}">
+                    <span class="input-group-text">m³</span>
                 </div>
             </div>
         </div>
-
+        <div class="row">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <label for="multa_percentual" class="form-label"><i class="fas fa-percent"></i> Multa por Atraso</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="multa_percentual" id="multa_percentual" value="{{ config.multa_percentual }}">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label for="juros_diario_percentual" class="form-label"><i class="fas fa-chart-line"></i> Juros Diário</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="juros_diario_percentual" id="juros_diario_percentual" value="{{ config.juros_diario_percentual }}">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
         <!-- Seção: Regras de Negócio (Editar) -->
         <h5 class="section-title">Regras de Negócio (Editar)</h5>
         <div class="section-card">
@@ -372,108 +341,80 @@
     <!-- Font Awesome JS (para ícones) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Função genérica e robusta para formatar campos numéricos com decimais
-    function formatarCampoDecimal(input, casasDecimais) {
-        let value = input.value;
-
-        // 1. Remove tudo que não for dígito ou a primeira vírgula
-        value = value.replace(/[^0-9,]/g, '');
-        const parts = value.split(',');
-        if (parts.length > 2) {
-            value = parts[0] + ',' + parts.slice(1).join('');
-        }
-
-        // 2. Se o usuário começar com ',', adiciona '0' antes
-        if (value.startsWith(',')) {
-            value = '0' + value;
-        }
-
-        // 3. Garante que a parte decimal não exceda o limite de casas
-        const decimalParts = value.split(',');
-        if (decimalParts.length === 2 && decimalParts[1].length > casasDecimais) {
-            decimalParts[1] = decimalParts[1].substring(0, casasDecimais);
-            value = decimalParts.join(',');
-        }
-
-        // 4. Atualiza o valor no campo
-        input.value = value;
-    }
-
-    // Função para formatar o valor que vem do backend para exibição inicial
-    function formatarValorInicial(valor, casasDecimais) {
-        if (valor === null || valor === undefined || valor === '') return '';
-        
-        // Converte para número, tratando tanto '.' quanto ',' como decimal
-        const valorNumerico = parseFloat(String(valor).replace(',', '.'));
-        if (isNaN(valorNumerico)) return '';
-
-        // Formata para o padrão brasileiro (com vírgula)
-        return valorNumerico.toLocaleString('pt-BR', {
-            minimumFractionDigits: casasDecimais,
-            maximumFractionDigits: casasDecimais,
-        });
-    }
-
-
     document.addEventListener("DOMContentLoaded", function () {
         const configForm = document.getElementById("configForm");
         const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-        
-        // Botões
-        const saveConfigBtn = document.getElementById("saveConfigBtn");
-        const confirmSaveBtn = document.getElementById('confirmSaveBtn');
+
+        // Mapeamento centralizado de todos os campos que precisam de formatação
+        const fieldsToFormat = {
+            'valor_m3': { places: 2 },
+            'taxa_minima_consumo': { places: 2 },
+            'taxa_minima_franquia_m3': { places: 3 }, // O novo campo já está aqui
+            'multa_percentual': { places: 2 },
+            'juros_diario_percentual': { places: 3 }
+        };
+
+        // Função para formatar o valor inicial que vem do backend
+        function formatNumberForDisplay(value, decimalPlaces) {
+            if (value === null || value === undefined || value === '') return '';
+            const num = parseFloat(String(value).replace(',', '.'));
+            if (isNaN(num)) return '';
+            return num.toLocaleString('pt-BR', {
+                minimumFractionDigits: decimalPlaces,
+                maximumFractionDigits: decimalPlaces,
+            });
+        }
+
+        // Função para criar máscara de digitação
+        function maskDecimal(input, decimalPlaces) {
+            let value = input.value;
+            value = value.replace(/[^0-9,]/g, ''); // Permite apenas números e vírgula
+            const parts = value.split(',');
+            if (parts.length > 2) value = parts[0] + ',' + parts.slice(1).join('');
+            if (parts[1] && parts[1].length > decimalPlaces) {
+                parts[1] = parts[1].substring(0, decimalPlaces);
+                value = parts.join(',');
+            }
+            input.value = value;
+        }
+
+        // Loop para aplicar formatação e máscaras em todos os campos
+        for (const id in fieldsToFormat) {
+            const input = document.getElementById(id);
+            if (input) {
+                const config = fieldsToFormat[id];
+                input.value = formatNumberForDisplay(input.value, config.places);
+                input.addEventListener('input', () => maskDecimal(input, config.places));
+            }
+        }
+
+        // Lógica para preencher a data se estiver vazia
+        const dataConfigInput = document.getElementById('data_ultima_config');
+        if (dataConfigInput && !dataConfigInput.value) {
+            dataConfigInput.value = new Date().toISOString().split('T')[0];
+        }
+
+        // Lógica do Modal e do Envio do Formulário
+        document.getElementById("saveConfigBtn").addEventListener("click", function () {
+            confirmationModal.show();
+        });
+
+        document.getElementById('confirmSaveBtn').addEventListener("click", function() {
+            confirmationModal.hide();
+            // Loop para preparar todos os campos para o envio (troca vírgula por ponto)
+            for (const id in fieldsToFormat) {
+                const input = document.getElementById(id);
+                if (input && input.value) {
+                    input.value = input.value.replace(/\./g, '').replace(',', '.');
+                }
+            }
+            configForm.submit();
+        });
+
+        // Lógica do botão de cancelar (mantida do seu original)
         const cancelBtn = document.getElementById('cancelBtn');
-
-        // Campos do Formulário
-        const valorM3Input = document.getElementById('valor_m3');
-        const taxaMinimaInput = document.getElementById('taxa_minima_consumo');
-        const multaPercentualInput = document.getElementById('multa_percentual');
-        const jurosDiarioInput = document.getElementById('juros_diario_percentual');
-        const dataUltimaConfigInput = document.getElementById('data_ultima_config');
-
-        // --- Lógica de Inicialização e Formatação ---
-
-        // 1. Formata os valores que vêm do backend para exibição correta na tela
-        valorM3Input.value = formatarValorInicial(valorM3Input.value, 2);
-        taxaMinimaInput.value = formatarValorInicial(taxaMinimaInput.value, 2);
-        multaPercentualInput.value = formatarValorInicial(multaPercentualInput.value, 3);
-        jurosDiarioInput.value = formatarValorInicial(jurosDiarioInput.value, 3);
-
-        // 2. Aplica as máscaras de digitação em tempo real
-        valorM3Input.addEventListener('input', () => formatarCampoDecimal(valorM3Input, 2));
-        taxaMinimaInput.addEventListener('input', () => formatarCampoDecimal(taxaMinimaInput, 2));
-        multaPercentualInput.addEventListener('input', () => formatarCampoDecimal(multaPercentualInput, 3));
-        jurosDiarioInput.addEventListener('input', () => formatarCampoDecimal(jurosDiarioInput, 3));
-
-        // 3. Preenche a "Data da Configuração" com a data de hoje se o campo estiver vazio
-        if (!dataUltimaConfigInput.value) {
-            const today = new Date().toISOString().split('T')[0];
-            dataUltimaConfigInput.value = today;
-        }
-
-        // --- Lógica dos Botões (Salvar, Cancelar) ---
-
-        if (saveConfigBtn) {
-            saveConfigBtn.addEventListener("click", function () {
-                confirmationModal.show();
-            });
-        }
-
-        if (confirmSaveBtn) {
-            confirmSaveBtn.addEventListener("click", function() {
-                confirmationModal.hide();
-                
-                // Antes de submeter, converte a vírgula para ponto decimal
-                if (valorM3Input) valorM3Input.value = valorM3Input.value.replace(',', '.') || '0';
-                if (taxaMinimaInput) taxaMinimaInput.value = taxaMinimaInput.value.replace(',', '.') || '0';
-                if (multaPercentualInput) multaPercentualInput.value = multaPercentualInput.value.replace(',', '.') || '0';
-                if (jurosDiarioInput) jurosDiarioInput.value = jurosDiarioInput.value.replace(',', '.') || '0';
-
-                configForm.submit();
-            });
-        }
-
         if (cancelBtn) {
             cancelBtn.addEventListener('click', function() {
                 window.location.href = "{{ url_for('dashboard') }}";
