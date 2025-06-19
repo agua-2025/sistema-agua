@@ -2,592 +2,404 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <title>Comprovante de Pagamento - Águas de Santa Maria</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comprovante de Pagamento - Águas de Santa Maria</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
     <style>
+      /* Estilos otimizados para impressão em A4 */
+      :root {
+        --primary: #0d6efd;
+        --success: #198754;
+        --danger: #dc3545;
+        --warning: #ffc107;
+        --gray: #6c757d;
+        --light-gray: #e9ecef;
+      }
+
       body {
-        font-family: "Roboto", sans-serif;
-        background-color: #f0f2f5;
-        font-size: 12px; /* Fonte base ainda menor para compactação */
-        color: #212529;
-      }
-      .invoice-box {
-        max-width: 700px; /* Mais estreito ainda */
-        margin: 1rem auto; /* Margem reduzida */
-        padding: 1.5rem; /* Padding interno reduzido */
-        background: #fff;
-        border: 1px solid #e0e6eb;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Sombra mais suave */
-        border-radius: 0.5rem; /* Cantos arredondados */
-        overflow: hidden;
-      }
-      .invoice-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding-bottom: 1rem; /* Ajuste */
-        border-bottom: 2px solid #0d6efd; /* Borda mais fina */
-        margin-bottom: 1.5rem; /* Ajuste */
-      }
-      .invoice-header .brand {
-        display: flex;
-        align-items: center;
-      }
-      .invoice-header .brand .logo {
-        max-height: 60px; /* Ajuste para logo */
-        margin-right: 10px; /* Ajuste */
-      }
-      .invoice-header .brand h2 {
-        color: #0d6efd;
-        font-weight: 700;
-        margin: 0;
-        font-size: 1.8rem; /* Ajuste */
-      }
-      .invoice-header .brand p {
-        color: #5a6268;
-        font-size: 0.9rem; /* Ajuste */
-        margin-top: 2px;
-        text-transform: uppercase;
-      }
-      .invoice-header .invoice-info {
-        text-align: right;
-        font-size: 0.8rem; /* Ajuste */
-        color: #343a40;
-      }
-      .invoice-info .info-line {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.25rem; /* Ajuste */
-      }
-      .invoice-info .info-line span:first-child {
-        color: #6c757d;
-        font-weight: 500;
-        margin-right: 0.6rem; /* Ajuste */
+        font-family: Arial, sans-serif;
+        font-size: 10pt;
+        line-height: 1.3;
+        color: #000;
       }
 
-      /* Nova classe para blocos de seção */
-      .section-block {
-        background-color: #ffffff;
-        border: 1px solid #e9ecef;
-        border-radius: 0.4rem; /* Ajuste */
-        margin-bottom: 1rem; /* Espaçamento entre blocos */
-        overflow: hidden;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.03); /* Sombra mais suave */
-      }
-      .info-box-header {
-        background-color: #f8f9fa;
-        padding: 0.5rem 0.8rem; /* Ajuste */
-        border-bottom: 1px solid #e9ecef;
-        border-top-left-radius: 0.4rem;
-        border-top-right-radius: 0.4rem;
-      }
-      .info-box-header .section-title {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-        font-size: 0.9rem; /* Ajuste */
-        color: #343a40;
-      }
-      .section-block .card-body {
-        padding: 0.8rem 1rem; /* Padding interno menor */
+      .a4-container {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        padding: 10mm;
       }
 
-      .info-pair {
-        margin-bottom: 0.5rem; /* Ajuste */
-      }
-      .info-pair .label {
-        color: #6c757d;
-        font-size: 0.75rem; /* Ajuste */
-        text-transform: uppercase;
-        display: block;
-        margin-bottom: 0.1rem; /* Ajuste */
-      }
-      .info-pair .value {
-        font-weight: 500;
-        font-size: 0.85rem; /* Ajuste */
-        color: #212529;
-      }
-
-      /* Tabela de histórico de transações - Simplificada e Compacta */
-      .transaction-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 0;
-      }
-      .transaction-table thead th {
-        background-color: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.7rem; /* Ajuste */
-        padding: 0.5rem 0.3rem; /* Ajuste */
-        border-bottom: 1px solid #e9ecef;
-        border-top: none;
-      }
-      .transaction-table tbody td {
-        padding: 0.4rem 0.3rem; /* Ajuste */
-        border-bottom: 1px solid #e9ecef;
-        font-size: 0.75rem; /* Ajuste */
-      }
-      .transaction-table .credit {
-        color: #28a745;
-        font-weight: 500;
-      }
-      .transaction-table .debit {
-        color: #dc3545;
-        font-weight: 500;
-      }
-      .transaction-table tfoot td {
-        padding: 0.5rem 0.3rem; /* Ajuste */
-        font-weight: 700;
-        background-color: #f0f2f5;
-        border-top: 2px solid #ced4da;
-        font-size: 0.75rem; /* Ajuste */
-      }
-      .text-currency {
-        white-space: nowrap;
-        text-align: right;
-        padding-left: 5px; /* Ajuste */
-      }
-
-      /* Seção de resumo final */
-      .final-summary {
-        background-color: #e6f0fa;
-        border: 1px solid #cce5ff;
-        border-radius: 0.5rem;
-        padding: 1rem; /* Ajuste */
-        margin-top: 1.2rem; /* Ajuste */
-      }
-      .final-summary .info-line {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.2rem 0; /* Ajuste */
-      }
-      .final-summary .info-line .label {
-        font-weight: 600;
-        color: #343a40;
-        font-size: 0.85rem; /* Ajuste */
-      }
-      .final-summary .info-line .value {
-        font-family: "Roboto Mono", monospace;
-        font-size: 0.85rem; /* Ajuste */
-        font-weight: 700;
-      }
-      .final-summary .saldo-final {
-        font-size: 1.1rem; /* Ajuste */
-        font-weight: 700;
-        margin-top: 0.6rem; /* Ajuste */
-        padding-top: 0.6rem; /* Ajuste */
-        border-top: 2px solid #0d6efd;
-      }
-      .final-summary .saldo-final .value {
-        font-size: 1.4rem; /* Ajuste */
-        color: #0d6efd;
-      }
-      .final-summary .saldo-final.text-danger .value {
-        color: #dc3545;
-      }
-
-      /* Botões de Ação */
-      .buttons {
-        padding: 1rem 1.5rem; /* Ajuste */
+      .header {
         text-align: center;
-        background-color: #f8f9fa;
-        border-top: 1px solid #e0e6eb;
-        border-bottom-left-radius: 0.5rem;
-        border-bottom-right-radius: 0.5rem;
-        margin-top: 1.5rem; /* Ajuste */
-      }
-      .buttons .btn {
-        padding: 0.5rem 1.2rem; /* Botões menores */
-        font-size: 0.85rem; /* Ajuste */
-        font-weight: 600;
-        border-radius: 0.3rem;
+        margin-bottom: 5mm;
+        padding-bottom: 3mm;
+        border-bottom: 2px solid var(--primary);
       }
 
-      /* Mídia de Impressão (A4) - OTIMIZADA PARA UMA PÁGINA */
+      .header h1 {
+        font-size: 14pt;
+        font-weight: bold;
+        color: var(--primary);
+        margin: 0;
+      }
+
+      .header p {
+        font-size: 10pt;
+        margin: 2px 0 0;
+      }
+
+      .section {
+        margin-bottom: 4mm;
+        page-break-inside: avoid;
+      }
+
+      .section-title {
+        font-size: 9pt;
+        font-weight: bold;
+        background-color: #f5f5f5;
+        padding: 2mm;
+        border-left: 3px solid var(--primary);
+        margin-bottom: 2mm;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2mm 5mm;
+      }
+
+      .info-item {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .label {
+        font-weight: bold;
+        color: var(--gray);
+        flex: 1;
+        font-size: 8pt;
+      }
+
+      .value {
+        flex: 1;
+        text-align: right;
+        font-size: 9pt;
+      }
+
+      .currency {
+        font-family: "Courier New", monospace;
+      }
+
+      .total-box {
+        border: 1px solid var(--light-gray);
+        padding: 3mm;
+        text-align: center;
+        margin: 5mm 0;
+        background-color: #f8f9fa;
+      }
+
+      .total-label {
+        font-size: 9pt;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      .total-value {
+        font-size: 16pt;
+        font-weight: bold;
+        color: var(--success);
+        margin: 2mm 0;
+        font-family: "Courier New", monospace;
+      }
+
+      .status {
+        font-weight: bold;
+        font-size: 10pt;
+      }
+
+      .footer {
+        font-size: 8pt;
+        text-align: center;
+        margin-top: 5mm;
+        padding-top: 3mm;
+        border-top: 1px solid var(--light-gray);
+      }
+
+      .action-buttons {
+        display: none;
+      }
+
+      @media screen {
+        body {
+          background-color: #f5f5f5;
+          padding: 10px;
+        }
+
+        .a4-container {
+          background: white;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          margin-bottom: 20px;
+        }
+
+        .action-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 15px;
+        }
+
+        .btn {
+          padding: 5px 15px;
+          font-size: 12px;
+        }
+      }
+
       @media print {
         @page {
           size: A4;
-          margin: 0.8cm; /* Margens mínimas para aproveitar o espaço */
+          margin: 0;
         }
+
         body {
-          background: #fff;
-          font-size: 8pt; /* Fonte base bem pequena para impressão */
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
+          background: white;
         }
+
         .no-print {
           display: none !important;
         }
-        .invoice-box {
-          max-width: 100%;
+
+        .a4-container {
+          padding: 10mm;
+          width: 210mm;
+          min-height: 297mm;
           margin: 0;
-          padding: 0; /* Remove padding do container principal */
           box-shadow: none;
-          border: none;
-          border-radius: 0;
-        }
-        .invoice-header {
-          padding: 0.6rem 0.4rem; /* Reduz padding */
-          margin-bottom: 0.8rem;
-          border-bottom: 1.5px solid #0d6efd; /* Borda mais fina */
-        }
-        .invoice-header .brand .logo {
-          max-height: 45px; /* Ajuste para logo na impressão */
-          margin-right: 8px;
-        }
-        .invoice-header .brand h2 {
-          font-size: 1.3rem;
-        }
-        .invoice-header .brand p {
-          font-size: 0.75rem;
-        }
-        .invoice-header .invoice-info {
-          font-size: 0.7rem;
-        }
-
-        .section-block {
-          border: 1px solid #e9ecef !important;
-          box-shadow: none !important;
-          border-radius: 0 !important;
-          padding: 0.6rem !important; /* Padding ajustado para impressão */
-          margin-bottom: 0.8rem !important;
-        }
-        .info-box-header {
-          padding: 0.3rem 0.6rem;
-          border-radius: 0;
-        }
-        .info-box-header .section-title {
-          font-size: 0.85rem;
-        }
-        .section-block .card-body {
-          padding: 0.6rem !important;
-        }
-        .info-pair {
-          margin-bottom: 0.3rem;
-        }
-        .info-pair .label,
-        .info-pair .value {
-          font-size: 0.75rem;
-        }
-
-        .transaction-table thead th,
-        .transaction-table tbody td,
-        .transaction-table tfoot td {
-          padding: 0.3rem 0.2rem; /* Padding mínimo para tabelas */
-          font-size: 0.7rem;
-        }
-        .transaction-table tfoot td {
-          font-weight: 700;
-          background-color: #f8f9fa;
-        }
-
-        .final-summary {
-          padding: 0.7rem;
-          border-radius: 0;
-          margin-top: 0.8rem;
-        }
-        .final-summary .info-line .label,
-        .final-summary .info-line .value {
-          font-size: 0.8rem;
-        }
-        .final-summary .saldo-final {
-          font-size: 1rem;
-          margin-top: 0.5rem;
-          padding-top: 0.5rem;
-        }
-        .final-summary .saldo-final .value {
-          font-size: 1.2rem;
         }
       }
     </style>
   </head>
   <body>
-    <div class="invoice-box">
-      <header class="invoice-header no-print">
-        <div class="brand">
-          <div>
-            <h2>Águas de Santa Maria</h2>
-            <p class="mb-0">Comprovante de Pagamento</p>
+    <div class="a4-container">
+      <!-- Cabeçalho -->
+      <div class="header">
+        <h1>ÁGUAS DE SANTA MARIA</h1>
+        <p>COMPROVANTE DE PAGAMENTO</p>
+      </div>
+
+      <!-- Seção 1: Dados do Pagamento -->
+      <div class="section">
+        <div class="section-title">DADOS DO PAGAMENTO</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Fatura Referência:</span>
+            <span class="value">#{{ leitura.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Data Pagamento:</span>
+            <span class="value">{{ data_emissao }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Forma de Pagamento:</span>
+            <span class="value"
+              >{{ pagamentos_feitos[0].forma_pagamento if pagamentos_feitos else
+              'N/A' }}</span
+            >
+          </div>
+          <div class="info-item">
+            <span class="label">Valor Pago:</span>
+            <span class="value currency text-success"
+              >R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.',
+              ',') }}</span
+            >
           </div>
         </div>
-        <div class="invoice-info">
-          <div class="info-line">
-            <span>Fatura Ref.:</span> <span>#{{ leitura.id }}</span>
+      </div>
+
+      <!-- Seção 2: Dados do Consumidor -->
+      <div class="section">
+        <div class="section-title">DADOS DO CONSUMIDOR</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Nome:</span>
+            <span class="value">{{ leitura.consumidor_nome }}</span>
           </div>
-          <div class="info-line">
-            <span>Data de Emissão:</span> <span>{{ data_emissao }}</span>
+          <div class="info-item">
+            <span class="label">Hidrômetro:</span>
+            <span class="value">{{ leitura.hidrometro or "N/C" }}</span>
           </div>
-          <div class="info-line">
-            <span>Data de Leitura:</span>
-            <span>{{ leitura.data_leitura_atual.strftime('%d/%m/%Y') }}</span>
+          <div class="info-item">
+            <span class="label">Endereço:</span>
+            <span class="value"
+              >{{ leitura.consumidor_endereco or "Não informado" }}</span
+            >
+          </div>
+          <div class="info-item">
+            <span class="label">Telefone:</span>
+            <span class="value">{{ leitura.telefone or "Não informado" }}</span>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main>
-        <section class="section-block">
-          <div class="info-box-header">
-            <h3 class="section-title">Dados do Consumidor</h3>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-7 info-pair">
-                <span class="label">NOME</span>
-                <span class="value">{{ leitura.consumidor_nome }}</span>
-              </div>
-              <div class="col-md-5 info-pair">
-                <span class="label">HIDRÔMETRO Nº</span>
-                <span class="value">{{ leitura.hidrometro or "N/C" }}</span>
-              </div>
-              <div class="col-12 info-pair">
-                <span class="label">ENDEREÇO</span>
-                <span class="value"
-                  >{{ leitura.consumidor_endereco or "Não informado" }}</span
-                >
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="section-block">
-          <div class="info-box-header">
-            <h3 class="section-title">Detalhes da Fatura e Consumo</h3>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-6 info-pair">
-                <span class="label">Competência</span>
-                <span class="value"
-                  >{{ leitura.data_leitura_atual.strftime('%m/%Y') }}</span
-                >
-              </div>
-              <div class="col-md-6 info-pair">
-                <span class="label">Período de Consumo</span>
-                <span class="value">{{ periodo_consumo }}</span>
-              </div>
-              <div class="col-md-6 info-pair">
-                <span class="label">Consumo Registrado (m³)</span>
-                <span class="value fs-5 text-primary fw-bold"
-                  >{{ "%g"|format(consumo_m3|int) }} m³</span
-                >
-              </div>
-              <div class="col-md-6 info-pair">
-                <span class="label">Vencimento Original</span>
-                <span class="value fw-bold">{{ vencimento_formatado }}</span>
-              </div>
-            </div>
-
-            <hr class="my-3" />
-            <h4
-              class="section-title text-muted"
-              style="border-bottom: none; margin-bottom: 0.8rem"
+      <!-- Seção 3: Informações da Fatura -->
+      <div class="section">
+        <div class="section-title">INFORMAÇÕES DA FATURA</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Competência:</span>
+            <span class="value"
+              >{{ leitura.data_leitura_atual.strftime('%m/%Y') }}</span
             >
-              Composição do Valor da Fatura Original:
-            </h4>
-            {% if detalhamento_fatura %} {% for item in detalhamento_fatura %}
-            <div class="info-pair d-flex justify-content-between">
-              <span class="label">{{ item.descricao }}</span>
-              <span class="value text-currency"
-                >R$ {{ "%.2f"|format(item.valor|float) | replace('.', ',')
-                }}</span
-              >
-            </div>
-            {% endfor %} {% else %}
-            <p class="text-muted text-center">
-              Nenhum detalhe de cobrança encontrado.
-            </p>
-            {% endif %}
-            <div
-              class="info-pair d-flex justify-content-between mt-2 pt-2 border-top"
+          </div>
+          <div class="info-item">
+            <span class="label">Período Consumo:</span>
+            <span class="value">{{ periodo_consumo }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Consumo (m³):</span>
+            <span class="value">{{ "%g"|format(consumo_m3|int) }} m³</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Vencimento:</span>
+            <span class="value">{{ vencimento_formatado }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção 4: Resumo Financeiro -->
+      <div class="section">
+        <div class="section-title">RESUMO FINANCEIRO</div>
+        <div style="margin-bottom: 3mm">
+          <div class="info-item">
+            <span class="label">Valor Original:</span>
+            <span class="value currency"
+              >R$ {{ "%.2f"|format(leitura.valor_original|float) | replace('.',
+              ',') }}</span
             >
-              <span class="label text-primary">VALOR ORIGINAL DA FATURA</span>
-              <span class="value text-primary fs-5 fw-bold text-currency"
-                >R$ {{ "%.2f"|format(leitura.valor_original|float) |
-                replace('.', ',') }}</span
-              >
-            </div>
           </div>
-        </section>
-
-        <section class="section-block">
-          <div class="info-box-header">
-            <h3 class="section-title">
-              Detalhes do(s) Pagamento(s) Efetuado(s)
-            </h3>
-          </div>
-          <div class="card-body p-0">
-            {% if pagamentos_feitos %}
-            <table
-              class="table table-striped table-hover transaction-table mb-0"
+          {% if total_juros_multa_pago > 0 %}
+          <div class="info-item">
+            <span class="label">Juros/Multas Pagos:</span>
+            <span class="value currency"
+              >R$ {{ "%.2f"|format(total_juros_multa_pago|float) | replace('.',
+              ',') }}</span
             >
-              <thead>
-                <tr>
-                  <th>Data do Pgto.</th>
-                  <th>Valor Pago</th>
-                  <th>Juros</th>
-                  <th>Multa</th>
-                  <th>Forma de Pgto.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for p in pagamentos_feitos %}
-                <tr>
-                  <td>{{ p.data_pagamento.strftime('%d/%m/%Y') }}</td>
-                  <td class="text-currency">
-                    R$ {{ "%.2f"|format(p.valor_pago|float) | replace('.', ',')
-                    }}
-                  </td>
-                  <td class="text-currency">
-                    R$ {{ "%.2f"|format(p.valor_juros|float) | replace('.', ',')
-                    }}
-                  </td>
-                  <td class="text-currency">
-                    R$ {{ "%.2f"|format(p.valor_multa|float) | replace('.', ',')
-                    }}
-                  </td>
-                  <td>{{ p.forma_pagamento }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="1" class="text-end">TOTAL PAGO:</td>
-                  <td class="text-currency">
-                    R$ {{ "%.2f"|format(total_pago_acumulado|float) |
-                    replace('.', ',') }}
-                  </td>
-                  <td colspan="1" class="text-end">TOTAL JUROS/MULTA PAGOS:</td>
-                  <td class="text-currency">
-                    R$ {{ "%.2f"|format(total_juros_multa_pago|float) |
-                    replace('.', ',') }}
-                  </td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            </table>
-            {% else %}
-            <p class="text-muted text-center card-body">
-              Nenhum pagamento registrado para esta fatura.
-            </p>
-            {% endif %}
           </div>
-        </section>
-
-        <section class="section-block">
-          <div class="info-box-header">
-            <h3 class="section-title">Status Financeiro da Fatura</h3>
-          </div>
-          <div class="card-body">
-            <div class="info-pair">
-              <span class="label">Status Atual da Fatura</span>
-              <span
-                class="value fw-bold {% if 'Quitada' in situacao_da_fatura_texto %}text-success{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger{% else %}text-warning{% endif %}"
-              >
-                {{ situacao_da_fatura_texto }}
-              </span>
-            </div>
-
-            {% if dias_atraso > 0 and (multa_atual > 0 or juros_atual > 0) %}
-            <hr class="my-3" />
-            <h4
-              class="section-title text-muted"
-              style="border-bottom: none; margin-bottom: 0.6rem"
+          {% endif %} {% if multa_atual > 0 or juros_atual > 0 %}
+          <div class="info-item">
+            <span class="label">Multas/Juros Pendentes:</span>
+            <span class="value currency text-danger"
+              >R$ {{ "%.2f"|format(multa_atual + juros_atual|float) |
+              replace('.', ',') }}</span
             >
-              Cálculo de Penalidades Atuais (até {{ data_emissao }}):
-            </h4>
-            <div class="info-pair d-flex justify-content-between">
-              <span class="label">Dias em Atraso</span>
-              <span class="value">{{ dias_atraso }} dias</span>
-            </div>
-            {% if multa_atual > 0 %}
-            <div class="info-pair d-flex justify-content-between">
-              <span class="label">Multa por Atraso</span>
-              <span class="value text-danger text-currency"
-                >R$ {{ "%.2f"|format(multa_atual|float) | replace('.', ',')
-                }}</span
-              >
-            </div>
-            {% endif %} {% if juros_atual > 0 %}
-            <div class="info-pair d-flex justify-content-between">
-              <span class="label">Juros de Mora</span>
-              <span class="value text-danger text-currency"
-                >R$ {{ "%.2f"|format(juros_atual|float) | replace('.', ',')
-                }}</span
-              >
-            </div>
-            {% endif %} {% endif %}
-
-            <div class="final-summary mt-4">
-              <div class="info-line">
-                <span class="label">VALOR ORIGINAL DA FATURA:</span>
-                <span class="value text-currency"
-                  >R$ {{ "%.2f"|format(leitura.valor_original|float) |
-                  replace('.', ',') }}</span
-                >
-              </div>
-              <div class="info-line">
-                <span class="label">TOTAL PAGO ATÉ AGORA:</span>
-                <span class="value text-success text-currency"
-                  >R$ {{ "%.2f"|format(total_pago_acumulado|float) |
-                  replace('.', ',') }}</span
-                >
-              </div>
-              {% if multa_atual > 0 or juros_atual > 0 %}
-              <div class="info-line">
-                <span class="label">MULTAS/JUROS ATUAIS A COBRAR:</span>
-                <span class="value text-danger text-currency"
-                  >R$ {{ "%.2f"|format(multa_atual + juros_atual|float) |
-                  replace('.', ',') }}</span
-                >
-              </div>
-              {% endif %}
-              <div
-                class="info-line saldo-final {{ 'text-danger' if saldo_final > 0 else 'text-success' }}"
-              >
-                <span class="label">SALDO FINAL A PAGAR:</span>
-                <span class="value text-currency">
-                  R$ {{ "%.2f"|format(saldo_final|float) | replace('.', ',') }}
-                </span>
-              </div>
-            </div>
           </div>
-        </section>
-      </main>
+          {% endif %}
+        </div>
 
-      <div class="buttons no-print">
-        <a
-          href="{{ url_for('listar_pagamentos') }}"
-          class="btn btn-secondary me-2"
+        <div
+          class="info-item"
+          style="border-top: 1px solid var(--light-gray); padding-top: 2mm"
         >
-          <i class="fas fa-arrow-left me-1"></i>Voltar
-        </a>
-        <button onclick="window.print()" class="btn btn-primary me-2">
-          <i class="fas fa-print me-1"></i>Imprimir / Gerar PDF
-        </button>
-        {% if whatsapp_phone_number and whatsapp_message %}
-        <a
-          href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}"
-          target="_blank"
-          class="btn btn-success"
+          <span class="label">Saldo Remanescente:</span>
+          <span
+            class="value currency {% if saldo_final > 0 %}text-danger{% else %}text-success{% endif %}"
+          >
+            R$ {{ "%.2f"|format(saldo_final|float) | replace('.', ',') }}
+          </span>
+        </div>
+
+        <div class="info-item" style="margin-top: 2mm">
+          <span class="label">Status:</span>
+          <span
+            class="value {% if 'Quitada' in situacao_da_fatura_texto %}text-success{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger{% else %}text-warning{% endif %}"
+          >
+            {{ situacao_da_fatura_texto }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Total Pago -->
+      <div class="total-box">
+        <div class="total-label">Valor Total Pago</div>
+        <div class="total-value">
+          R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.', ',') }}
+        </div>
+        <div style="font-size: 9pt">Registrado em: {{ data_emissao }}</div>
+        <div
+          class="status {% if 'Quitada' in situacao_da_fatura_texto %}text-success{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger{% else %}text-warning{% endif %}"
         >
-          <i class="fab fa-whatsapp me-1"></i>Enviar via WhatsApp
-        </a>
-        {% endif %}
+          {{ situacao_da_fatura_texto }}
+        </div>
+      </div>
+
+      <!-- Rodapé -->
+      <div class="footer">
+        <p>
+          Este comprovante é válido como prova de pagamento da fatura indicada.
+        </p>
+        <p>
+          Para dúvidas ou informações adicionais, entre em contato com a Águas
+          de Santa Maria.
+        </p>
       </div>
     </div>
+
+    <!-- Botões de Ação (não aparecem na impressão) -->
+    <div class="action-buttons no-print">
+      <a href="{{ url_for('listar_pagamentos') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </a>
+      <button onclick="window.print()" class="btn btn-primary">
+        <i class="fas fa-print"></i> Imprimir
+      </button>
+      <button onclick="downloadPDF()" class="btn btn-success">
+        <i class="fas fa-download"></i> Baixar PDF
+      </button>
+      {% if whatsapp_phone_number and whatsapp_message %}
+      <a
+        href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}"
+        target="_blank"
+        class="btn btn-success"
+      >
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Incluindo Font Awesome apenas para os ícones dos botões -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <script>
+      // Função para baixar como PDF (usando a funcionalidade de impressão do navegador)
+      function downloadPDF() {
+        window.print();
+      }
+
+      // Ou, se preferir usar uma biblioteca específica para PDF:
+      /*
+        function downloadPDF() {
+            // Requer a inclusão da biblioteca html2pdf.js
+            const element = document.querySelector('.a4-container');
+            const opt = {
+                margin: 10,
+                filename: 'comprovante-pagamento-aguas-santa-maria.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save();
+        }
+        */
+    </script>
+
+    <!-- Se for usar html2pdf.js, descomente a linha abaixo -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> -->
   </body>
 </html>
