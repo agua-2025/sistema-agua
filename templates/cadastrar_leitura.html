@@ -26,7 +26,7 @@
         
         {% include '_flash_messages.html' %}
 
-        <form method="POST" id="leitura-form">
+       <form method="POST" enctype="multipart/form-data" id="leitura-form">
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="consumidor_id" class="form-label">Consumidor <span class="text-danger">*</span></label>
@@ -76,9 +76,14 @@
                     <input type="text" class="form-control" id="consumo_m3" name="consumo_m3" readonly>
                 </div>
             </div>
-            
+           <div class="row">
+    <div class="col-12 mb-3">
+        <label for="foto_hidrometro" class="form-label">Foto do Hidrômetro (Opcional)</label>
+        <input class="form-control" type="file" id="foto_hidrometro" name="foto_hidrometro" accept="image/*">
+            </div>
+            </div>    
             <div class="row">
-                 <div class="col-md-6 mb-3">
+                   <div class="col-md-6 mb-3">
                     <label for="valor_original" class="form-label fw-bold">Valor Original da Fatura (R$)</label>
                     <input type="text" class="form-control fs-5 fw-bold text-success" id="valor_original" name="valor_original" readonly>
                 </div>
@@ -145,7 +150,9 @@
 
                 const leituraAnterior = Utils.parsearFloat(DOM.leituraAnterior.value);
                 const leituraAtual = Utils.parsearFloat(DOM.leituraAtual.value);
-                if (leituraAtual > 0 && leituraAtual < leituraAnterior) {
+                
+                // Apenas valida se leituraAtual é menor que leituraAnterior se a leitura anterior não for 0
+                if (leituraAnterior !== 0 && leituraAtual > 0 && leituraAtual < leituraAnterior) {
                     DOM.leituraAtual.classList.add('is-invalid');
                     isFormValido = false;
                 } else {
@@ -182,14 +189,18 @@
                 const isValido = validarEntradas();
                 const leituraAnterior = Utils.parsearFloat(DOM.leituraAnterior.value);
                 const leituraAtual = Utils.parsearFloat(DOM.leituraAtual.value);
-                
+                const dataAnteriorStr = DOM.dataAnterior.value; // Para verificar se é a primeira leitura
+
                 let consumo = 0;
-                if (leituraAtual > leituraAnterior) {
+                // O consumo é a leitura atual apenas se for a primeira leitura
+                // Caso contrário, é a diferença entre a leitura atual e a anterior
+                if (leituraAnterior === 0 && dataAnteriorStr === 'N/A') { // É a primeira leitura
+                    consumo = leituraAtual; // O consumo inicial é a própria leitura atual
+                } else if (leituraAtual > leituraAnterior) {
                     consumo = leituraAtual - leituraAnterior;
                 }
                 DOM.consumoM3.value = consumo.toString();
 
-                const dataAnteriorStr = DOM.dataAnterior.value;
                 const dataAtualStr = DOM.dataAtual.value;
                 let dias = 0;
                 if (dataAnteriorStr !== 'N/A' && dataAtualStr && isValido) {
@@ -205,9 +216,13 @@
                 const media = (consumo > 0 && dias > 0) ? consumo / dias : 0;
                 DOM.mediaDiaria.value = Utils.formatarDecimal(media);
 
-                // --- LÓGICA DE CÁLCULO DA FRANQUIA ---
+                // --- LÓGICA DE CÁLCULO DA FRANQUIA (AJUSTADA PARA PRIMEIRA LEITURA) ---
                 let valorFinal = 0;
-                if (consumo > 0 && isValido) {
+
+                // Se for a primeira leitura (leitura anterior 0 e data anterior N/A), o valor deve ser 0.
+                if (leituraAnterior === 0 && dataAnteriorStr === 'N/A') {
+                    valorFinal = 0; 
+                } else if (consumo > 0 && isValido) {
                     if (consumo <= appConfig.taxaMinimaFranquiaM3) {
                         valorFinal = appConfig.taxaMinimaValor;
                     } else {
@@ -223,7 +238,8 @@
                     const dataVencimento = Utils.adicionarDiasUteis(dataLeitura, appConfig.diasVencimento);
                     DOM.vencimento.value = dataVencimento.toISOString().split('T')[0];
                 } else {
-                    DOM.vencimento.value = '';
+                    // Limpa a data de vencimento se o valor final for 0
+                    DOM.vencimento.value = ''; 
                 }
             }
 
@@ -244,7 +260,7 @@
                     console.error('Erro ao carregar configurações do sistema:', error);
                     alert('Não foi possível carregar as configurações do sistema. Os cálculos podem não funcionar corretamente.');
                 }
-                calcularEAtualizarTela();
+                calcularEAtualizarTela(); // Chama o cálculo após carregar as configurações
             }
 
             ['leitura_atual', 'data_leitura_atual'].forEach(id => {
@@ -258,7 +274,7 @@
                 }
             });
 
-            carregarConfiguracoes();
+            carregarConfiguracoes(); // Inicia o carregamento e cálculo
         });
     </script>
 </body>

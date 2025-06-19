@@ -65,7 +65,21 @@
                 </a>
             </div>
 
-            <!-- Filtros -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="row">
+                        <div class="col-12">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
             <div class="filter-section p-3 mb-4">
                 <form method="get" class="row g-3 align-items-end">
                     <div class="col-md-5">
@@ -82,8 +96,8 @@
                     <div class="col-md-4">
                         <label for="ano" class="form-label visually-hidden">Ano</label>
                         <input type="number" name="ano" id="ano" class="form-control form-control-sm"
-                               value="{{ ano_filtro or ano_atual }}"
-                               min="2020" max="{{ ano_atual }}" step="1" required>
+                                value="{{ ano_filtro or ano_atual }}"
+                                min="2020" max="{{ ano_atual }}" step="1" required>
                     </div>
                     <div class="col-md-3 d-flex">
                         <button type="submit" class="btn btn-primary btn-sm w-100 me-2"><i class="bi bi-filter"></i> Aplicar</button>
@@ -100,7 +114,7 @@
                             <th>Consumidor</th>
                             <th>Data Pagamento</th>
                             <th class="text-numeric">Total Devido</th>
-                            <th class="text-numeric">Valor Pago</th>
+                            <th>Valor Pago</th>
                             <th class="text-numeric">Débito Rest.</th>
                             <th class="text-numeric">Crédito Ger.</th>
                             <th>Ações</th>
@@ -114,7 +128,7 @@
                                     <span class="badge status-parcial">Parcial</span>
                                 {% else %}
                                     <span class="badge status-quitado">Quitado</span>
-                                {% endif %}
+                                {% endif %} {# <-- AQUI! Adicionei o {% endif %} que faltava #}
                             </td>
                             <td class="text-start fw-bold">{{ p.nome }}</td>
                             <td>
@@ -140,7 +154,6 @@
                 </table>
             </div>
 
-            <!-- Navegação da Paginação (COM CORREÇÃO DE SEGURANÇA) -->
             {% if pagination is defined and pagination.total_pages > 1 %}
             <nav aria-label="Navegação de páginas" class="mt-4 d-flex justify-content-end">
                 <ul class="pagination">

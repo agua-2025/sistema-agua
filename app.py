@@ -19,9 +19,12 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-import json # Importa a biblioteca 
+import json 
 from flask import render_template, flash, redirect, url_for, request, session
 from datetime import datetime
+from urllib.parse import quote
+from flask import session 
+
 
 # --- NOVO: O "Tradutor" de JSON Definitivo ---
 class CustomJSONEncoder(json.JSONEncoder):
@@ -566,123 +569,111 @@ def listar_consumidores():
     consumidores = db.execute(text("SELECT * FROM consumidores")).fetchall()
     return render_template('consumidores.html', consumidores=consumidores)
 
-# Em app.py
 
+# SUBSTITUA TODA A SUA FUNÇÃO ANTIGA PELA VERSÃO ABAIXO
 @app.route('/cadastrar-leitura', methods=['GET', 'POST'])
 @login_required
 def cadastrar_leitura():
     db = get_db()
-
     if request.method == 'POST':
         try:
-            # --- LÓGICA DE SALVAMENTO (POST) ---
-            consumidor_id = request.form.get('consumidor_id')
-            leitura_atual_str = request.form.get('leitura_atual')
-            data_leitura_atual_str = request.form.get('data_leitura_atual')
-            
-            if not consumidor_id or not leitura_atual_str or not data_leitura_atual_str:
-                flash('Consumidor, Leitura Atual e Data da Leitura são obrigatórios.', 'danger')
-                return redirect(url_for('cadastrar_leitura'))
+            # 1. COLETA DE DADOS DO FORMULÁRIO
+            consumidor_id = int(request.form.get('consumidor_id'))
+            leitura_atual = int(parse_number_from_br_form(request.form.get('leitura_atual')))
+            data_leitura_obj = datetime.strptime(request.form.get('data_leitura_atual'), '%Y-%m-%d').date()
 
-            # CORREÇÃO: Garante que a leitura seja tratada como INTEIRO
-            leitura_atual = int(parse_number_from_br_form(leitura_atual_str))
-            data_leitura_obj = datetime.strptime(data_leitura_atual_str, '%Y-%m-%d').date()
+            # 2. PROCESSAMENTO DA FOTO (SE EXISTIR)
+            foto_salva = None
+            if 'foto_hidrometro' in request.files:
+                foto = request.files['foto_hidrometro']
+                if foto and foto.filename != '' and allowed_file(foto.filename):
+                    filename = secure_filename(foto.filename)
+                    novo_nome = str(int(datetime.now().timestamp())) + "_" + filename
+                    caminho_salvo = os.path.join(app.config['UPLOAD_FOLDER'], novo_nome)
+                    foto.save(caminho_salvo)
+                    foto_salva = novo_nome
 
             with db.begin():
+                # 3. LÓGICA DE CÁLCULO ESTRUTURADA CORRETAMENTE
+                leitura_anterior_db = db.execute(text("SELECT id, leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY id DESC LIMIT 1"), {'cid': consumidor_id}).fetchone()
                 config = get_current_config()
-                leitura_anterior_db = db.execute(text("""
-                    SELECT leitura_atual, data_leitura_atual FROM leituras
-                    WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1
-                """), {'cid': consumidor_id}).fetchone()
-
-                # Validações
-                hoje = date.today()
-                if data_leitura_obj > hoje:
-                    raise ValueError('A data da leitura atual não pode ser uma data futura.')
-                if leitura_anterior_db and data_leitura_obj < leitura_anterior_db.data_leitura_atual:
-                    raise ValueError('A data da leitura atual não pode ser anterior à data da leitura passada.')
                 
-                leitura_anterior_valor = 0
-                if leitura_anterior_db:
-                    # CORREÇÃO: Garante que a leitura anterior também seja INTEIRA
-                    leitura_anterior_valor = int(parse_number_from_br_form(leitura_anterior_db.leitura_atual))
+                consumo_m3, valor_original, leitura_anterior_valor, data_leitura_anterior_obj = 0, 0.0, 0, None
 
-                if leitura_atual < leitura_anterior_valor:
-                    raise ValueError(f'A leitura atual ({leitura_atual}) não pode ser menor que a anterior ({leitura_anterior_valor}).')
-
-                consumo_m3 = leitura_atual - leitura_anterior_valor
-                
-                # Lógica de cálculo da franquia
-                valor_m3_configurado = float(config.get('valor_m3', 0.0))
-                taxa_minima_valor = float(config.get('taxa_minima_consumo', 0.0))
-                taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
-                
-                valor_original = 0.0
-                if consumo_m3 <= 0:
-                    valor_original = 0.0
-                elif consumo_m3 <= taxa_minima_franquia:
-                    valor_original = taxa_minima_valor
+                if not leitura_anterior_db:
+                    # CAMINHO A: PRIMEIRA LEITURA. NENHUM CÁLCULO É FEITO.
+                    # As variáveis permanecem com os valores padrão (0 e 0.0).
+                    pass
                 else:
-                    consumo_excedente = consumo_m3 - taxa_minima_franquia
-                    valor_excedente = consumo_excedente * valor_m3_configurado
-                    valor_original = taxa_minima_valor + valor_excedente
+                    # CAMINHO B: LEITURAS SUBSEQUENTES. SÓ AQUI OS CÁLCULOS ACONTECEM.
+                    leitura_anterior_valor = int(leitura_anterior_db.leitura_atual)
+                    data_leitura_anterior_obj = leitura_anterior_db.data_leitura_atual
 
+                    if leitura_atual < leitura_anterior_valor:
+                        raise ValueError(f'Leitura atual não pode ser menor que a anterior.')
+                    
+                    consumo_m3 = leitura_atual - leitura_anterior_valor
+                    
+                    if consumo_m3 > 0:
+                        valor_m3_configurado = float(config.get('valor_m3', 0.0))
+                        taxa_minima_valor = float(config.get('taxa_minima_consumo', 0.0))
+                        taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
+
+                        if consumo_m3 <= taxa_minima_franquia:
+                            valor_original = taxa_minima_valor
+                        else:
+                            consumo_excedente = consumo_m3 - taxa_minima_franquia
+                            valor_excedente = consumo_excedente * valor_m3_configurado
+                            valor_original = taxa_minima_valor + valor_excedente
+                
                 dias_para_vencimento = int(config.get('dias_uteis_para_vencimento', 5))
                 data_vencimento = adicionar_dias_uteis(data_leitura_obj, dias_para_vencimento)
                 
-                db.execute(text('''
+                # 4. SALVAMENTO NO BANCO E OBTENÇÃO DO ID
+                resultado = db.execute(text('''
                     INSERT INTO leituras (
                         consumidor_id, leitura_anterior, data_leitura_anterior,
-                        leitura_atual, data_leitura_atual, consumo_m3, valor_original, vencimento
-                    ) VALUES (:cid, :l_ant, :d_ant, :l_atu, :d_atu, :consumo, :val_orig, :venc)
+                        leitura_atual, data_leitura_atual, consumo_m3, valor_original, vencimento, foto_hidrometro,
+                        valor_m3_usado, taxa_minima_valor_usada, taxa_minima_franquia_usada
+                    ) VALUES (:cid, :l_ant, :d_ant, :l_atu, :d_atu, :consumo, :val_orig, :venc, :foto, :v_m3, :t_min_val, :t_min_fran)
+                    RETURNING id
                 '''), {
-                    'cid': consumidor_id, 'l_ant': leitura_anterior_valor, 
-                    'd_ant': leitura_anterior_db.data_leitura_atual if leitura_anterior_db else None,
+                    'cid': consumidor_id, 'l_ant': leitura_anterior_valor, 'd_ant': data_leitura_anterior_obj,
                     'l_atu': leitura_atual, 'd_atu': data_leitura_obj, 'consumo': consumo_m3,
-                    'val_orig': valor_original, 'venc': data_vencimento
-                })
+                    'val_orig': valor_original, 'venc': data_vencimento, 'foto': foto_salva,
+                    'v_m3': config.get('valor_m3'), 't_min_val': config.get('taxa_minima_consumo'), 
+                    't_min_fran': config.get('taxa_minima_franquia_m3')
+                }).fetchone()
+
+                nova_leitura_id = resultado[0]
 
             flash('Leitura cadastrada com sucesso!', 'success')
-            return redirect(url_for('listar_leituras'))
+            # 5. REDIRECIONAMENTO PARA O NOVO COMPROVANTE
+            return redirect(url_for('comprovante_leitura', leitura_id=nova_leitura_id))
 
-        except ValueError as e:
-            flash(str(e), 'danger')
-            return redirect(url_for('cadastrar_leitura', consumidor_id=request.form.get('consumidor_id')))
         except Exception as e:
             app.logger.error(f'Erro ao salvar leitura: {e}', exc_info=True)
-            flash('Ocorreu um erro inesperado ao cadastrar a leitura.', 'danger')
+            flash(f'Ocorreu um erro inesperado: {str(e)}', 'danger')
             return redirect(url_for('cadastrar_leitura'))
     
-    # --- LÓGICA DE EXIBIÇÃO DA PÁGINA (GET) ---
-    else:
+    else: # Lógica GET (sem alterações)
         consumidores = db.execute(text('SELECT id, nome FROM consumidores ORDER BY nome')).fetchall()
         consumidor_selecionado = request.args.get('consumidor_id', type=int)
-        
-        leitura_anterior_valor = '0' # Valor padrão como string de inteiro
+        leitura_anterior_valor = '0'
         data_leitura_anterior_str = 'N/A'
-
         if consumidor_selecionado:
-            ultima_leitura = db.execute(text("""
-                SELECT leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid 
-                ORDER BY data_leitura_atual DESC, id DESC LIMIT 1
-            """), {'cid': consumidor_selecionado}).fetchone()
-            
+            ultima_leitura = db.execute(text("SELECT leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY id DESC LIMIT 1"), {'cid': consumidor_selecionado}).fetchone()
             if ultima_leitura:
-                # =============================================================
-                # AQUI ESTÁ A CORREÇÃO PRINCIPAL PARA A EXIBIÇÃO
-                # =============================================================
-                # Converte o número para inteiro e depois para string, sem decimais.
-                leitura_anterior_valor = str(int(float(ultima_leitura.leitura_atual)))
+                leitura_anterior_valor = str(int(ultima_leitura.leitura_atual))
                 data_leitura_anterior_str = ultima_leitura.data_leitura_atual.strftime('%d/%m/%Y')
-                # =============================================================
-        
         return render_template('cadastrar_leitura.html', 
                                 consumidores=consumidores, 
                                 consumidor_selecionado=consumidor_selecionado,
                                 leitura_anterior=leitura_anterior_valor,
                                 data_leitura_anterior=data_leitura_anterior_str,
                                 today_date=date.today().isoformat())
-
+    
+# --- Registrar Pagamento (AGORA COM A LÓGICA WHATSAPP EMBUTIDA) ---
 # --- Registrar Pagamento (VERSÃO FINAL E CORRIGIDA) ---
 @app.route('/registrar-pagamento', methods=['GET', 'POST'])
 @login_required
@@ -1281,95 +1272,134 @@ from datetime import date, datetime
 # Seus outros imports...
 
 
-# --- Função Auxiliar para buscar dados da fatura (VERSÃO FINAL E CORRIGIDA) ---
+#----------------- Get_Fatura_Contexto------------
 def _get_fatura_contexto(leitura_id):
     """
-    Busca e calcula todos os dados para uma fatura, usando a coluna consumo_m3.
+    Busca e calcula todos os dados para um extrato de fatura, incluindo
+    o histórico de transações, saldos atuais e o gráfico de histórico.
     """
     db = get_db()
-    config = get_current_config()
-
+    
+    # 1. BUSCA DE DADOS PRINCIPAIS
     resultado_bruto = db.execute(text('''
-        SELECT 
-            l.*, 
-            c.nome AS consumidor_nome, 
-            c.endereco AS consumidor_endereco, 
-            c.hidrometro_num AS hidrometro,
-            c.telefone 
+        SELECT l.*, c.nome AS consumidor_nome, c.endereco AS consumidor_endereco, c.hidrometro_num AS hidrometro, c.telefone 
         FROM leituras l JOIN consumidores c ON l.consumidor_id = c.id
         WHERE l.id = :id
     '''), {'id': leitura_id}).fetchone()
 
-    if not resultado_bruto:
-        return None
-    
+    if not resultado_bruto: return None
     leitura_data = resultado_bruto._asdict()
 
-    # (A lógica de buscar pagamentos e calcular juros/multas permanece a mesma)
-    pagamentos_brutos = db.execute(
-        text("SELECT * FROM pagamentos WHERE leitura_id = :id ORDER BY data_pagamento ASC"), 
-        {'id': leitura_id}
-    ).fetchall()
+    pagamentos_feitos = [p._asdict() for p in db.execute(text("SELECT * FROM pagamentos WHERE leitura_id = :id ORDER BY data_pagamento ASC"), {'id': leitura_id}).fetchall()]
+
+    # 2. BUSCA DO HISTÓRICO PARA O GRÁFICO
+    historico_bruto_rows = db.execute(text('''
+        SELECT 
+            TO_CHAR(data_leitura_atual, 'MM/YYYY') AS mes_ano,
+            SUM(consumo_m3) AS consumo_total
+        FROM leituras
+        WHERE consumidor_id = :cid
+        GROUP BY TO_CHAR(data_leitura_atual, 'YYYY-MM'), TO_CHAR(data_leitura_atual, 'MM/YYYY')
+        ORDER BY TO_CHAR(data_leitura_atual, 'YYYY-MM') DESC
+        LIMIT 6
+    '''), {'cid': leitura_data['consumidor_id']}).fetchall()
     
-    total_pago_acumulado_db = sum(float(p.valor_pago) for p in pagamentos_brutos)
-    # ... (e os outros cálculos de totais que você já tem)
-
-    pagamentos_feitos = [p._asdict() for p in pagamentos_brutos]
+    historico_dicts = [row._asdict() for row in historico_bruto_rows]
+    historico_dicts.reverse()
     
-    # ... (sua lógica de cálculo de valor devido, situação da fatura, etc. continua aqui) ...
-    # Exemplo (baseado no seu código anterior):
-    valor_original_da_fatura = float(leitura_data['valor_original'])
-    total_multa_acumulada_db = sum(float(p.valor_multa) for p in pagamentos_brutos)
-    total_juros_acumulados_db = sum(float(p.valor_juros) for p in pagamentos_brutos)
-    valor_base_para_penalidades = max(valor_original_da_fatura + total_multa_acumulada_db + total_juros_acumulados_db - total_pago_acumulado_db, 0)
-    hoje = date.today().strftime('%Y-%m-%d')
-    multa_potencial, juros_hoje, dias_atraso = calcular_penalidades(
-        valor_original_da_fatura, valor_base_para_penalidades, leitura_data['vencimento'],
-        hoje, config['multa_percentual'], config['juros_diario_percentual']
-    )
-    # ... etc
+    historico_consumo = {
+        'labels': [item['mes_ano'] for item in historico_dicts],
+        'data': [float(item['consumo_total']) for item in historico_dicts]
+    }
 
-    # --- CORREÇÃO PRINCIPAL APLICADA AQUI ---
-    # 1. Pega o valor diretamente da coluna 'consumo_m3'.
-    consumo_m3 = float(leitura_data.get('consumo_m3', 0))
+    # 3. LÓGICA DO EXTRATO DETALHADO (com Fallback)
+    detalhamento_fatura = []
+    consumo_m3 = int(safe_float(leitura_data.get('consumo_m3')))
     
-    # 2. Prepara as datas para exibição
-    periodo_consumo, vencimento_formatado, data_leitura_atual_formatada = "Não disponível", "Não informado", "Não informada"
-    try:
-        def format_date_safely(date_obj):
-            if not date_obj or not isinstance(date_obj, date): return None
-            return date_obj.strftime('%d/%m/%Y')
+    taxa_valor_usada = safe_float(leitura_data.get('taxa_minima_valor_usada'))
+    taxa_franquia_usada = safe_float(leitura_data.get('taxa_minima_franquia_usada'))
+    valor_m3_usado = safe_float(leitura_data.get('valor_m3_usado'))
 
-        data_ant_str = format_date_safely(leitura_data.get('data_leitura_anterior'))
-        data_atu_str = format_date_safely(leitura_data.get('data_leitura_atual'))
-        vencimento_formatado = format_date_safely(leitura_data.get('vencimento')) or "Não informado"
-        data_leitura_atual_formatada = data_atu_str or "Não informada"
-
-        if data_ant_str and data_atu_str:
-            periodo_consumo = f"{data_ant_str} a {data_atu_str}"
-
-    except Exception as e:
-        app.logger.warning(f"Erro de formato de data para leitura ID {leitura_id}: {e}")
+    if consumo_m3 > 0 and valor_m3_usado == 0 and taxa_valor_usada == 0:
+        config_fallback = get_current_config()
+        taxa_valor_usada = safe_float(config_fallback.get('taxa_minima_consumo'))
+        taxa_franquia_usada = safe_float(config_fallback.get('taxa_minima_franquia_m3'))
+        valor_m3_usado = safe_float(config_fallback.get('valor_m3'))
         
-    # 3. Retorna o dicionário completo com a variável 'consumo_m3'
+    if consumo_m3 > 0:
+        if consumo_m3 <= taxa_franquia_usada:
+            detalhamento_fatura.append({'descricao': f"Taxa Mínima (Franquia de até {taxa_franquia_usada:.0f} m³)", 'valor': taxa_valor_usada})
+        else:
+            consumo_excedente = consumo_m3 - taxa_franquia_usada
+            valor_excedente = consumo_excedente * valor_m3_usado
+            detalhamento_fatura.append({'descricao': f"Taxa Mínima (Franquia de {taxa_franquia_usada:.0f} m³)", 'valor': taxa_valor_usada})
+            detalhamento_fatura.append({'descricao': f"Consumo Excedente ({consumo_excedente} m³ x R$ {valor_m3_usado:.2f})".replace('.',','), 'valor': valor_excedente})
+
+    # 4. CÁLCULO DE SALDO E STATUS ATUAL
+    valor_original_fatura = safe_float(leitura_data.get('valor_original'))
+    total_pago_acumulado = sum(safe_float(p.get('valor_pago')) for p in pagamentos_feitos)
+    total_multa_paga = sum(safe_float(p.get('valor_multa')) for p in pagamentos_feitos)
+    total_juros_pago = sum(safe_float(p.get('valor_juros')) for p in pagamentos_feitos)
+    total_juros_multa_pago_calculado = total_multa_paga + total_juros_pago
+    
+    saldo_devedor_base = max(0, valor_original_fatura + total_multa_paga + total_juros_pago - total_pago_acumulado)
+    
+    multa_hoje, juros_hoje, dias_atraso = 0.0, 0.0, 0
+    if saldo_devedor_base > 0 and leitura_data.get('vencimento'):
+        hoje_str = date.today().strftime('%Y-%m-%d')
+        config = get_current_config()
+        multa_hoje, juros_hoje, dias_atraso = calcular_penalidades(
+            valor_original_fatura, saldo_devedor_base, leitura_data.get('vencimento'),
+            hoje_str, config['multa_percentual'], config['juros_diario_percentual']
+        )
+    
+    multa_a_cobrar = multa_hoje if total_multa_paga == 0 and dias_atraso > 0 else 0.0
+    valor_total_atualizado = saldo_devedor_base + multa_a_cobrar + juros_hoje
+
+    situacao_da_fatura_texto = ""
+    if valor_total_atualizado <= 0.01:
+        situacao_da_fatura_texto = "Fatura Quitada"
+    elif leitura_data.get('vencimento') and date.today() > leitura_data.get('vencimento'):
+        situacao_da_fatura_texto = f"Vencida há {dias_atraso} dias"
+    else:
+        situacao_da_fatura_texto = "Pendente"
+
+    # 5. MONTAGEM FINAL DO CONTEXTO
+    data_leitura_anterior_obj = leitura_data.get('data_leitura_anterior')
+    data_leitura_anterior_formatada = data_leitura_anterior_obj.strftime('%d/%m/%Y') if data_leitura_anterior_obj else 'Início'
+    
     contexto = {
         'leitura': leitura_data, 
         'pagamentos_feitos': pagamentos_feitos, 
-        'consumo_m3': consumo_m3, # <-- A variável que o HTML precisa
+        'detalhamento_fatura': detalhamento_fatura,
+        'historico_consumo': historico_consumo,
+        'consumo_m3': consumo_m3,
         'dias_atraso': dias_atraso, 
-        'multa_atual': multa_potencial, # Exemplo, use suas variáveis corretas
-        'juros_atual': juros_hoje, # Exemplo
-        'valor_total_devido': valor_base_para_penalidades + juros_hoje, # Exemplo
-        'total_pago_acumulado': total_pago_acumulado_db, # Exemplo
-        'situacao_da_fatura_texto': "Fatura Quitada", # Exemplo
-        'saldo_devedor_final_display': 0, # Exemplo
-        'saldo_credor_final_display': 0, # Exemplo
-        'periodo_consumo': periodo_consumo,
-        'data_leitura_atual_formatada': data_leitura_atual_formatada, 
-        'vencimento_formatado': vencimento_formatado,
-        # Adicione aqui as outras variáveis que seu template 'detalhes_pagamento.html' precisa
+        'multa_atual': multa_a_cobrar,
+        'juros_atual': juros_hoje,
+        'valor_total_devido': valor_total_atualizado,
+        'total_pago_acumulado': total_pago_acumulado,
+        'total_juros_multa_pago': total_juros_multa_pago_calculado,
+        'situacao_da_fatura_texto': situacao_da_fatura_texto,
+        'periodo_consumo': f"{data_leitura_anterior_formatada} a {leitura_data['data_leitura_atual'].strftime('%d/%m/%Y')}",
+        'data_leitura_atual_formatada': leitura_data['data_leitura_atual'].strftime('%d/%m/%Y'), 
+        'vencimento_formatado': leitura_data['vencimento'].strftime('%d/%m/%Y'),
+        'data_emissao': date.today().strftime('%d/%m/%Y'),
+        'saldo_final': valor_total_atualizado
     }
+
     return contexto
+
+    
+# -------Função Safe_float-----------
+def safe_float(value, default=0.0):
+    """Converte um valor para float de forma segura, tratando None e outros erros."""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
 
 
 # --- Rota para gerar a página com o botão de PDF (VERSÃO FINAL COM WHATSAPP) ---
@@ -1396,26 +1426,59 @@ def gerar_comprovante_pdf(leitura_id):
 
     contexto['whatsapp_message'] = quote(texto_whatsapp)
     contexto['whatsapp_phone_number'] = whatsapp_phone_cleaned
-    
+        
     return render_template('detalhes_pagamento.html', **contexto)
 
 
-# --- Rota para fazer o download do PDF (VERSÃO CORRIGIDA) ---
+# --- Rota para o download do PDF do comprovante ---
 @app.route('/download-comprovante-pdf/<int:leitura_id>')
-@login_required
+# Se quiser proteger o download, adicione @login_required aqui
 def download_comprovante_pdf(leitura_id):
+    # 1. Obtenha o contexto completo da fatura/pagamento
     contexto = _get_fatura_contexto(leitura_id)
-    if contexto is None:
-        return "Fatura não encontrada", 404
-        
-    contexto['is_pdf_render'] = True 
-    html_string = render_template('detalhes_pagamento.html', **contexto)
-    pdf = HTML(string=html_string).write_pdf()
-    
-    return Response(pdf, mimetype='application/pdf', headers={'Content-Disposition': f'inline; filename=fatura_{leitura_id}.pdf'})
+    if not contexto:
+        abort(404, description="Fatura não encontrada para gerar o comprovante.")
 
-# from .db import get_db
-# from .auth import login_required
+    # 2. Renderize a template HTML do comprovante com o contexto
+    html_content = render_template('detalhes_pagamento.html', **contexto)
+
+    # 3. Use uma biblioteca para converter o HTML em PDF
+    try:
+        from weasyprint import HTML, CSS
+        # Importante: base_url ajuda WeasyPrint a encontrar assets (se você tiver logo em 'static/')
+        pdf = HTML(string=html_content, base_url=request.url_root).write_pdf()
+        
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=comprovante_pagamento_{leitura_id}.pdf'
+        return response
+    except ImportError:
+        current_app.logger.error("WeasyPrint não está instalado. Por favor, instale-o com 'pip install WeasyPrint'.")
+        flash('Erro: O gerador de PDF não está configurado. Contacte o administrador.', 'danger')
+        return "Erro: Gerador de PDF não disponível.", 500
+    except Exception as e:
+        current_app.logger.error(f"Erro ao gerar PDF para leitura {leitura_id}: {e}", exc_info=True)
+        flash('Erro ao gerar o PDF. Tente novamente mais tarde.', 'danger')
+        return "Erro ao gerar PDF.", 500
+
+#-------------Comprovante de Leitura - foto------------------
+@app.route('/comprovante_leitura/<int:leitura_id>')
+@login_required
+def comprovante_leitura(leitura_id):
+    """
+    Rota para o COMPROVANTE IMEDIATO após a leitura.
+    Agora, ela reutiliza a função _get_fatura_contexto para preparar TODOS os dados.
+    """
+    # AQUI ESTÁ A CORREÇÃO: Chamamos a função que prepara tudo.
+    contexto = _get_fatura_contexto(leitura_id)
+    
+    if not contexto:
+        flash('Leitura não encontrada.', 'danger')
+        return redirect(url_for('listar_leituras'))
+        
+    # Enviamos o "dossiê" completo para o HTML. O ** descompacta o dicionário.
+    return render_template('comprovante_leitura.html', **contexto)
+
 
 # --- Relatório de Consumidores (VERSÃO CORRIGIDA PARA POSTGRESQL) ---
 @app.route('/relatorio-consumidores')

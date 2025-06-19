@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Comprovante de Leitura - Águas de Santa Maria</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #f8f9fa;
+      }
+      .receipt-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+      .receipt-header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        border-top-left-radius: 0.25rem; /* Ajuste para combinar com receipt-container */
+        border-top-right-radius: 0.25rem; /* Ajuste para combinar com receipt-container */
+      }
+      /* Estilo para o logo, se você optar por usar um */
+      .receipt-header .company-logo {
+        max-height: 70px; /* Tamanho do logo */
+        margin-bottom: 10px;
+      }
+      .receipt-header h2 {
+        margin: 0;
+        font-weight: 700;
+      }
+      .receipt-body {
+        padding: 2rem;
+      }
+      /* Nova classe para os blocos de seção com estilo profissional */
+      .section-block {
+        background-color: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      }
+      .section-title {
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 1rem;
+      }
+      .info-item .label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 500;
+        text-transform: uppercase; /* Padroniza os labels */
+      }
+      .info-item .value {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+      .photo-section {
+        text-align: center;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        height: 100%; /* Permite que o flexbox ajuste a altura na coluna */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        /* Altura fixa para a seção da foto na tela - ajuste este valor se necessário */
+        height: 300px;
+        overflow: hidden;
+        position: relative;
+      }
+      .photo-section img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0.25rem;
+        border: 1px solid #dee2e6;
+      }
+      .photo-section .no-photo-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 10px;
+      }
+      .value-summary {
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+        padding: 1.5rem;
+        text-align: center;
+      }
+      .value-summary .label {
+        text-transform: uppercase;
+        font-size: 0.9rem;
+      }
+      .value-summary .amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0d6efd;
+      }
+      .buttons {
+        padding: 2rem;
+        text-align: center;
+      }
+      @media print {
+        body {
+          background-color: #fff;
+        }
+        .no-print {
+          display: none !important;
+        }
+        .receipt-container {
+          max-width: 100%;
+          margin: 0;
+          box-shadow: none;
+          border: none;
+        }
+        /* Ajustes para impressão: ensure a foto se encaixa bem */
+        .photo-section {
+          height: 300px; /* MESMA ALTURA DA TELA PARA CONSISTÊNCIA NA IMPRESSÃO */
+          overflow: hidden;
+        }
+        /* Garantir que as bordas e sombras dos section-block apareçam na impressão */
+        .section-block {
+          border: 1px solid #e9ecef !important;
+          box-shadow: none !important; /* Sombras podem causar problemas na impressão, melhor remover ou suavizar */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="receipt-container">
+      <header class="receipt-header no-print">
+        <h2>Águas de Santa Maria</h2>
+        <p class="mb-0">Comprovante de Leitura</p>
+      </header>
+
+      <div class="receipt-body">
+        <section class="section-block mb-4">
+          <h3 class="section-title">Dados da Unidade</h3>
+          <div class="row">
+            <div class="col-md-8 info-item mb-2">
+              <span class="label">CLIENTE</span>
+              <span class="value">{{ leitura.consumidor_nome }}</span>
+            </div>
+            <div class="col-md-4 info-item mb-2">
+              <span class="label">FATURA REF.</span>
+              <span class="value">#{{ leitura.id }}</span>
+            </div>
+            <div class="col-12 info-item">
+              <span class="label">ENDEREÇO</span>
+              <span class="value">{{ leitura.consumidor_endereco }}</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="row align-items-stretch">
+          <div class="col-md-7">
+            <section class="section-block mb-4 h-100">
+              <h3 class="section-title">Informações da Medição</h3>
+              <div class="info-item mb-3">
+                <span class="label">DATA DA LEITURA</span>
+                <span class="value"
+                  >{{ leitura.data_leitura_atual.strftime('%d/%m/%Y') }}</span
+                >
+              </div>
+              <div class="info-item mb-2">
+                <span class="label">LEITURA ATUAL</span>
+                <span class="value"
+                  >{{ "%g"|format(leitura.leitura_atual|int) }} m³</span
+                >
+              </div>
+              <div class="info-item">
+                <span class="label">LEITURA ANTERIOR</span>
+                <span class="value"
+                  >{{ "%g"|format(leitura.leitura_anterior|int) }} m³</span
+                >
+              </div>
+            </section>
+          </div>
+          <div class="col-md-5">
+            <section class="section-block photo-section mb-4">
+              <span class="label d-block text-center mb-2"
+                >FOTO DO HIDRÔMETRO</span
+              >
+              {% if leitura.foto_hidrometro %}
+              <img
+                src="{{ url_for('static', filename='fotos_hidrometros/' + leitura.foto_hidrometro) }}"
+                alt="Foto do hidrômetro"
+              />
+              {% else %}
+              <div class="no-photo-text">Nenhuma foto foi enviada.</div>
+              {% endif %}
+            </section>
+          </div>
+        </div>
+
+        <section class="section-block">
+          <h3 class="section-title">Cálculo do Valor</h3>
+          <div class="value-summary">
+            <div class="info-item mb-2">
+              <span class="label">Consumo no Período</span>
+              <span class="value">{{ "%g"|format(consumo_m3|int) }} m³</span>
+            </div>
+            <hr />
+            <div class="info-item">
+              <span class="label">Valor a Pagar</span>
+              <span class="amount"
+                >R$ {{ "%.2f"|format(leitura.valor_original|float) |
+                replace('.', ',') }}</span
+              >
+            </div>
+            <div class="info-item mt-2">
+              <span class="label">VENCIMENTO</span>
+              <span class="value"
+                >{{ leitura.vencimento.strftime('%d/%m/%Y') }}</span
+              >
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="buttons no-print">
+        <a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary"
+          >Voltar para Leituras</a
+        >
+        <button onclick="window.print()" class="btn btn-primary">
+          Imprimir / Gerar PDF
+        </button>
+      </div>
+    </div>
+  </body>
+</html>
