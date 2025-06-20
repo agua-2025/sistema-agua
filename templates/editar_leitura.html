@@ -1,47 +1,153 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Editar Leitura | Águas de Santa Maria</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
-        body { background-color: #f4f7f9; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .container-form { max-width: 600px; background: #fff; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.08); }
+      body {
+        background-color: #f4f7f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .container-form {
+        max-width: 600px;
+        background: #fff;
+        padding: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container container-form">
-        <h3 class="mb-4 text-primary"><i class="fas fa-edit me-2"></i> Editar Leitura</h3>
-        
-        <div class="alert alert-secondary">
-            <strong>Consumidor:</strong> {{ leitura.nome_consumidor }}<br>
-            <strong>Leitura Anterior:</strong> {{ leitura.leitura_anterior }} (em {{ leitura.data_leitura_anterior | date_format }})
+      <h3 class="mb-4 text-primary">
+        <i class="fas fa-edit me-2"></i> Editar Leitura
+      </h3>
+
+      <div class="alert alert-secondary">
+        <strong>Consumidor:</strong> {{ leitura.nome_consumidor }}<br />
+        <strong>Leitura Anterior:</strong> {{
+        "%g"|format(leitura.leitura_anterior|int) }} m³ (em {{
+        leitura.data_leitura_anterior | date_format }})
+      </div>
+
+      <form id="editForm" method="POST">
+        <div class="mb-3">
+          <label for="leitura_atual" class="form-label fw-bold"
+            >Leitura Atual (em m³)</label
+          >
+          <input
+            type="number"
+            step="1"
+            class="form-control"
+            id="leitura_atual"
+            name="leitura_atual"
+            value="{{ '%g'|format(leitura.leitura_atual|int) }}"
+            required
+          />
         </div>
-        
-        <form method="POST">
-            <div class="mb-3">
-                <label for="leitura_atual" class="form-label fw-bold">Leitura Atual (em m³)</label>
-                <input type="number" step="1" class="form-control" id="leitura_atual" name="leitura_atual" value="{{ leitura.leitura_atual }}" required>
-            </div>
 
-            <div class="mb-3">
-                <label for="data_leitura_atual" class="form-label fw-bold">Data da Leitura Atual</label>
-                <input type="date" class="form-control" id="data_leitura_atual" name="data_leitura_atual" value="{{ leitura.data_leitura_atual }}" required>
-            </div>
+        <div class="mb-3">
+          <label for="data_leitura_atual" class="form-label fw-bold"
+            >Data da Leitura Atual</label
+          >
+          <input
+            type="date"
+            class="form-control"
+            id="data_leitura_atual"
+            name="data_leitura_atual"
+            value="{{ leitura.data_leitura_atual.strftime('%Y-%m-%d') if leitura.data_leitura_atual else '' }}"
+            required
+          />
+        </div>
 
-            <div class="d-flex justify-content-end gap-2 mt-4">
-                <a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary">
-                    <i class="fas fa-times me-1"></i> Cancelar
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save me-1"></i> Salvar Alterações
-                </button>
-            </div>
-        </form>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary">
+            <i class="fas fa-times me-1"></i> Cancelar
+          </a>
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#confirmSaveModal"
+          >
+            <i class="fas fa-save me-1"></i> Salvar Alterações
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div
+      class="modal fade"
+      id="confirmSaveModal"
+      tabindex="-1"
+      aria-labelledby="modalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalLabel">
+              <i class="fas fa-question-circle text-primary me-2"></i>Confirmar
+              Alterações
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            Você tem certeza que deseja salvar as alterações nesta leitura?
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="confirmSaveButton"
+            >
+              Sim, Salvar
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Pega o botão de confirmação de dentro do modal
+        const confirmButton = document.getElementById("confirmSaveButton");
+
+        if (confirmButton) {
+          // Adiciona um "ouvinte" de clique nele
+          confirmButton.addEventListener("click", function () {
+            // Quando clicado, encontra o formulário pelo ID e o envia
+            document.getElementById("editForm").submit();
+          });
+        }
+      });
+    </script>
+  </body>
 </html>

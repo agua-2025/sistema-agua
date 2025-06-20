@@ -831,23 +831,29 @@ def editar_leitura(id):
 
                 if nova_leitura_atual < leitura_anterior_valor:
                     flash('Erro: A nova leitura atual não pode ser menor que a leitura anterior.', 'danger')
-                    leitura_dict = dict(leitura_atual_db)
-                    leitura_dict['leitura_atual'] = nova_leitura_atual
-                    leitura_dict['data_leitura_atual'] = nova_data_leitura
-                    return render_template('editar_leitura.html', leitura=leitura_dict)
+                    # Retorna para o formulário de edição, mas sem salvar
+                    return redirect(url_for('editar_leitura', id=id))
 
-                # --- MUDANÇA NA LÓGICA ---
-                config = get_current_config()
-                # 1. Calcula o consumo diretamente em m³
+                # --- LÓGICA DE RECÁLCULO CORRIGIDA E MELHORADA ---
                 consumo_m3 = nova_leitura_atual - leitura_anterior_valor
-                valor_m3_config = float(config.get('valor_m3', 0.0))
-                taxa_minima = float(leitura_atual_db.valor_taxa_minima)
                 
-                # 2. CORREÇÃO: Remove a divisão por 1000
-                valor_calculado = consumo_m3 * valor_m3_config
-                valor_original_recalculado = max(valor_calculado, taxa_minima)
+                # Usa os valores que foram usados na criação da fatura para consistência.
+                # Se não existirem (em leituras antigas), usa a configuração atual como fallback.
+                config = get_current_config()
+                taxa_minima_valor_usada = float(leitura_atual_db.taxa_minima_valor_usada or config.get('taxa_minima_consumo'))
+                taxa_minima_franquia_usada = float(leitura_atual_db.taxa_minima_franquia_usada or config.get('taxa_minima_franquia_m3'))
+                valor_m3_usado = float(leitura_atual_db.valor_m3_usado or config.get('valor_m3'))
                 
-                # 3. Atualiza no banco usando a coluna "consumo_m3"
+                valor_original_recalculado = 0.0
+                if consumo_m3 > 0:
+                    if consumo_m3 <= taxa_minima_franquia_usada:
+                        valor_original_recalculado = taxa_minima_valor_usada
+                    else:
+                        consumo_excedente = consumo_m3 - taxa_minima_franquia_usada
+                        valor_excedente = consumo_excedente * valor_m3_usado
+                        valor_original_recalculado = taxa_minima_valor_usada + valor_excedente
+                # --- FIM DA LÓGICA CORRIGIDA ---
+
                 db.execute(text("""
                     UPDATE leituras
                     SET leitura_atual = :l_atu, 
@@ -858,19 +864,21 @@ def editar_leitura(id):
                 """), {
                     'l_atu': nova_leitura_atual,
                     'd_atu': nova_data_leitura,
-                    'consumo': consumo_m3, # RENOMEADO E CORRIGIDO
-                    'val_orig': valor_original_recalculado,
+                    'consumo': consumo_m3,
+                    'val_orig': round(valor_original_recalculado, 2),
                     'id': id
                 })
 
             flash('Leitura atualizada com sucesso!', 'success')
+            # AGORA O REDIRECIONAMENTO VAI FUNCIONAR
             return redirect(url_for('listar_leituras'))
 
         except Exception as e:
             flash(f'Erro ao atualizar a leitura: {str(e)}', 'danger')
+            app.logger.error(f"Erro ao editar leitura ID {id}: {e}", exc_info=True)
             return redirect(url_for('editar_leitura', id=id))
 
-    else: # --- Lógica para GET ---
+    else: # --- Lógica para GET (carregar a página de edição) ---
         resultado_bruto = db.execute(text("""
             SELECT l.*, c.nome as nome_consumidor
             FROM leituras l
@@ -1275,12 +1283,11 @@ from datetime import date, datetime
 #----------------- Get_Fatura_Contexto------------
 def _get_fatura_contexto(leitura_id):
     """
-    Busca e calcula todos os dados para um extrato de fatura, incluindo
-    o histórico de transações, saldos atuais e o gráfico de histórico.
+    Busca e calcula TODOS os dados para um extrato de fatura/comprovante.
+    Esta é a ÚNICA função necessária, servindo a todos os relatórios.
     """
     db = get_db()
     
-    # 1. BUSCA DE DADOS PRINCIPAIS
     resultado_bruto = db.execute(text('''
         SELECT l.*, c.nome AS consumidor_nome, c.endereco AS consumidor_endereco, c.hidrometro_num AS hidrometro, c.telefone 
         FROM leituras l JOIN consumidores c ON l.consumidor_id = c.id
@@ -1291,31 +1298,17 @@ def _get_fatura_contexto(leitura_id):
     leitura_data = resultado_bruto._asdict()
 
     pagamentos_feitos = [p._asdict() for p in db.execute(text("SELECT * FROM pagamentos WHERE leitura_id = :id ORDER BY data_pagamento ASC"), {'id': leitura_id}).fetchall()]
-
-    # 2. BUSCA DO HISTÓRICO PARA O GRÁFICO
-    historico_bruto_rows = db.execute(text('''
-        SELECT 
-            TO_CHAR(data_leitura_atual, 'MM/YYYY') AS mes_ano,
-            SUM(consumo_m3) AS consumo_total
-        FROM leituras
-        WHERE consumidor_id = :cid
-        GROUP BY TO_CHAR(data_leitura_atual, 'YYYY-MM'), TO_CHAR(data_leitura_atual, 'MM/YYYY')
-        ORDER BY TO_CHAR(data_leitura_atual, 'YYYY-MM') DESC
-        LIMIT 6
-    '''), {'cid': leitura_data['consumidor_id']}).fetchall()
     
-    historico_dicts = [row._asdict() for row in historico_bruto_rows]
-    historico_dicts.reverse()
-    
-    historico_consumo = {
-        'labels': [item['mes_ano'] for item in historico_dicts],
-        'data': [float(item['consumo_total']) for item in historico_dicts]
-    }
-
-    # 3. LÓGICA DO EXTRATO DETALHADO (com Fallback)
-    detalhamento_fatura = []
     consumo_m3 = int(safe_float(leitura_data.get('consumo_m3')))
+    data_leitura_anterior_obj = leitura_data.get('data_leitura_anterior')
     
+    dias_no_periodo = 0
+    if data_leitura_anterior_obj and leitura_data.get('data_leitura_atual'):
+        dias_no_periodo = (leitura_data['data_leitura_atual'] - data_leitura_anterior_obj).days
+
+    media_diaria_consumo = (consumo_m3 / dias_no_periodo) if dias_no_periodo > 0 else 0.0
+
+    detalhamento_fatura = []
     taxa_valor_usada = safe_float(leitura_data.get('taxa_minima_valor_usada'))
     taxa_franquia_usada = safe_float(leitura_data.get('taxa_minima_franquia_usada'))
     valor_m3_usado = safe_float(leitura_data.get('valor_m3_usado'))
@@ -1335,13 +1328,11 @@ def _get_fatura_contexto(leitura_id):
             detalhamento_fatura.append({'descricao': f"Taxa Mínima (Franquia de {taxa_franquia_usada:.0f} m³)", 'valor': taxa_valor_usada})
             detalhamento_fatura.append({'descricao': f"Consumo Excedente ({consumo_excedente} m³ x R$ {valor_m3_usado:.2f})".replace('.',','), 'valor': valor_excedente})
 
-    # 4. CÁLCULO DE SALDO E STATUS ATUAL
     valor_original_fatura = safe_float(leitura_data.get('valor_original'))
     total_pago_acumulado = sum(safe_float(p.get('valor_pago')) for p in pagamentos_feitos)
     total_multa_paga = sum(safe_float(p.get('valor_multa')) for p in pagamentos_feitos)
     total_juros_pago = sum(safe_float(p.get('valor_juros')) for p in pagamentos_feitos)
     total_juros_multa_pago_calculado = total_multa_paga + total_juros_pago
-    
     saldo_devedor_base = max(0, valor_original_fatura + total_multa_paga + total_juros_pago - total_pago_acumulado)
     
     multa_hoje, juros_hoje, dias_atraso = 0.0, 0.0, 0
@@ -1364,15 +1355,26 @@ def _get_fatura_contexto(leitura_id):
     else:
         situacao_da_fatura_texto = "Pendente"
 
-    # 5. MONTAGEM FINAL DO CONTEXTO
-    data_leitura_anterior_obj = leitura_data.get('data_leitura_anterior')
     data_leitura_anterior_formatada = data_leitura_anterior_obj.strftime('%d/%m/%Y') if data_leitura_anterior_obj else 'Início'
+    
+    historico_bruto_rows = db.execute(text('''
+        SELECT TO_CHAR(data_leitura_atual, 'MM/YYYY') AS mes_ano, SUM(consumo_m3) AS consumo_total
+        FROM leituras WHERE consumidor_id = :cid
+        GROUP BY TO_CHAR(data_leitura_atual, 'YYYY-MM'), TO_CHAR(data_leitura_atual, 'MM/YYYY')
+        ORDER BY TO_CHAR(data_leitura_atual, 'YYYY-MM') DESC LIMIT 6
+    '''), {'cid': leitura_data['consumidor_id']}).fetchall()
+    
+    historico_dicts = [row._asdict() for row in historico_bruto_rows]
+    historico_dicts.reverse()
     
     contexto = {
         'leitura': leitura_data, 
         'pagamentos_feitos': pagamentos_feitos, 
         'detalhamento_fatura': detalhamento_fatura,
-        'historico_consumo': historico_consumo,
+        'historico_consumo': {
+            'labels': [item['mes_ano'] for item in historico_dicts],
+            'data': [float(item['consumo_total']) for item in historico_dicts]
+        },
         'consumo_m3': consumo_m3,
         'dias_atraso': dias_atraso, 
         'multa_atual': multa_a_cobrar,
@@ -1385,11 +1387,11 @@ def _get_fatura_contexto(leitura_id):
         'data_leitura_atual_formatada': leitura_data['data_leitura_atual'].strftime('%d/%m/%Y'), 
         'vencimento_formatado': leitura_data['vencimento'].strftime('%d/%m/%Y'),
         'data_emissao': date.today().strftime('%d/%m/%Y'),
-        'saldo_final': valor_total_atualizado
+        'saldo_final': valor_total_atualizado,
+        'dias_no_periodo': dias_no_periodo,
+        'media_diaria_consumo': media_diaria_consumo
     }
-
     return contexto
-
     
 # -------Função Safe_float-----------
 def safe_float(value, default=0.0):

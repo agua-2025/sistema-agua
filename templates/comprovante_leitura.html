@@ -29,107 +29,103 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
       }
       .receipt-header {
-        background-color: #0d6efd;
+        background: linear-gradient(135deg, #0d6efd, #052c65);
         color: white;
-        padding: 1.5rem;
-        text-align: center;
-        border-top-left-radius: 0.25rem; /* Ajuste para combinar com receipt-container */
-        border-top-right-radius: 0.25rem; /* Ajuste para combinar com receipt-container */
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
       }
-      /* Estilo para o logo, se você optar por usar um */
-      .receipt-header .company-logo {
-        max-height: 70px; /* Tamanho do logo */
-        margin-bottom: 10px;
+      .comprovante-logo {
+        max-height: 35px;
+        width: auto;
       }
-      .receipt-header h2 {
+      .header-text {
+        text-align: left;
+      }
+      .header-text h2,
+      .header-text p {
         margin: 0;
         font-weight: 700;
       }
-      .receipt-body {
-        padding: 2rem;
+      .receipt-header h2 {
+        font-size: 1.5rem;
       }
-      /* Nova classe para os blocos de seção com estilo profissional */
+      .receipt-body {
+        padding: 1.5rem;
+      }
       .section-block {
         background-color: #ffffff;
         border: 1px solid #e9ecef;
         border-radius: 0.5rem;
-        margin-bottom: 1.5rem;
-        padding: 1.5rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
       }
       .section-title {
         font-weight: 700;
         color: #495057;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.3rem;
         border-bottom: 1px solid #dee2e6;
-        font-size: 1rem;
+        font-size: 0.9rem;
       }
       .info-item .label {
-        font-size: 0.8rem;
+        display: block;
+        font-size: 0.7rem;
         color: #6c757d;
         font-weight: 500;
-        text-transform: uppercase; /* Padroniza os labels */
+        text-transform: uppercase;
       }
       .info-item .value {
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 700;
+        color: #212529;
       }
       .photo-section {
         text-align: center;
         background-color: #f8f9fa;
         border-radius: 0.25rem;
-        padding: 1rem;
-        height: 100%; /* Permite que o flexbox ajuste a altura na coluna */
+        padding: 0.75rem;
+        height: 100%;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
         width: 100%;
-        /* Altura fixa para a seção da foto na tela - ajuste este valor se necessário */
-        height: 300px;
+        height: 200px;
         overflow: hidden;
         position: relative;
       }
       .photo-section img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 0.25rem;
-        border: 1px solid #dee2e6;
       }
       .photo-section .no-photo-text {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        margin: auto;
         color: #6c757d;
-        font-size: 0.9rem;
-        text-align: center;
-        padding: 10px;
-      }
-      .value-summary {
-        background-color: #f8f9fa;
-        border-radius: 0.25rem;
-        padding: 1.5rem;
-        text-align: center;
-      }
-      .value-summary .label {
-        text-transform: uppercase;
-        font-size: 0.9rem;
-      }
-      .value-summary .amount {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #0d6efd;
       }
       .buttons {
-        padding: 2rem;
+        padding: 1.5rem;
         text-align: center;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
       }
       @media print {
+        @page {
+          size: A4;
+          margin: 10mm;
+        }
         body {
           background-color: #fff;
+          font-size: 8.5pt;
+          line-height: 1.25;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         .no-print {
           display: none !important;
@@ -137,75 +133,187 @@
         .receipt-container {
           max-width: 100%;
           margin: 0;
+          padding: 0;
           box-shadow: none;
           border: none;
         }
-        /* Ajustes para impressão: ensure a foto se encaixa bem */
-        .photo-section {
-          height: 300px; /* MESMA ALTURA DA TELA PARA CONSISTÊNCIA NA IMPRESSÃO */
-          overflow: hidden;
+        .receipt-header {
+          padding: 7mm 0;
+          gap: 5px;
         }
-        /* Garantir que as bordas e sombras dos section-block apareçam na impressão */
+        .comprovante-logo {
+          max-height: 12mm !important;
+        }
+        .receipt-header h2 {
+          font-size: 14pt;
+        }
+        .receipt-header p {
+          font-size: 9pt;
+        }
+        .receipt-body {
+          padding: 0 5mm;
+        }
         .section-block {
-          border: 1px solid #e9ecef !important;
-          box-shadow: none !important; /* Sombras podem causar problemas na impressão, melhor remover ou suavizar */
+          border: 1px solid #eee !important;
+          box-shadow: none !important;
+          padding: 4mm !important;
+          margin-bottom: 3.5mm !important;
+          page-break-inside: avoid;
+        }
+        .section-title {
+          font-size: 9pt;
+          margin-bottom: 3mm;
+          padding-bottom: 2mm;
+        }
+        .info-item .label {
+          font-size: 7pt;
+        }
+        .info-item .value {
+          font-size: 8.5pt;
+        }
+        .photo-section {
+          height: 150px !important;
+          padding: 4mm !important;
+        }
+        .table {
+          font-size: 8pt;
+          margin-bottom: 1rem !important;
+        }
+        .table tfoot td {
+          font-size: 10pt !important;
+        }
+        .alert {
+          padding: 0.4rem !important;
+          font-size: 7pt !important;
+          margin-top: 0.5rem !important;
+        }
+        .buttons {
+          display: none !important;
         }
       }
     </style>
   </head>
   <body>
     <div class="receipt-container">
-      <header class="receipt-header no-print">
-        <h2>Águas de Santa Maria</h2>
-        <p class="mb-0">Comprovante de Leitura</p>
+      <header class="receipt-header">
+        <svg
+          class="comprovante-logo"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 120 80"
+        >
+          <g>
+            <path
+              d="M10 50 Q 35 10, 60 50 T 110 50"
+              stroke="#FFFFFF"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <path
+              d="M10 70 Q 35 30, 60 70 T 110 70"
+              stroke="#A9C2FD"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <path
+              d="M10 30 Q 35 -10, 60 30 T 110 30"
+              stroke="#87A7FF"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
+          </g>
+        </svg>
+        <div class="header-text">
+          <h2>Águas de Santa Maria</h2>
+          <p class="mb-0">Comprovante de Leitura</p>
+        </div>
       </header>
-
       <div class="receipt-body">
-        <section class="section-block mb-4">
+        <section class="section-block mb-3">
           <h3 class="section-title">Dados da Unidade</h3>
           <div class="row">
-            <div class="col-md-8 info-item mb-2">
+            <div class="col-sm-8 info-item mb-2 mb-sm-0">
               <span class="label">CLIENTE</span>
               <span class="value">{{ leitura.consumidor_nome }}</span>
             </div>
-            <div class="col-md-4 info-item mb-2">
+            <div class="col-sm-4 info-item">
               <span class="label">FATURA REF.</span>
               <span class="value">#{{ leitura.id }}</span>
             </div>
-            <div class="col-12 info-item">
+            <div class="col-12 info-item mt-2">
               <span class="label">ENDEREÇO</span>
               <span class="value">{{ leitura.consumidor_endereco }}</span>
             </div>
           </div>
         </section>
 
-        <div class="row align-items-stretch">
+        <div class="row">
           <div class="col-md-7">
-            <section class="section-block mb-4 h-100">
+            <section class="section-block mb-3 h-100">
               <h3 class="section-title">Informações da Medição</h3>
-              <div class="info-item mb-3">
-                <span class="label">DATA DA LEITURA</span>
-                <span class="value"
-                  >{{ leitura.data_leitura_atual.strftime('%d/%m/%Y') }}</span
-                >
+              <div class="row">
+                <div class="col-6">
+                  <div class="info-item mb-2">
+                    <span class="label">LEITURA ATUAL</span>
+                    <span class="value"
+                      >{{ "%g"|format(leitura.leitura_atual|int) }} m³</span
+                    >
+                  </div>
+                  <div class="info-item">
+                    <span class="label">LEITURA ANTERIOR</span>
+                    <span class="value"
+                      >{{ "%g"|format(leitura.leitura_anterior|int) }} m³</span
+                    >
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-item mb-2">
+                    <span class="label">DATA ATUAL</span>
+                    <span class="value"
+                      >{{ leitura.data_leitura_atual.strftime('%d/%m/%Y')
+                      }}</span
+                    >
+                  </div>
+                  <div class="info-item">
+                    <span class="label">DATA ANTERIOR</span>
+                    <span class="value"
+                      >{{ leitura.data_leitura_anterior.strftime('%d/%m/%Y') if
+                      leitura.data_leitura_anterior else 'N/A' }}</span
+                    >
+                  </div>
+                </div>
               </div>
-              <div class="info-item mb-2">
-                <span class="label">LEITURA ATUAL</span>
-                <span class="value"
-                  >{{ "%g"|format(leitura.leitura_atual|int) }} m³</span
-                >
-              </div>
-              <div class="info-item">
-                <span class="label">LEITURA ANTERIOR</span>
-                <span class="value"
-                  >{{ "%g"|format(leitura.leitura_anterior|int) }} m³</span
-                >
+              <hr class="my-3" />
+              <div class="row">
+                <div class="col-sm-5">
+                  <div class="info-item">
+                    <span class="label">PERÍODO DE CONSUMO</span>
+                    <span class="value">{{ periodo_consumo }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-3">
+                  <div class="info-item">
+                    <span class="label">DIAS NO PERÍODO</span>
+                    <span class="value">{{ dias_no_periodo }}</span>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="info-item">
+                    <span class="label">MÉDIA DIÁRIA</span>
+                    <span class="value"
+                      >{{ "%.3f"|format(media_diaria_consumo|float) |
+                      replace('.',',') }} m³</span
+                    >
+                  </div>
+                </div>
               </div>
             </section>
           </div>
           <div class="col-md-5">
-            <section class="section-block photo-section mb-4">
-              <span class="label d-block text-center mb-2"
+            <section class="section-block photo-section mb-3">
+              <span class="label d-block text-center mb-1"
                 >FOTO DO HIDRÔMETRO</span
               >
               {% if leitura.foto_hidrometro %}
@@ -219,39 +327,78 @@
             </section>
           </div>
         </div>
-
         <section class="section-block">
-          <h3 class="section-title">Cálculo do Valor</h3>
-          <div class="value-summary">
-            <div class="info-item mb-2">
-              <span class="label">Consumo no Período</span>
-              <span class="value">{{ "%g"|format(consumo_m3|int) }} m³</span>
+          <h3 class="section-title">Detalhamento da Fatura</h3>
+          <table class="table table-sm table-borderless mb-3">
+            <tbody>
+              <tr>
+                <td class="text-muted">Consumo no Período:</td>
+                <td class="text-end fw-bold">
+                  {{ "%g"|format(consumo_m3|int) }} m³
+                </td>
+              </tr>
+              {% for item in detalhamento_fatura %}
+              <tr>
+                <td>{{ item.descricao }}</td>
+                <td class="text-end">
+                  R$ {{ "%.2f"|format(item.valor|float) | replace('.', ',') }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot class="border-top">
+              <tr class="fw-bold">
+                <td class="fs-6">TOTAL DA FATURA</td>
+                <td class="text-end fs-6 text-primary">
+                  R$ {{ "%.2f"|format(leitura.valor_original|float) |
+                  replace('.', ',') }}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+          <div class="text-center bg-light p-2 rounded">
+            <span class="text-muted text-uppercase small"
+              >Data de Vencimento</span
+            >
+            <div class="fs-6 fw-bold">
+              {{ leitura.vencimento.strftime('%d/%m/%Y') }}
             </div>
-            <hr />
-            <div class="info-item">
-              <span class="label">Valor a Pagar</span>
-              <span class="amount"
-                >R$ {{ "%.2f"|format(leitura.valor_original|float) |
-                replace('.', ',') }}</span
-              >
-            </div>
-            <div class="info-item mt-2">
-              <span class="label">VENCIMENTO</span>
-              <span class="value"
-                >{{ leitura.vencimento.strftime('%d/%m/%Y') }}</span
-              >
-            </div>
+          </div>
+          <div class="alert alert-light border p-3 mt-3 small" role="alert">
+            <h6 class="alert-heading" style="font-size: 0.9rem">
+              <i class="fas fa-exclamation-circle me-2"></i>Aviso Importante
+            </h6>
+            <hr class="my-2" />
+            <p class="mb-1">
+              O valor desta fatura é válido para pagamento realizado
+              estritamente <strong>até a data de vencimento</strong>.
+            </p>
+            <p class="mb-0">
+              Para pagamentos após o vencimento, o valor será recalculado com
+              juros e multa. Por favor, contate a
+              <strong>Águas de Santa Maria</strong> para emitir uma nova fatura
+              com o valor atualizado.
+            </p>
           </div>
         </section>
       </div>
 
       <div class="buttons no-print">
         <a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary"
-          >Voltar para Leituras</a
+          ><i class="fas fa-arrow-left"></i> Voltar</a
         >
         <button onclick="window.print()" class="btn btn-primary">
-          Imprimir / Gerar PDF
+          <i class="fas fa-print"></i> Gerar PDF
         </button>
+        {% if whatsapp_phone_number and whatsapp_phone_number|length > 10 %}
+        <a
+          href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}"
+          target="_blank"
+          class="btn btn-success"
+        >
+          <i class="fab fa-whatsapp"></i> Enviar WhatsApp
+        </a>
+        {% endif %}
       </div>
     </div>
   </body>

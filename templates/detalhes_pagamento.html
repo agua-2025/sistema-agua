@@ -4,13 +4,11 @@
     <meta charset="UTF-8" />
     <title>Comprovante de Pagamento - Águas de Santa Maria</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <meta
       name="description"
       content="Comprovante de pagamento - Águas de Santa Maria"
     />
     <meta name="author" content="Águas de Santa Maria" />
-
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -25,7 +23,7 @@
     />
 
     <style>
-      /* Sistema de Design - Cores e Tipografia (Sem alterações aqui) */
+      /* Sistema de Design - Cores e Tipografia */
       :root {
         --primary-blue: #0d6efd;
         --primary-dark: #052c65;
@@ -56,12 +54,14 @@
         max-width: 650px;
         width: 100%;
         margin: 1.5rem auto;
-        padding: 1.5rem 2rem;
+        padding: 0 2rem 1.5rem 2rem; /* Ajustado para remover padding do topo que já está no header */
         background: white;
         border-radius: 0.75rem;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         overflow: hidden;
       }
+
+      /* --- SEÇÃO DO CABEÇALHO CORRIGIDA --- */
       .comprovante-header {
         background: linear-gradient(
           135deg,
@@ -72,7 +72,23 @@
         padding: 1rem;
         text-align: center;
         border-bottom: 3px solid rgba(255, 255, 255, 0.15);
-        margin-bottom: 1.5rem;
+        margin: 0 -2rem 1.5rem -2rem; /* Margem para ocupar a largura total do container */
+        /* Propriedades para alinhar a logo e o texto */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+      .comprovante-logo {
+        max-height: 45px; /* Tamanho da logo na tela */
+        width: auto;
+      }
+      .header-text {
+        text-align: left;
+      }
+      .header-text h1,
+      .header-text p {
+        margin-bottom: 0;
       }
       .comprovante-header h1 {
         font-size: 1.8rem;
@@ -84,8 +100,10 @@
         opacity: 0.9;
         margin-bottom: 0;
       }
+      /* --- FIM DA SEÇÃO CORRIGIDA --- */
+
       .receipt-body {
-        padding: 1rem;
+        padding: 1rem 0; /* Padding vertical no corpo */
       }
       .receipt-section {
         margin-bottom: 1.2rem;
@@ -216,12 +234,12 @@
       @media print {
         @page {
           size: A4;
-          margin: 10mm; /* Mantemos uma margem segura */
+          margin: 10mm;
         }
         body {
           background: white;
-          font-size: 8.5pt; /* AJUSTE FINAL: Reduzido um pouco a fonte base */
-          line-height: 1.2; /* AJUSTE FINAL: Linha um pouco mais justa */
+          font-size: 8.5pt;
+          line-height: 1.2;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
@@ -237,11 +255,13 @@
           border: none !important;
           border-radius: 0 !important;
         }
-
-        /* AJUSTE FINAL: Redução ainda maior de margens e paddings */
         .comprovante-header {
-          padding: 6mm 5mm; /* Reduzido */
-          margin-bottom: 5mm; /* Reduzido */
+          padding: 6mm 5mm;
+          margin: 0 0 5mm 0; /* Margem na impressão */
+        }
+        /* REGRA DA LOGO PARA IMPRESSÃO */
+        .comprovante-logo {
+          max-height: 8mm !important;
         }
         .comprovante-header h1 {
           font-size: 1.4rem;
@@ -249,49 +269,42 @@
         .comprovante-header p {
           font-size: 0.85rem;
         }
-
         .receipt-body {
-          padding: 0;
+          padding: 0 5mm; /* Adiciona um padding lateral no corpo do recibo impresso */
         }
-
         .receipt-section {
-          margin-bottom: 3mm !important; /* Reduzido */
+          margin-bottom: 3mm !important;
           border-radius: 0 !important;
           padding: 0 !important;
           border: 1px solid #e9ecef !important;
         }
         .section-header {
-          padding: 2.5mm 5mm; /* Reduzido */
+          padding: 2.5mm 5mm;
           margin-bottom: 0;
         }
         .section-header h2 {
           font-size: 0.85rem;
         }
-
         .section-content {
-          padding: 3mm 5mm; /* Reduzido */
+          padding: 3mm 5mm;
         }
-
         .info-pair-line {
           gap: 1.5mm 5mm;
-          margin-bottom: 2mm; /* Reduzido */
+          margin-bottom: 2mm;
         }
         .info-label,
         .info-value {
-          font-size: 8pt !important; /* Reduzido */
+          font-size: 8pt !important;
         }
-
-        /* Ajuste no resumo financeiro para economizar espaço */
         .info-pair-line .info-label[style*="grid-column"],
         .info-pair-line .info-value[style*="grid-column"] {
           margin-top: 1mm !important;
           padding-top: 1mm !important;
         }
-
         .total-summary {
-          padding: 5mm 8mm; /* Reduzido */
-          margin-top: 4mm; /* Reduzido */
-          margin-bottom: 4mm; /* Reduzido */
+          padding: 5mm 8mm;
+          margin-top: 4mm;
+          margin-bottom: 4mm;
           border-radius: 0 !important;
         }
         .total-summary .label {
@@ -299,15 +312,14 @@
         }
         .total-summary .amount {
           font-size: 1.5rem;
-        } /* Reduzido */
+        }
         .total-summary .status,
         .total-summary .date {
           font-size: 0.8rem;
         }
-
         .notes-section {
-          margin-top: 4mm !important; /* Reduzido */
-          padding-top: 3mm !important; /* Reduzido */
+          margin-top: 4mm !important;
+          padding-top: 3mm !important;
           font-size: 7.5pt;
           text-align: center;
         }
@@ -320,10 +332,40 @@
   <body>
     <div class="receipt-container">
       <header class="comprovante-header">
-        <h1>Águas de Santa Maria</h1>
-        <p>Comprovante de Pagamento</p>
+        <svg
+          class="comprovante-logo"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 120 80"
+        >
+          <g>
+            <path
+              d="M10 50 Q 35 10, 60 50 T 110 50"
+              stroke="#FFFFFF"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <path
+              d="M10 70 Q 35 30, 60 70 T 110 70"
+              stroke="#A9C2FD"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <path
+              d="M10 30 Q 35 -10, 60 30 T 110 30"
+              stroke="#87A7FF"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
+          </g>
+        </svg>
+        <div class="header-text">
+          <h1>Águas de Santa Maria</h1>
+          <p>Comprovante de Pagamento</p>
+        </div>
       </header>
-
       <main class="receipt-body">
         <section class="receipt-section">
           <div class="section-header">
@@ -498,7 +540,7 @@
         >
           <i class="fas fa-arrow-left"></i> Voltar
         </a>
-        <button onclick="window.print()" class="btn-action btn btn-primary">
+        <button onclick="window.print()" class="btn-action btn-primary">
           <i class="fas fa-print"></i> Imprimir / Gerar PDF
         </button>
         {% if whatsapp_phone_number and whatsapp_message %}

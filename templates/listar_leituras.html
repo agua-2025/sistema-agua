@@ -68,7 +68,9 @@
                             <th>Data Leitura</th>
                             <th class="text-numeric">Leitura Ant. (m³)</th>
                             <th class="text-numeric">Leitura Atual (m³)</th>
-                            <th class="text-numeric">Consumo (m³)</th>      <th class="text-numeric">Média Diária (m³)</th> <th class="text-center">Ações</th>
+                            <th class="text-numeric">Consumo (m³)</th>
+                            <th class="text-numeric">Média Diária (m³)</th>
+                            <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,19 +78,22 @@
                         <tr>
                             <td data-label="Consumidor:">{{ l.nome_consumidor }}</td>
                             <td data-label="Data Leitura:">{{ l.data_leitura_atual | date_format if l.data_leitura_atual else 'N/A' }}</td>
-                            <td data-label="Leitura Ant. (m³):" class="text-numeric">{{ "%.3f"|format(l.leitura_anterior|float) | replace('.', ',') }}</td>
-                            <td data-label="Leitura Atual (m³):" class="text-numeric">{{ "%.3f"|format(l.leitura_atual|float) | replace('.', ',') }}</td>
+                            <td data-label="Leitura Ant. (m³):" class="text-numeric">{{ "%g"|format(l.leitura_anterior|float) }}</td>
+                            <td data-label="Leitura Atual (m³):" class="text-numeric">{{ "%g"|format(l.leitura_atual|float) }}</td>
+                            <td data-label="Consumo (m³):" class="text-numeric fw-bold text-primary">{{ "%g"|format(l.consumo_m3|float) }}</td>
+                            <td data-label="Média Diária (m³):" class="text-numeric">{{ "%.3f"|format(l.media_por_dia|float) | replace('.', ',') }}</td>
                             
-                            <td data-label="Consumo (m³):" class="text-numeric fw-bold text-primary">{{ "%.3f"|format(l.consumo_m3|float) | replace('.', ',') }}</td>
-                            
-                             <td data-label="Média Diária (m³):" class="text-numeric">{{ "%.3f"|format(l.media_por_dia|float) | replace('.', ',') }}</td>
-                            
-                            <td data-label="Ações:">
-                                <a href="{{ url_for('editar_leitura', id=l.id) }}" class="btn btn-sm btn-info" title="Editar">
-                                    <i class="fas fa-edit"></i> Editar
+                            <td data-label="Ações:" class="d-flex justify-content-center gap-2">
+                                <a href="{{ url_for('comprovante_leitura', leitura_id=l.id) }}" class="btn btn-sm btn-success" title="Ver Comprovante">
+                                    <i class="fas fa-file-invoice"></i>
                                 </a>
-                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="{{ l.id }}" data-ref="{{ l.nome_consumidor }} em {{ l.data_leitura_atual | date_format }}">
-                                    <i class="fas fa-trash"></i> Excluir
+                                
+                                <a href="{{ url_for('editar_leitura', id=l.id) }}" class="btn btn-sm btn-warning" title="Editar Leitura">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="{{ l.id }}" data-ref="{{ l.nome_consumidor }} em {{ l.data_leitura_atual | date_format }}" title="Excluir Leitura">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
@@ -123,19 +128,19 @@
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-              <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalLabel"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p>Você tem certeza que deseja excluir a leitura de <strong id="leituraReferencia"></strong>?</p>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                  <button type="submit" class="btn btn-danger">Sim, Excluir</button>
-                </form>
-              </div>
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalLabel"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Você tem certeza que deseja excluir a leitura de <strong id="leituraReferencia"></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="deleteForm" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
