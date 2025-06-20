@@ -15,19 +15,17 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       rel="stylesheet"
     />
-
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
     <style>
-      /* Sistema de Design - Cores e Tipografia (Mantendo variáveis para tela) */
+      /* Sistema de Design - Cores e Tipografia (Sem alterações aqui) */
       :root {
         --primary-blue: #0d6efd;
         --primary-dark: #052c65;
@@ -40,36 +38,30 @@
         --dark-text: #212529;
         --muted-text: #6c757d;
       }
-
-      /* Reset e Estilos Base */
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
       }
-
       body {
         font-family: "Roboto", sans-serif;
         background-color: var(--light-gray-bg);
         color: var(--dark-text);
-        line-height: 1.4; /* Ajustado para compactação */
-        font-size: 13px; /* Tamanho da fonte base */
-        -webkit-font-smoothing: antialiased; /* Para anti-aliasing em WebKit */
-        -moz-osx-font-smoothing: grayscale; /* Para anti-aliasing em Firefox */
+        line-height: 1.4;
+        font-size: 13px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
-
-      /* Container Principal - Responsivo e Compacto */
       .receipt-container {
-        max-width: 580px; /* Largura otimizada para A4 */
+        max-width: 650px;
         width: 100%;
-        margin: 1.5rem auto; /* Margem externa */
+        margin: 1.5rem auto;
+        padding: 1.5rem 2rem;
         background: white;
         border-radius: 0.75rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Sombra suave */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         overflow: hidden;
       }
-
-      /* Cabeçalho Institucional */
       .comprovante-header {
         background: linear-gradient(
           135deg,
@@ -77,182 +69,134 @@
           var(--primary-dark)
         );
         color: white;
-        padding: 1.2rem; /* Padding menor */
+        padding: 1rem;
         text-align: center;
         border-bottom: 3px solid rgba(255, 255, 255, 0.15);
+        margin-bottom: 1.5rem;
       }
-
       .comprovante-header h1 {
-        font-size: 1.6rem; /* Título principal */
+        font-size: 1.8rem;
         font-weight: 700;
         margin-bottom: 0.3rem;
       }
-
       .comprovante-header p {
-        font-size: 0.9rem; /* Subtítulo */
+        font-size: 1rem;
         opacity: 0.9;
         margin-bottom: 0;
       }
-
-      /* Corpo do Documento */
       .receipt-body {
-        padding: 1.5rem; /* Padding interno balanceado */
+        padding: 1rem;
       }
-
-      /* Seções de Conteúdo */
       .receipt-section {
-        margin-bottom: 1.2rem; /* Espaçamento entre seções */
+        margin-bottom: 1.2rem;
         border: 1px solid var(--medium-gray-border);
         border-radius: 0.5rem;
         overflow: hidden;
       }
-
       .section-header {
         background-color: var(--light-gray-bg);
-        padding: 0.6rem 1rem; /* Padding menor */
+        padding: 0.75rem 1rem;
         border-bottom: 1px solid var(--medium-gray-border);
       }
-
       .section-header h2 {
-        font-size: 0.95rem; /* Título da seção */
+        font-size: 1rem;
         font-weight: 600;
         color: var(--primary-blue);
         margin: 0;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
-
       .section-content {
-        padding: 1rem; /* Padding menor */
+        padding: 1rem;
       }
-
-      /* NOVO GRID PARA ALINHAMENTO PERFEITO (SUBSTITUI INFO-ITEM) */
-      .info-row-grid {
+      .info-pair-line {
         display: grid;
-        /* Define duas colunas fixas para o rótulo e o valor */
-        grid-template-columns: minmax(100px, max-content) 1fr; /* Rótulo (mínimo 100px, máximo conteúdo) e Valor (resto) */
-        gap: 0.3rem 0.8rem; /* Espaçamento vertical e horizontal */
-        align-items: baseline; /* Alinha o texto na linha de base */
-        margin-bottom: 0.4rem; /* Espaçamento entre as linhas de informação */
+        grid-template-columns: minmax(80px, auto) 1fr;
+        gap: 0.3rem 0.8rem;
+        align-items: baseline;
+        margin-bottom: 0.5rem;
       }
-      .info-row-grid:last-child {
-        margin-bottom: 0; /* Remove margem do último item */
+      .info-pair-line:last-child {
+        margin-bottom: 0;
       }
-
-      .info-label-grid {
-        font-size: 0.85rem; /* Rótulo legível */
+      .info-label {
+        font-size: 0.85rem;
         color: var(--muted-text);
         font-weight: 500;
         text-transform: uppercase;
-        text-align: left; /* Garante alinhamento à esquerda */
-        white-space: nowrap; /* Impede quebras de linha no rótulo */
+        text-align: left;
+        white-space: nowrap;
+        flex-shrink: 0;
       }
-      .info-value-grid {
-        font-size: 0.95rem; /* Valor legível */
+      .info-value {
+        font-size: 0.95rem;
         font-weight: 700;
         color: var(--dark-text);
-        text-align: right; /* Garante alinhamento à direita */
-        word-break: break-word; /* Permite quebrar palavras longas (endereços/emails) */
+        text-align: right;
+        word-break: break-word;
+        flex-grow: 1;
       }
-
-      /* Estilo para valores monetários */
       .value-currency {
-        font-family: "Roboto Mono", monospace; /* Fonte monoespaçada para valores */
-      }
-
-      /* Destaques Financeiros Menores */
-      .financial-summary {
-        background-color: var(--light-gray-bg);
-        border-left: 4px solid var(--primary-blue);
-        padding: 0.8rem; /* Menor */
-        margin-top: 1rem; /* Menor */
-        border-radius: 0 0.25rem 0.25rem 0;
-      }
-
-      .financial-summary .label {
-        font-size: 0.85rem; /* Menor */
-        color: var(--muted-text);
-        text-transform: uppercase;
-        margin-bottom: 0.2rem;
-      }
-
-      .financial-summary .amount {
-        font-size: 1.3rem; /* Menor */
-        font-weight: 700;
         font-family: "Roboto Mono", monospace;
+        font-weight: 600;
       }
-
-      /* Resumo Total - Destaque Principal */
       .total-summary {
         background: linear-gradient(to right, #e8f5e9, #f1f8e9);
         border: 1px solid #c8e6c9;
         border-radius: 0.5rem;
-        padding: 1.2rem; /* Padding menor */
+        padding: 1.2rem;
         text-align: center;
-        margin: 1.5rem 0 1.2rem; /* Margens ajustadas */
+        margin: 1.5rem 0 1rem;
       }
-
       .total-summary .label {
-        font-size: 0.9rem; /* Menor */
+        font-size: 0.95rem;
         font-weight: 600;
         color: #2e7d32;
         text-transform: uppercase;
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.3rem;
       }
-
       .total-summary .amount {
-        font-size: 2rem; /* Valor principal ajustado */
+        font-size: 2rem;
         font-weight: 700;
         color: #2e7d32;
         font-family: "Roboto Mono", monospace;
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.3rem;
       }
-
       .total-summary .status {
-        font-size: 1rem; /* Menor */
+        font-size: 1rem;
         font-weight: 700;
-        margin-top: 5px; /* Menor */
+        margin-top: 5px;
       }
-
-      /* Rodapé Institucional */
-      .receipt-footer {
-        padding: 1rem; /* Menor */
+      .notes-section {
+        padding: 1rem;
         text-align: center;
         border-top: 1px solid var(--medium-gray-border);
         font-size: 0.8rem;
         color: var(--muted-text);
+        margin-top: 1rem;
       }
-
-      /* Barra de Ações */
       .action-bar {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 0.6rem; /* Espaçamento entre botões */
-        padding: 1.2rem; /* Padding menor */
+        gap: 0.6rem;
+        padding: 1.2rem;
         background-color: var(--light-gray-bg);
         border-top: 1px solid var(--medium-gray-border);
-        border-bottom-left-radius: 0.75rem; /* Para container principal */
-        border-bottom-right-radius: 0.75rem; /* Para container principal */
+        border-bottom-left-radius: 0.75rem;
+        border-bottom-right-radius: 0.75rem;
+        margin-top: 1.5rem;
       }
-
       .btn-action {
-        padding: 0.6rem 1.2rem; /* Botões menores */
-        font-size: 0.85rem; /* Texto do botão menor */
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
         font-weight: 600;
-        border-radius: 0.3rem;
+        border-radius: 0.4rem;
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem; /* Espaçamento ícone-texto */
+        gap: 0.5rem;
         transition: all 0.2s ease;
       }
-
-      .btn-action:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      }
-
-      /* Utilitários Bootstrap-like - Substituindo vars por hex diretos */
       .text-success-alt {
         color: #198754 !important;
       }
@@ -266,55 +210,18 @@
         font-weight: 700;
       }
 
-      /* Responsividade - Mobile (Manter, WeasyPrint ignora seletivamente) */
-      @media (max-width: 768px) {
-        body {
-          font-size: 12px;
-        }
-        .receipt-container {
-          margin: 1rem auto;
-          border-radius: 0;
-        }
-        .receipt-header h1 {
-          font-size: 1.4rem;
-        }
-        .receipt-header p {
-          font-size: 0.8rem;
-        }
-        .receipt-body {
-          padding: 1rem;
-        }
-        /* Em mobile, o grid se torna uma única coluna para melhor visualização */
-        .info-grid-aligned {
-          grid-template-columns: 1fr;
-          gap: 0.4rem;
-        }
-        .info-label-aligned,
-        .info-value-aligned {
-          text-align: left;
-        } /* Alinha tudo à esquerda em mobile */
-        .total-summary .amount {
-          font-size: 1.6rem;
-        }
-        .action-bar {
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-        .btn-action {
-          width: 100%;
-          justify-content: center;
-        }
-      }
-
-      /* Estilos para Impressão (A4) - OTIMIZADOS PARA WEASYPRINT E ALINHAMENTO */
+      /* ========================================================================= */
+      /* ESTILOS PARA IMPRESSÃO (A4) - VERSÃO SUPER OTIMIZADA PARA UMA PÁGINA */
+      /* ========================================================================= */
       @media print {
         @page {
           size: A4;
-          margin: 1cm; /* Margens padrão A4, reajustado para conforto na impressão */
+          margin: 10mm; /* Mantemos uma margem segura */
         }
         body {
           background: white;
-          font-size: 9pt; /* Fonte base para impressão */
+          font-size: 8.5pt; /* AJUSTE FINAL: Reduzido um pouco a fonte base */
+          line-height: 1.2; /* AJUSTE FINAL: Linha um pouco mais justa */
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
@@ -323,84 +230,88 @@
         }
         .receipt-container {
           max-width: 100%;
-          margin: 0;
-          padding: 0.8cm; /* Padding geral do documento impresso */
+          width: 100%;
+          margin: 0 !important;
+          padding: 0 !important;
           box-shadow: none !important;
           border: none !important;
           border-radius: 0 !important;
         }
-        .receipt-header {
-          padding-bottom: 1rem;
-          margin-bottom: 1.2rem;
+
+        /* AJUSTE FINAL: Redução ainda maior de margens e paddings */
+        .comprovante-header {
+          padding: 6mm 5mm; /* Reduzido */
+          margin-bottom: 5mm; /* Reduzido */
         }
-        .receipt-header h1 {
-          font-size: 1.5rem;
+        .comprovante-header h1 {
+          font-size: 1.4rem;
         }
-        .receipt-header p {
+        .comprovante-header p {
           font-size: 0.85rem;
         }
+
         .receipt-body {
-          padding: 0.8rem;
+          padding: 0;
         }
 
-        .section-box {
-          border: 1px solid #e9ecef !important;
-          box-shadow: none !important;
+        .receipt-section {
+          margin-bottom: 3mm !important; /* Reduzido */
           border-radius: 0 !important;
-          padding: 0.8rem 1rem !important; /* Padding ajustado para impressão */
-          margin-bottom: 1rem !important;
+          padding: 0 !important;
+          border: 1px solid #e9ecef !important;
         }
-        .section-title {
-          font-size: 0.9rem;
-          margin-bottom: 0.6rem;
-          padding-bottom: 0.3rem;
-          border-bottom: 1px dashed #ced4da;
+        .section-header {
+          padding: 2.5mm 5mm; /* Reduzido */
+          margin-bottom: 0;
         }
-        /* Ajustes para grid na impressão */
-        .info-label-aligned,
-        .info-value-aligned {
-          font-size: 0.85rem; /* Tamanho da fonte para impressão */
+        .section-header h2 {
+          font-size: 0.85rem;
         }
-        .info-grid-aligned {
-          gap: 0.3rem 0.8rem; /* Espaçamento entre colunas para impressão */
+
+        .section-content {
+          padding: 3mm 5mm; /* Reduzido */
         }
-        .financial-summary {
-          padding: 0.7rem 1rem;
-          margin-top: 1rem;
-          border-left: 3px solid #0d6efd !important;
+
+        .info-pair-line {
+          gap: 1.5mm 5mm;
+          margin-bottom: 2mm; /* Reduzido */
         }
-        .financial-summary .label {
-          font-size: 0.8rem;
+        .info-label,
+        .info-value {
+          font-size: 8pt !important; /* Reduzido */
         }
-        .financial-summary .amount {
-          font-size: 1.3rem;
+
+        /* Ajuste no resumo financeiro para economizar espaço */
+        .info-pair-line .info-label[style*="grid-column"],
+        .info-pair-line .info-value[style*="grid-column"] {
+          margin-top: 1mm !important;
+          padding-top: 1mm !important;
         }
 
         .total-summary {
-          padding: 1rem 1.2rem;
-          margin-top: 1.2rem;
+          padding: 5mm 8mm; /* Reduzido */
+          margin-top: 4mm; /* Reduzido */
+          margin-bottom: 4mm; /* Reduzido */
           border-radius: 0 !important;
-          background: #e8f5e9 !important;
-          border: 1px solid #c8e6c9 !important;
         }
         .total-summary .label {
-          font-size: 0.9rem;
+          font-size: 0.85rem;
         }
         .total-summary .amount {
-          font-size: 1.8rem;
-        }
-        .total-summary .date,
-        .total-summary .status {
-          font-size: 0.9rem;
-        }
-
-        .receipt-footer {
-          margin-top: 1.2rem;
-          padding-top: 0.8rem;
+          font-size: 1.5rem;
+        } /* Reduzido */
+        .total-summary .status,
+        .total-summary .date {
           font-size: 0.8rem;
         }
+
+        .notes-section {
+          margin-top: 4mm !important; /* Reduzido */
+          padding-top: 3mm !important; /* Reduzido */
+          font-size: 7.5pt;
+          text-align: center;
+        }
         .action-bar {
-          /* Oculta botões na impressão */
           display: none !important;
         }
       }
@@ -408,7 +319,7 @@
   </head>
   <body>
     <div class="receipt-container">
-      <header class="comprovante-header no-print">
+      <header class="comprovante-header">
         <h1>Águas de Santa Maria</h1>
         <p>Comprovante de Pagamento</p>
       </header>
@@ -419,21 +330,23 @@
             <h2>Detalhes do Pagamento</h2>
           </div>
           <div class="section-content">
-            <div class="info-row-grid">
-              <span class="info-label-grid">Nº da Fatura:</span>
-              <span class="info-value-grid highlight">#{{ leitura.id }}</span>
+            <div class="info-pair-line">
+              <span class="info-label">Fatura Referência:</span>
+              <span class="info-value highlight">#{{ leitura.id }}</span>
 
-              <span class="info-label-grid">Data do Pagamento:</span>
-              <span class="info-value-grid">{{ data_emissao }}</span>
+              <span class="info-label">Data do Pagamento:</span>
+              <span class="info-value">{{ data_emissao }}</span>
 
-              <span class="info-label-grid">Forma de Pagamento:</span>
-              <span class="info-value-grid">
+              <span class="info-label">Forma de Pagamento:</span>
+              <span class="info-value">
                 {{ pagamentos_feitos[0].forma_pagamento if pagamentos_feitos
                 else 'N/A' }}
               </span>
 
-              <span class="info-label-grid">Valor Pago:</span>
-              <span class="info-value-grid currency text-success-alt highlight">
+              <span class="info-label">Valor Pago:</span>
+              <span
+                class="info-value value-currency text-success-alt highlight"
+              >
                 R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.',
                 ',') }}
               </span>
@@ -446,28 +359,21 @@
             <h2>Dados do Consumidor</h2>
           </div>
           <div class="section-content">
-            <div class="info-row-grid">
-              <span class="info-label-grid">Nome:</span>
-              <span class="info-value-grid">{{ leitura.consumidor_nome }}</span>
+            <div class="info-pair-line">
+              <span class="info-label">Nome:</span>
+              <span class="info-value">{{ leitura.consumidor_nome }}</span>
 
-              <span class="info-label-grid">Hidrômetro Nº:</span>
-              <span class="info-value-grid"
-                >{{ leitura.hidrometro or "N/C" }}</span
-              >
+              <span class="info-label">Hidrômetro Nº:</span>
+              <span class="info-value">{{ leitura.hidrometro or "N/C" }}</span>
 
-              <span class="info-label-grid">Endereço:</span>
-              <span class="info-value-grid"
+              <span class="info-label">Endereço:</span>
+              <span class="info-value"
                 >{{ leitura.consumidor_endereco or "Não informado" }}</span
               >
 
-              <span class="info-label-grid">Telefone:</span>
-              <span class="info-value-grid"
+              <span class="info-label">Telefone:</span>
+              <span class="info-value"
                 >{{ leitura.telefone or "Não informado" }}</span
-              >
-
-              <span class="info-label-grid">E-mail:</span>
-              <span class="info-value-grid"
-                >{{ leitura.email or "Não informado" }}</span
               >
             </div>
           </div>
@@ -478,22 +384,22 @@
             <h2>Informações da Fatura</h2>
           </div>
           <div class="section-content">
-            <div class="info-row-grid">
-              <span class="info-label-grid">Competência:</span>
-              <span class="info-value-grid"
+            <div class="info-pair-line">
+              <span class="info-label">Competência:</span>
+              <span class="info-value"
                 >{{ leitura.data_leitura_atual.strftime('%m/%Y') }}</span
               >
 
-              <span class="info-label-grid">Período de Consumo:</span>
-              <span class="info-value-grid">{{ periodo_consumo }}</span>
+              <span class="info-label">Período de Consumo:</span>
+              <span class="info-value">{{ periodo_consumo }}</span>
 
-              <span class="info-label-grid">Consumo (m³):</span>
-              <span class="info-value-grid"
+              <span class="info-label">Consumo (m³):</span>
+              <span class="info-value"
                 >{{ "%g"|format(consumo_m3|int) }} m³</span
               >
 
-              <span class="info-label-grid">Vencimento Original:</span>
-              <span class="info-value-grid">{{ vencimento_formatado }}</span>
+              <span class="info-label">Vencimento Original:</span>
+              <span class="info-value">{{ vencimento_formatado }}</span>
             </div>
           </div>
         </section>
@@ -503,41 +409,55 @@
             <h2>Resumo Financeiro da Fatura</h2>
           </div>
           <div class="section-content">
-            <div class="info-row-grid">
-              <span class="info-label-grid">Valor Original da Fatura:</span>
-              <span class="info-value-grid currency"
+            <div class="info-pair-line">
+              <span class="info-label">Valor Original da Fatura:</span>
+              <span class="info-value currency"
                 >R$ {{ "%.2f"|format(leitura.valor_original|float) |
                 replace('.', ',') }}</span
               >
 
               {% if total_juros_multa_pago > 0 %}
-              <span class="info-label-grid">Juros/Multas Pagos:</span>
-              <span class="info-value-grid currency"
+              <span class="info-label">Juros/Multas Pagos:</span>
+              <span class="info-value currency"
                 >R$ {{ "%.2f"|format(total_juros_multa_pago|float) |
                 replace('.', ',') }}</span
               >
               {% endif %} {% if multa_atual > 0 or juros_atual > 0 %}
-              <span class="info-label-grid text-danger-alt"
+              <span class="info-label text-danger-alt"
                 >Multas/Juros Pendentes:</span
               >
-              <span class="info-value-grid currency text-danger-alt">
+              <span class="info-value currency text-danger-alt">
                 R$ {{ "%.2f"|format(multa_atual + juros_atual|float) |
                 replace('.', ',') }}
               </span>
               {% endif %}
 
-              <span class="info-label-grid highlight border-top pt-2 mt-2"
+              <span
+                class="info-label highlight"
+                style="
+                  grid-column: 1 / -1;
+                  text-align: center;
+                  margin-top: 0.3rem;
+                  margin-bottom: 0.1rem;
+                  border-top: 1px dashed var(--medium-gray-border);
+                  padding-top: 0.1rem;
+                "
                 >SALDO REMANESCENTE:</span
               >
               <span
-                class="info-value-grid currency highlight border-top pt-2 mt-2 {% if saldo_final > 0 %}text-danger-alt{% else %}text-success-alt{% endif %}"
+                class="info-value currency highlight {% if saldo_final > 0 %}text-danger-alt{% else %}text-success-alt{% endif %}"
+                style="
+                  grid-column: 1 / -1;
+                  text-align: center;
+                  font-size: 1.1em;
+                "
               >
                 R$ {{ "%.2f"|format(saldo_final|float) | replace('.', ',') }}
               </span>
 
-              <span class="info-label-grid">Status da Fatura:</span>
+              <span class="info-label">Status da Fatura:</span>
               <span
-                class="info-value-grid fw-bold {% if 'Quitada' in situacao_da_fatura_texto %}text-success-alt{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger-alt{% else %}text-warning-alt{% endif %}"
+                class="info-value fw-bold {% if 'Quitada' in situacao_da_fatura_texto %}text-success-alt{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger-alt{% else %}text-warning-alt{% endif %}"
               >
                 {{ situacao_da_fatura_texto }}
               </span>
@@ -592,17 +512,17 @@
         {% endif %}
       </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
-      // Função para gerar PDF (usando html2pdf.js) - Botão "Baixar PDF"
       function generatePDF() {
         const element = document.querySelector(".receipt-container");
         const opt = {
-          margin: [10, 10, 10, 10] /* Margens em mm */,
+          margin: [10, 10, 10, 10],
           filename: "comprovante-pagamento-aguas-santa-maria.pdf",
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: {
-            scale: 2 /* Resolução */,
+            scale: 2,
             letterRendering: true,
             useCORS: true,
           },
@@ -614,21 +534,11 @@
           },
           pagebreak: {
             mode: "avoid-all",
-          } /* Evita quebra de página no meio de seções */,
+          },
         };
 
         html2pdf().set(opt).from(element).save();
       }
-
-      // Conecta o botão "Imprimir / Gerar PDF" (que você já tinha) e "Enviar WhatsApp"
-      document.addEventListener("DOMContentLoaded", function () {
-        // O botão "Imprimir / Gerar PDF" já usa window.print() diretamente.
-        // Para o botão "Baixar PDF" (que foi removido no HTML, mas se você quiser reativar)
-        // const downloadPdfButton = document.querySelector('.btn-action .fa-file-pdf')?.closest('button');
-        // if (downloadPdfButton) {
-        //     downloadPdfButton.onclick = generatePDF;
-        // }
-      });
     </script>
   </body>
 </html>
