@@ -1473,24 +1473,23 @@ def gerar_comprovante_pdf(leitura_id):
 
 # ---download do PDF do Comprovante de Leitura---
 @app.route('/download-comprovante-pdf/<int:leitura_id>')
-# Se quiser proteger o download, adicione @login_required aqui
 def download_comprovante_pdf(leitura_id):
     contexto = _get_fatura_contexto(leitura_id)
     if not contexto:
-        # Usando flash em vez de abort para uma melhor experiência do usuário
         flash("Fatura não encontrada para gerar o comprovante.", "danger")
         return redirect(url_for('listar_pagamentos'))
 
-    # Renderiza o template do extrato de pagamento
     html_content = render_template('detalhes_pagamento.html', **contexto)
 
     try:
         from weasyprint import HTML
         
-        # --- APLICAÇÃO DA MESMA CORREÇÃO AQUI ---
-        caminho_base = os.path.dirname(os.path.abspath(__file__))
-        pdf = HTML(string=html_content, base_url=caminho_base).write_pdf()
-        # --- FIM DA CORREÇÃO ---
+        # --- APLICAÇÃO DA MESMA LÓGICA AQUI ---
+        path_root = os.path.dirname(os.path.abspath(__file__))
+        html_content = html_content.replace('src="/static/', f'src="file://{path_root}/static/')
+        
+        pdf = HTML(string=html_content).write_pdf()
+        # --- FIM DA LÓGICA ---
         
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
@@ -1500,9 +1499,7 @@ def download_comprovante_pdf(leitura_id):
     except Exception as e:
         app.logger.error(f"Erro ao gerar PDF para leitura {leitura_id}: {e}", exc_info=True)
         flash('Erro ao gerar o PDF. Tente novamente mais tarde.', 'danger')
-        # Redireciona para uma página segura em caso de erro
-        return redirect(url_for('detalhes_pagamento', leitura_id=leitura_id)) 
-
+        return redirect(url_for('detalhes_pagamento', leitura_id=leitura_id))
 
 #---------------Comprovante de Leiutura PDF----------------
 @app.route('/comprovante_leitura/<int:leitura_id>')
@@ -1555,28 +1552,35 @@ def comprovante_leitura(leitura_id):
 @login_required
 def download_leitura_pdf(leitura_id):
     """
-    Gera e permite visualizar/baixar um PDF do Comprovante de Leitura.
+    Gera PDF do Comprovante de Leitura usando o caminho absoluto da imagem.
     """
-    # Reutiliza nossa função central que busca todos os dados
     contexto = _get_fatura_contexto(leitura_id)
     if not contexto:
         flash('Leitura não encontrada para gerar o PDF.', 'danger')
         return redirect(url_for('listar_leituras'))
 
-    # Renderiza o template do comprovante de leitura que já otimizamos
     html_string = render_template('comprovante_leitura.html', **contexto)
 
     try:
-        # Usa o WeasyPrint para criar o PDF a partir do HTML
-        pdf = HTML(string=html_string, base_url=request.url_root).write_pdf()
+        # --- AQUI ESTÁ A NOVA LÓGICA ---
+        # 1. Pega o caminho absoluto para a pasta do seu projeto
+        path_root = os.path.dirname(os.path.abspath(__file__))
         
-        # Cria a resposta para o navegador
+        # 2. Modifica o HTML para substituir o caminho web pelo caminho local absoluto
+        # Ele vai trocar, por exemplo, 'src="/static/' por 'src="file:///app/static/'
+        # O 'file://' é importante para o WeasyPrint entender que é um arquivo local.
+        html_string = html_string.replace('src="/static/', f'src="file://{path_root}/static/')
+        
+        # 3. Gera o PDF, agora sem precisar do base_url, pois os caminhos já são completos
+        pdf = HTML(string=html_string).write_pdf()
+        # --- FIM DA NOVA LÓGICA ---
+        
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        # 'inline' tenta abrir no navegador, 'attachment' força o download.
         response.headers['Content-Disposition'] = f'inline; filename=comprovante_leitura_{leitura_id}.pdf'
         
         return response
+
     except Exception as e:
         app.logger.error(f"Erro ao gerar PDF do comprovante de leitura {leitura_id}: {e}", exc_info=True)
         flash('Ocorreu um erro ao gerar o arquivo PDF.', 'danger')
