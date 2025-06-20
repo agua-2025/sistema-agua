@@ -1471,36 +1471,37 @@ def gerar_comprovante_pdf(leitura_id):
     return render_template('detalhes_pagamento.html', **contexto)
 
 
-# --- Rota para o download do PDF do comprovante ---
+# ---download do PDF do Comprovante de Leitura---
 @app.route('/download-comprovante-pdf/<int:leitura_id>')
 # Se quiser proteger o download, adicione @login_required aqui
 def download_comprovante_pdf(leitura_id):
-    # 1. Obtenha o contexto completo da fatura/pagamento
     contexto = _get_fatura_contexto(leitura_id)
     if not contexto:
-        abort(404, description="Fatura não encontrada para gerar o comprovante.")
+        # Usando flash em vez de abort para uma melhor experiência do usuário
+        flash("Fatura não encontrada para gerar o comprovante.", "danger")
+        return redirect(url_for('listar_pagamentos'))
 
-    # 2. Renderize a template HTML do comprovante com o contexto
+    # Renderiza o template do extrato de pagamento
     html_content = render_template('detalhes_pagamento.html', **contexto)
 
-    # 3. Use uma biblioteca para converter o HTML em PDF
     try:
-        from weasyprint import HTML, CSS
-        # Importante: base_url ajuda WeasyPrint a encontrar assets (se você tiver logo em 'static/')
-        pdf = HTML(string=html_content, base_url=request.url_root).write_pdf()
+        from weasyprint import HTML
+        
+        # --- APLICAÇÃO DA MESMA CORREÇÃO AQUI ---
+        caminho_base = os.path.dirname(os.path.abspath(__file__))
+        pdf = HTML(string=html_content, base_url=caminho_base).write_pdf()
+        # --- FIM DA CORREÇÃO ---
         
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'attachment; filename=comprovante_pagamento_{leitura_id}.pdf'
+        response.headers['Content-Disposition'] = f'inline; filename=comprovante_pagamento_{leitura_id}.pdf'
         return response
-    except ImportError:
-        current_app.logger.error("WeasyPrint não está instalado. Por favor, instale-o com 'pip install WeasyPrint'.")
-        flash('Erro: O gerador de PDF não está configurado. Contacte o administrador.', 'danger')
-        return "Erro: Gerador de PDF não disponível.", 500
+        
     except Exception as e:
-        current_app.logger.error(f"Erro ao gerar PDF para leitura {leitura_id}: {e}", exc_info=True)
+        app.logger.error(f"Erro ao gerar PDF para leitura {leitura_id}: {e}", exc_info=True)
         flash('Erro ao gerar o PDF. Tente novamente mais tarde.', 'danger')
-        return "Erro ao gerar PDF.", 
+        # Redireciona para uma página segura em caso de erro
+        return redirect(url_for('detalhes_pagamento', leitura_id=leitura_id)) 
 
 
 #---------------Comprovante de Leiutura PDF----------------
