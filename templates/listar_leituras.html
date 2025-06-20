@@ -83,19 +83,27 @@
                             <td data-label="Consumo (m³):" class="text-numeric fw-bold text-primary">{{ "%g"|format(l.consumo_m3|float) }}</td>
                             <td data-label="Média Diária (m³):" class="text-numeric">{{ "%.3f"|format(l.media_por_dia|float) | replace('.', ',') }}</td>
                             
-                            <td data-label="Ações:" class="d-flex justify-content-center gap-2">
-                                <a href="{{ url_for('comprovante_leitura', leitura_id=l.id) }}" class="btn btn-sm btn-success" title="Ver Comprovante">
-                                    <i class="fas fa-file-invoice"></i>
-                                </a>
-                                
-                                <a href="{{ url_for('editar_leitura', id=l.id) }}" class="btn btn-sm btn-warning" title="Editar Leitura">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                
-                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="{{ l.id }}" data-ref="{{ l.nome_consumidor }} em {{ l.data_leitura_atual | date_format }}" title="Excluir Leitura">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
+                       <td data-label="Ações:" class="d-flex justify-content-center gap-2">
+    <a href="{{ url_for('comprovante_leitura', leitura_id=l.id) }}" class="btn btn-sm btn-success" title="Ver Comprovante">
+        <i class="fas fa-file-invoice"></i>
+    </a>
+    
+    {% if l.num_pagamentos == 0 %}
+        
+        <a href="{{ url_for('editar_leitura', id=l.id) }}" class="btn btn-sm btn-warning" title="Editar Leitura">
+            <i class="fas fa-edit"></i>
+        </a>
+        
+        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="{{ l.id }}" data-ref="{{ l.nome_consumidor }} em {{ l.data_leitura_atual | date_format }}" title="Excluir Leitura">
+            <i class="fas fa-trash"></i>
+        </button>
+
+    {% else %}
+        <span class="btn btn-sm btn-secondary disabled" title="Bloqueado para edição pois já possui pagamentos">
+            <i class="fas fa-lock"></i>
+        </span>
+    {% endif %}
+</td>
                         </tr>
                         {% else %}
                         <tr>

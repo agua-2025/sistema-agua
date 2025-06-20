@@ -360,9 +360,7 @@
             <span class="text-muted text-uppercase small"
               >Data de Vencimento</span
             >
-            <div class="fs-6 fw-bold">
-              {{ leitura.vencimento.strftime('%d/%m/%Y') }}
-            </div>
+            <div class="fs-6 fw-bold">{{ vencimento_formatado }}</div>
           </div>
           <div class="alert alert-light border p-3 mt-3 small" role="alert">
             <h6 class="alert-heading" style="font-size: 0.9rem">
@@ -381,25 +379,23 @@
             </p>
           </div>
         </section>
-      </div>
-
-      <div class="buttons no-print">
-        <a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary"
-          ><i class="fas fa-arrow-left"></i> Voltar</a
-        >
+      </div> <div class="buttons no-print">
+        
+        <a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+        
         <button onclick="window.print()" class="btn btn-primary">
           <i class="fas fa-print"></i> Gerar PDF
         </button>
+        
         {% if whatsapp_phone_number and whatsapp_phone_number|length > 10 %}
-        <a
-          href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}"
-          target="_blank"
-          class="btn btn-success"
-        >
+        <a href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}" target="_blank" class="btn btn-success">
           <i class="fab fa-whatsapp"></i> Enviar WhatsApp
         </a>
         {% endif %}
+
       </div>
-    </div>
-  </body>
+     </div>
+     </body>
 </html>
