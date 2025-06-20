@@ -4,402 +4,616 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Comprovante de Pagamento - Águas de Santa Maria</title>
+
+    <!-- Meta tags para SEO e compartilhamento -->
+    <meta
+      name="description"
+      content="Comprovante de pagamento - Águas de Santa Maria"
+    />
+    <meta name="author" content="Águas de Santa Maria" />
+
+    <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
-      /* Estilos otimizados para impressão em A4 */
+      /* Sistema de Design - Cores e Tipografia */
       :root {
-        --primary: #0d6efd;
-        --success: #198754;
-        --danger: #dc3545;
-        --warning: #ffc107;
-        --gray: #6c757d;
-        --light-gray: #e9ecef;
+        --primary-blue: #0d6efd;
+        --primary-dark: #052c65;
+        --secondary-gray: #6c757d;
+        --success-green: #198754;
+        --danger-red: #dc3545;
+        --warning-yellow: #ffc107;
+        --light-gray: #f8f9fa;
+        --medium-gray: #e9ecef;
+        --dark-gray: #212529;
+        --text-muted: #6c757d;
+      }
+
+      /* Reset e Estilos Base */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
 
       body {
-        font-family: Arial, sans-serif;
-        font-size: 10pt;
-        line-height: 1.3;
-        color: #000;
+        font-family: "Roboto", sans-serif;
+        background-color: var(--light-gray);
+        color: var(--dark-gray);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
-      .a4-container {
-        width: 210mm;
-        min-height: 297mm;
-        margin: 0 auto;
-        padding: 10mm;
+      /* Container Principal - Responsivo */
+      .receipt-container {
+        max-width: 800px;
+        width: 100%;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        overflow: hidden;
       }
 
-      .header {
+      /* Cabeçalho Institucional */
+      .receipt-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--primary-dark)
+        );
+        color: white;
+        padding: 1.5rem;
         text-align: center;
-        margin-bottom: 5mm;
-        padding-bottom: 3mm;
-        border-bottom: 2px solid var(--primary);
+        border-bottom: 4px solid rgba(255, 255, 255, 0.15);
       }
 
-      .header h1 {
-        font-size: 14pt;
-        font-weight: bold;
-        color: var(--primary);
+      .receipt-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .receipt-header p {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+      }
+
+      /* Corpo do Documento */
+      .receipt-body {
+        padding: 2rem;
+      }
+
+      /* Seções de Conteúdo */
+      .receipt-section {
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--medium-gray);
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+
+      .section-header {
+        background-color: #f5f7fa;
+        padding: 0.75rem 1.25rem;
+        border-bottom: 1px solid var(--medium-gray);
+      }
+
+      .section-header h2 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--primary-blue);
         margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
-      .header p {
-        font-size: 10pt;
-        margin: 2px 0 0;
+      .section-content {
+        padding: 1.25rem;
       }
 
-      .section {
-        margin-bottom: 4mm;
-        page-break-inside: avoid;
-      }
-
-      .section-title {
-        font-size: 9pt;
-        font-weight: bold;
-        background-color: #f5f5f5;
-        padding: 2mm;
-        border-left: 3px solid var(--primary);
-        margin-bottom: 2mm;
-      }
-
+      /* Grid de Informações - Responsivo */
       .info-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 2mm 5mm;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
       }
 
       .info-item {
         display: flex;
         justify-content: space-between;
+        margin-bottom: 0.75rem;
       }
 
-      .label {
-        font-weight: bold;
-        color: var(--gray);
+      .info-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 500;
         flex: 1;
-        font-size: 8pt;
       }
 
-      .value {
-        flex: 1;
+      .info-value {
+        font-size: 0.95rem;
+        font-weight: 500;
         text-align: right;
-        font-size: 9pt;
+        flex: 1;
       }
 
-      .currency {
-        font-family: "Courier New", monospace;
+      .info-value.currency {
+        font-family: "Roboto Mono", monospace;
+        font-weight: 600;
       }
 
-      .total-box {
-        border: 1px solid var(--light-gray);
-        padding: 3mm;
-        text-align: center;
-        margin: 5mm 0;
+      /* Destaques Financeiros */
+      .financial-summary {
         background-color: #f8f9fa;
+        border-left: 4px solid var(--primary-blue);
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0 0.25rem 0.25rem 0;
       }
 
-      .total-label {
-        font-size: 9pt;
-        font-weight: bold;
+      .financial-summary .label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
         text-transform: uppercase;
+        margin-bottom: 0.25rem;
       }
 
-      .total-value {
-        font-size: 16pt;
-        font-weight: bold;
-        color: var(--success);
-        margin: 2mm 0;
-        font-family: "Courier New", monospace;
+      .financial-summary .amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: "Roboto Mono", monospace;
       }
 
-      .status {
-        font-weight: bold;
-        font-size: 10pt;
-      }
-
-      .footer {
-        font-size: 8pt;
+      /* Resumo Total */
+      .total-summary {
+        background: linear-gradient(to right, #e8f5e9, #f1f8e9);
+        border: 1px solid #c8e6c9;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
         text-align: center;
-        margin-top: 5mm;
-        padding-top: 3mm;
-        border-top: 1px solid var(--light-gray);
+        margin: 2rem 0 1.5rem;
       }
 
-      .action-buttons {
-        display: none;
+      .total-summary .label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #2e7d32;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
       }
 
-      @media screen {
-        body {
-          background-color: #f5f5f5;
-          padding: 10px;
+      .total-summary .amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2e7d32;
+        font-family: "Roboto Mono", monospace;
+        margin-bottom: 0.5rem;
+      }
+
+      .total-summary .status {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      /* Rodapé Institucional */
+      .receipt-footer {
+        padding: 1.5rem;
+        text-align: center;
+        border-top: 1px solid var(--medium-gray);
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      /* Barra de Ações */
+      .action-bar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        background-color: #f5f7fa;
+        border-top: 1px solid var(--medium-gray);
+      }
+
+      .btn-action {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 0.4rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Utilitários */
+      .text-success {
+        color: var(--success-green) !important;
+      }
+
+      .text-danger {
+        color: var(--danger-red) !important;
+      }
+
+      .text-warning {
+        color: var(--warning-yellow) !important;
+      }
+
+      .border-top {
+        border-top: 1px solid var(--medium-gray);
+      }
+
+      .pt-2 {
+        padding-top: 0.5rem;
+      }
+
+      .mt-2 {
+        margin-top: 0.5rem;
+      }
+
+      /* Responsividade - Mobile */
+      @media (max-width: 768px) {
+        .receipt-container {
+          margin: 1rem auto;
+          border-radius: 0;
         }
 
-        .a4-container {
-          background: white;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-          margin-bottom: 20px;
+        .receipt-header h1 {
+          font-size: 1.5rem;
         }
 
-        .action-buttons {
-          display: flex;
+        .receipt-body {
+          padding: 1.5rem;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .total-summary .amount {
+          font-size: 1.75rem;
+        }
+
+        .action-bar {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .btn-action {
+          width: 100%;
           justify-content: center;
-          gap: 10px;
-          margin-top: 15px;
-        }
-
-        .btn {
-          padding: 5px 15px;
-          font-size: 12px;
         }
       }
 
+      /* Estilos para Impressão */
       @media print {
         @page {
           size: A4;
-          margin: 0;
+          margin: 1.5cm;
         }
 
         body {
           background: white;
+          font-size: 10pt;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
 
         .no-print {
           display: none !important;
         }
 
-        .a4-container {
-          padding: 10mm;
-          width: 210mm;
-          min-height: 297mm;
+        .receipt-container {
+          max-width: 100%;
           margin: 0;
+          padding: 0;
           box-shadow: none;
+          border-radius: 0;
+        }
+
+        .receipt-header {
+          padding: 1rem;
+        }
+
+        .receipt-body {
+          padding: 1.5rem;
+        }
+
+        .total-summary .amount {
+          font-size: 1.8rem;
         }
       }
     </style>
   </head>
   <body>
-    <div class="a4-container">
-      <!-- Cabeçalho -->
-      <div class="header">
-        <h1>ÁGUAS DE SANTA MARIA</h1>
-        <p>COMPROVANTE DE PAGAMENTO</p>
-      </div>
+    <div class="receipt-container">
+      <!-- Cabeçalho Institucional -->
+      <header class="receipt-header">
+        <h1>Águas de Santa Maria</h1>
+        <p>Comprovante Oficial de Pagamento</p>
+      </header>
 
-      <!-- Seção 1: Dados do Pagamento -->
-      <div class="section">
-        <div class="section-title">DADOS DO PAGAMENTO</div>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="label">Fatura Referência:</span>
-            <span class="value">#{{ leitura.id }}</span>
+      <!-- Corpo do Documento -->
+      <main class="receipt-body">
+        <!-- Seção: Detalhes do Pagamento -->
+        <section class="receipt-section">
+          <div class="section-header">
+            <h2>Detalhes do Pagamento</h2>
           </div>
-          <div class="info-item">
-            <span class="label">Data Pagamento:</span>
-            <span class="value">{{ data_emissao }}</span>
+          <div class="section-content">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Nº da Fatura:</span>
+                <span class="info-value highlight">#{{ leitura.id }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Data do Pagamento:</span>
+                <span class="info-value">{{ data_emissao }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Forma de Pagamento:</span>
+                <span class="info-value">
+                  {{ pagamentos_feitos[0].forma_pagamento if pagamentos_feitos
+                  else 'N/A' }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Valor Pago:</span>
+                <span class="info-value currency text-success highlight">
+                  R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.',
+                  ',') }}
+                </span>
+              </div>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="label">Forma de Pagamento:</span>
-            <span class="value"
-              >{{ pagamentos_feitos[0].forma_pagamento if pagamentos_feitos else
-              'N/A' }}</span
-            >
-          </div>
-          <div class="info-item">
-            <span class="label">Valor Pago:</span>
-            <span class="value currency text-success"
-              >R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.',
-              ',') }}</span
-            >
-          </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- Seção 2: Dados do Consumidor -->
-      <div class="section">
-        <div class="section-title">DADOS DO CONSUMIDOR</div>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="label">Nome:</span>
-            <span class="value">{{ leitura.consumidor_nome }}</span>
+        <!-- Seção: Dados do Consumidor -->
+        <section class="receipt-section">
+          <div class="section-header">
+            <h2>Dados do Consumidor</h2>
           </div>
-          <div class="info-item">
-            <span class="label">Hidrômetro:</span>
-            <span class="value">{{ leitura.hidrometro or "N/C" }}</span>
+          <div class="section-content">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Nome:</span>
+                <span class="info-value">{{ leitura.consumidor_nome }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Hidrômetro Nº:</span>
+                <span class="info-value"
+                  >{{ leitura.hidrometro or "N/C" }}</span
+                >
+              </div>
+              <div class="info-item">
+                <span class="info-label">Endereço:</span>
+                <span class="info-value"
+                  >{{ leitura.consumidor_endereco or "Não informado" }}</span
+                >
+              </div>
+              <div class="info-item">
+                <span class="info-label">Telefone:</span>
+                <span class="info-value"
+                  >{{ leitura.telefone or "Não informado" }}</span
+                >
+              </div>
+              <div class="info-item">
+                <span class="info-label">E-mail:</span>
+                <span class="info-value"
+                  >{{ leitura.email or "Não informado" }}</span
+                >
+              </div>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="label">Endereço:</span>
-            <span class="value"
-              >{{ leitura.consumidor_endereco or "Não informado" }}</span
-            >
-          </div>
-          <div class="info-item">
-            <span class="label">Telefone:</span>
-            <span class="value">{{ leitura.telefone or "Não informado" }}</span>
-          </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- Seção 3: Informações da Fatura -->
-      <div class="section">
-        <div class="section-title">INFORMAÇÕES DA FATURA</div>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="label">Competência:</span>
-            <span class="value"
-              >{{ leitura.data_leitura_atual.strftime('%m/%Y') }}</span
-            >
+        <!-- Seção: Informações da Fatura -->
+        <section class="receipt-section">
+          <div class="section-header">
+            <h2>Informações da Fatura</h2>
           </div>
-          <div class="info-item">
-            <span class="label">Período Consumo:</span>
-            <span class="value">{{ periodo_consumo }}</span>
+          <div class="section-content">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Competência:</span>
+                <span class="info-value"
+                  >{{ leitura.data_leitura_atual.strftime('%m/%Y') }}</span
+                >
+              </div>
+              <div class="info-item">
+                <span class="info-label">Período de Consumo:</span>
+                <span class="info-value">{{ periodo_consumo }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Consumo (m³):</span>
+                <span class="info-value"
+                  >{{ "%g"|format(consumo_m3|int) }} m³</span
+                >
+              </div>
+              <div class="info-item">
+                <span class="info-label">Vencimento:</span>
+                <span class="info-value">{{ vencimento_formatado }}</span>
+              </div>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="label">Consumo (m³):</span>
-            <span class="value">{{ "%g"|format(consumo_m3|int) }} m³</span>
-          </div>
-          <div class="info-item">
-            <span class="label">Vencimento:</span>
-            <span class="value">{{ vencimento_formatado }}</span>
-          </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- Seção 4: Resumo Financeiro -->
-      <div class="section">
-        <div class="section-title">RESUMO FINANCEIRO</div>
-        <div style="margin-bottom: 3mm">
-          <div class="info-item">
-            <span class="label">Valor Original:</span>
-            <span class="value currency"
-              >R$ {{ "%.2f"|format(leitura.valor_original|float) | replace('.',
-              ',') }}</span
-            >
+        <!-- Seção: Resumo Financeiro -->
+        <section class="receipt-section">
+          <div class="section-header">
+            <h2>Resumo Financeiro</h2>
           </div>
-          {% if total_juros_multa_pago > 0 %}
-          <div class="info-item">
-            <span class="label">Juros/Multas Pagos:</span>
-            <span class="value currency"
-              >R$ {{ "%.2f"|format(total_juros_multa_pago|float) | replace('.',
-              ',') }}</span
-            >
-          </div>
-          {% endif %} {% if multa_atual > 0 or juros_atual > 0 %}
-          <div class="info-item">
-            <span class="label">Multas/Juros Pendentes:</span>
-            <span class="value currency text-danger"
-              >R$ {{ "%.2f"|format(multa_atual + juros_atual|float) |
-              replace('.', ',') }}</span
-            >
-          </div>
-          {% endif %}
-        </div>
+          <div class="section-content">
+            <div class="info-item">
+              <span class="info-label">Valor Original:</span>
+              <span class="info-value currency"
+                >R$ {{ "%.2f"|format(leitura.valor_original|float) |
+                replace('.', ',') }}</span
+              >
+            </div>
 
-        <div
-          class="info-item"
-          style="border-top: 1px solid var(--light-gray); padding-top: 2mm"
-        >
-          <span class="label">Saldo Remanescente:</span>
-          <span
-            class="value currency {% if saldo_final > 0 %}text-danger{% else %}text-success{% endif %}"
-          >
-            R$ {{ "%.2f"|format(saldo_final|float) | replace('.', ',') }}
-          </span>
-        </div>
+            {% if total_juros_multa_pago > 0 %}
+            <div class="info-item">
+              <span class="info-label">Juros/Multas Pagos:</span>
+              <span class="info-value currency"
+                >R$ {{ "%.2f"|format(total_juros_multa_pago|float) |
+                replace('.', ',') }}</span
+              >
+            </div>
+            {% endif %} {% if multa_atual > 0 or juros_atual > 0 %}
+            <div class="info-item text-danger">
+              <span class="info-label">Multas/Juros Pendentes:</span>
+              <span class="info-value currency"
+                >R$ {{ "%.2f"|format(multa_atual + juros_atual|float) |
+                replace('.', ',') }}</span
+              >
+            </div>
+            {% endif %}
 
-        <div class="info-item" style="margin-top: 2mm">
-          <span class="label">Status:</span>
-          <span
-            class="value {% if 'Quitada' in situacao_da_fatura_texto %}text-success{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger{% else %}text-warning{% endif %}"
+            <div class="financial-summary mt-2">
+              <div class="label">Saldo Remanescente</div>
+              <div
+                class="amount {% if saldo_final > 0 %}text-danger{% else %}text-success{% endif %}"
+              >
+                R$ {{ "%.2f"|format(saldo_final|float) | replace('.', ',') }}
+              </div>
+            </div>
+
+            <div class="info-item border-top pt-2 mt-2">
+              <span class="info-label">Status da Fatura:</span>
+              <span
+                class="info-value fw-bold {% if 'Quitada' in situacao_da_fatura_texto %}text-success{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger{% else %}text-warning{% endif %}"
+              >
+                {{ situacao_da_fatura_texto }}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Resumo Total -->
+        <div class="total-summary">
+          <div class="label">Valor Total Pago</div>
+          <div class="amount">
+            R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.', ',')
+            }}
+          </div>
+          <div class="date">Registrado em: {{ data_emissao }}</div>
+          <div
+            class="status {% if 'Quitada' in situacao_da_fatura_texto %}text-success{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger{% else %}text-warning{% endif %}"
           >
             {{ situacao_da_fatura_texto }}
-          </span>
+          </div>
         </div>
-      </div>
 
-      <!-- Total Pago -->
-      <div class="total-box">
-        <div class="total-label">Valor Total Pago</div>
-        <div class="total-value">
-          R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.', ',') }}
+        <!-- Rodapé Institucional -->
+        <div class="receipt-footer">
+          <p>Este documento é válido como comprovante de pagamento.</p>
+          <p>
+            Para dúvidas ou informações adicionais, entre em contato com Águas
+            de Santa Maria atendimento.
+          </p>
         </div>
-        <div style="font-size: 9pt">Registrado em: {{ data_emissao }}</div>
-        <div
-          class="status {% if 'Quitada' in situacao_da_fatura_texto %}text-success{% elif 'Vencida' in situacao_da_fatura_texto %}text-danger{% else %}text-warning{% endif %}"
+      </main>
+
+      <!-- Barra de Ações -->
+      <div class="action-bar no-print">
+        <a
+          href="{{ url_for('listar_pagamentos') }}"
+          class="btn-action btn btn-secondary"
         >
-          {{ situacao_da_fatura_texto }}
-        </div>
-      </div>
-
-      <!-- Rodapé -->
-      <div class="footer">
-        <p>
-          Este comprovante é válido como prova de pagamento da fatura indicada.
-        </p>
-        <p>
-          Para dúvidas ou informações adicionais, entre em contato com a Águas
-          de Santa Maria.
-        </p>
+          <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+        <button onclick="window.print()" class="btn-action btn btn-primary">
+          <i class="fas fa-print me-1"></i> Imprimir
+        </button>
+        <button onclick="generatePDF()" class="btn-action btn btn-success">
+          <i class="fas fa-file-pdf me-1"></i> Baixar PDF
+        </button>
+        {% if whatsapp_phone_number and whatsapp_message %}
+        <a
+          href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}"
+          target="_blank"
+          class="btn-action btn btn-success"
+        >
+          <i class="fab fa-whatsapp me-1"></i> Enviar
+        </a>
+        {% endif %}
       </div>
     </div>
 
-    <!-- Botões de Ação (não aparecem na impressão) -->
-    <div class="action-buttons no-print">
-      <a href="{{ url_for('listar_pagamentos') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Voltar
-      </a>
-      <button onclick="window.print()" class="btn btn-primary">
-        <i class="fas fa-print"></i> Imprimir
-      </button>
-      <button onclick="downloadPDF()" class="btn btn-success">
-        <i class="fas fa-download"></i> Baixar PDF
-      </button>
-      {% if whatsapp_phone_number and whatsapp_message %}
-      <a
-        href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}"
-        target="_blank"
-        class="btn btn-success"
-      >
-        <i class="fab fa-whatsapp"></i> WhatsApp
-      </a>
-      {% endif %}
-    </div>
-
-    <!-- Incluindo Font Awesome apenas para os ícones dos botões -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-
+    <!-- Scripts -->
     <script>
-      // Função para baixar como PDF (usando a funcionalidade de impressão do navegador)
-      function downloadPDF() {
-        window.print();
+      // Função para gerar PDF (usando html2pdf.js)
+      function generatePDF() {
+        // Elemento que queremos converter para PDF
+        const element = document.querySelector(".receipt-container");
+
+        // Opções de configuração
+        const opt = {
+          margin: [10, 5, 10, 5],
+          filename: "comprovante-pagamento-aguas-santa-maria.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            letterRendering: true,
+            useCORS: true,
+          },
+          jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait",
+            putOnlyUsedFonts: true,
+          },
+          pagebreak: { mode: "avoid-all" },
+        };
+
+        // Gerar PDF
+        html2pdf().set(opt).from(element).save();
       }
 
-      // Ou, se preferir usar uma biblioteca específica para PDF:
-      /*
-        function downloadPDF() {
-            // Requer a inclusão da biblioteca html2pdf.js
-            const element = document.querySelector('.a4-container');
-            const opt = {
-                margin: 10,
-                filename: 'comprovante-pagamento-aguas-santa-maria.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            
-            html2pdf().set(opt).from(element).save();
+      // Verificar se há conteúdo que pode causar quebra de página na impressão
+      function checkPageBreak() {
+        const container = document.querySelector(".receipt-container");
+        const containerHeight = container.offsetHeight;
+        const a4Height = 1122; // Altura aproximada de um A4 em pixels (297mm)
+
+        if (containerHeight > a4Height * 0.9) {
+          // 90% da altura A4
+          alert(
+            "Atenção: O conteúdo pode ultrapassar uma página A4. Verifique o layout antes de imprimir."
+          );
         }
-        */
+      }
+
+      // Executar quando a página carregar
+      window.addEventListener("load", checkPageBreak);
     </script>
 
-    <!-- Se for usar html2pdf.js, descomente a linha abaixo -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> -->
+    <!-- Biblioteca html2pdf.js para geração de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   </body>
 </html>
