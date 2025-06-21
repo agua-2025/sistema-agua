@@ -24,6 +24,9 @@ from flask import render_template, flash, redirect, url_for, request, session
 from datetime import datetime
 from urllib.parse import quote
 from flask import session 
+import base64
+from mimetypes import guess_type
+
 
 
 # --- NOVO: O "Tradutor" de JSON Definitivo ---
@@ -261,7 +264,7 @@ def enviar_email(destino, assunto, corpo):
     except Exception as e:
         app.logger.error(f"❌ Erro ao enviar e-mail para {destino}: {e}", exc_info=True)
         return False
-
+    
 # --- Rotas de Autenticação ---
 @app.route('/')
 def home():
@@ -1542,6 +1545,18 @@ def comprovante_leitura(leitura_id):
     # Esta parte do seu código também foi mantida
     return render_template('comprovante_leitura.html', **contexto)
 
+#-----------------Funçao para mostrar imagem do hidrometro PDF whatsapp
+def get_image_base64_string(foto_filename):
+    if not foto_filename:
+        return None
+    foto_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'fotos_hidrometros', foto_filename)
+    if os.path.exists(foto_path):
+        with open(foto_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+            mime_type = guess_type(foto_path)[0] or 'image/jpeg'
+            return f"data:{mime_type};base64,{encoded_string}"
+    return None
+
 #-------Visualizar e Baixar PDF da Leitura----------------------------
 @app.route('/download-leitura-pdf/<int:leitura_id>')
 # @login_required  <-- REMOVIDO para que o link funcione para o cliente
@@ -1550,7 +1565,6 @@ def download_leitura_pdf(leitura_id):
     if not contexto:
         return "Leitura não encontrada.", 404
 
-    # Pega a imagem codificada em Base64 e adiciona ao contexto
     contexto['leitura']['foto_hidrometro_base64'] = get_image_base64_string(contexto['leitura'].get('foto_hidrometro'))
     
     html_string = render_template('comprovante_leitura.html', **contexto)
