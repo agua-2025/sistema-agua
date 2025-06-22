@@ -593,7 +593,7 @@ def listar_consumidores():
     return render_template('consumidores.html', consumidores=consumidores)
 
 
-# ------------------Cadastrar Leitura----------------:
+#-----------------Cadastrar Leitura (VERSÃO COM UPLOAD S3 CORRIGIDO)----------------:
 @app.route('/cadastrar-leitura', methods=['GET', 'POST'])
 @login_required
 def cadastrar_leitura():
@@ -611,7 +611,6 @@ def cadastrar_leitura():
                     filename = secure_filename(foto.filename)
                     novo_nome = f"{int(datetime.now().timestamp())}_{filename}"
                     
-                    # --- LÓGICA DE UPLOAD PARA O S3 (ESTRUTURA CORRIGIDA) ---
                     s3 = boto3.client(
                         's3',
                         aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
@@ -620,17 +619,21 @@ def cadastrar_leitura():
                     )
                     S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
                     try:
+                        # --- CORREÇÃO CIRÚRGICA APLICADA AQUI ---
+                        # Removemos a linha 'ACL': 'public-read' para ser compatível
+                        # com as configurações modernas do S3.
                         s3.upload_fileobj(
                             foto,
                             S3_BUCKET,
                             novo_nome,
                             ExtraArgs={
-                                'ACL': 'public-read',
                                 'ContentType': foto.content_type
                             }
                         )
+                        # --- FIM DA CORREÇÃO ---
+                        
                         foto_salva_nome = novo_nome
-                        app.logger.info(f"Upload para S3 bem-sucedido (público): {novo_nome}")
+                        app.logger.info(f"Upload para S3 bem-sucedido: {novo_nome}")
                     except NoCredentialsError:
                         app.logger.error("Credenciais da AWS não encontradas nas variáveis de ambiente.")
                         flash("Erro de configuração do servidor: credenciais de upload não encontradas.", "danger")
@@ -640,7 +643,6 @@ def cadastrar_leitura():
                         flash("Erro ao enviar a foto para o armazenamento.", "danger")
                         return redirect(url_for('cadastrar_leitura'))
             
-            # A lógica de salvar no banco continua a mesma
             with db.begin():
                 # Bloco de cálculo da fatura (mantido como estava)
                 leitura_anterior_db = db.execute(text("SELECT id, leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'cid': consumidor_id}).fetchone()
@@ -713,12 +715,12 @@ def cadastrar_leitura():
                 data_leitura_anterior_iso = ultima_leitura.data_leitura_atual.isoformat()
 
         return render_template('cadastrar_leitura.html', 
-                                consumidores=consumidores, 
-                                consumidor_selecionado=consumidor_selecionado,
-                                leitura_anterior=leitura_anterior_valor,
-                                data_leitura_anterior=data_leitura_anterior_str,
-                                data_leitura_anterior_iso=data_leitura_anterior_iso,
-                                today_date=date.today().isoformat())
+                               consumidores=consumidores, 
+                               consumidor_selecionado=consumidor_selecionado,
+                               leitura_anterior=leitura_anterior_valor,
+                               data_leitura_anterior=data_leitura_anterior_str,
+                               data_leitura_anterior_iso=data_leitura_anterior_iso,
+                               today_date=date.today().isoformat())
     
 # --- Registrar Pagamento (AGORA COM A LÓGICA WHATSAPP EMBUTIDA) ---
 @app.route('/registrar-pagamento', methods=['GET', 'POST'])
@@ -853,144 +855,106 @@ def get_leitura_details(leitura_id):
         
     return jsonify(dados_para_enviar)
 
-#------------ editar_leitura (Versão corrigida e pronta para colar) ------------------
+#------------ editar_leitura (VERSÃO FINAL E CORRIGIDA) ------------------
 @app.route('/leitura/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_leitura(id):
     db = get_db()
 
+    # --- Lógica para POST (Salvar as Alterações) ---
     if request.method == 'POST':
-        resultado_bruto_atual = db.execute(text("SELECT l.*, c.nome as nome_consumidor FROM leituras l JOIN consumidores c ON l.consumidor_id = c.id WHERE l.id = :id"), {'id': id}).fetchone()
-        leitura = resultado_bruto_atual._asdict() if resultado_bruto_atual else None
-        pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
-
-        foto_url_s3 = None
-        if leitura and leitura.get('foto_hidrometro'):
-            S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
-            AWS_REGION = os.environ.get('AWS_REGION')
-            if S3_BUCKET and AWS_REGION:
-                foto_url_s3 = f"https://{S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{leitura['foto_hidrometro']}"
-
         try:
+            # Trava de segurança: Verifica se já existe pagamento ANTES de qualquer outra coisa.
+            pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
             if pagamento_existente:
                 flash("Não é possível editar esta leitura, pois já existem pagamentos registrados para ela.", "danger")
-                return render_template('editar_leitura.html', leitura=leitura, bloqueado=bool(pagamento_existente), foto_url_s3=foto_url_s3)
+                # Redireciona de volta para a própria página de edição para mostrar o erro.
+                return redirect(url_for('editar_leitura', id=id))
 
-            foto_salva_nome_s3 = None
+            foto_salva_nome = None
             if 'foto_hidrometro' in request.files:
                 foto = request.files['foto_hidrometro']
                 if foto and foto.filename != '':
                     if not allowed_file(foto.filename):
-                        flash('Tipo de arquivo de foto inválido (apenas PNG, JPG, JPEG, GIF são permitidos).', "danger")
-                        return render_template('editar_leitura.html', leitura=leitura, bloqueado=bool(pagamento_existente), foto_url_s3=foto_url_s3)
+                        raise ValueError('Tipo de arquivo de foto inválido.')
                     
                     filename = secure_filename(foto.filename)
-                    novo_nome_s3 = f"{int(datetime.now().timestamp())}_{filename}"
+                    novo_nome = f"{int(datetime.now().timestamp())}_{filename}"
                     
-                    # --- LÓGICA DE UPLOAD PARA O S3 (ESTRUTURA CORRIGIDA) ---
-                    try:
-                        s3 = boto3.client(
-                            's3',
-                            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-                            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
-                            region_name=os.environ.get('AWS_REGION')
-                        )
-                        S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
+                    s3 = boto3.client(
+                        's3',
+                        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+                        region_name=os.environ.get('AWS_REGION')
+                    )
+                    S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
 
-                        if not S3_BUCKET:
-                            raise ValueError("Nome do bucket S3 não configurado (S3_BUCKET_NAME).")
+                    # --- CORREÇÃO CIRÚRGICA APLICADA AQUI ---
+                    # Removemos o parâmetro 'ACL' para ser compatível com as configurações modernas do S3.
+                    s3.upload_fileobj(
+                        foto,
+                        S3_BUCKET,
+                        novo_nome,
+                        ExtraArgs={'ContentType': foto.content_type}
+                    )
+                    foto_salva_nome = novo_nome
+                    app.logger.info(f"Upload para S3 na edição bem-sucedido: {novo_nome}")
 
-                        app.logger.info(f"Tentando upload para S3: Bucket={S3_BUCKET}, Objeto={novo_nome_s3}")
-                        s3.upload_fileobj(
-                            foto,
-                            S3_BUCKET,
-                            novo_nome_s3,
-                            ExtraArgs={
-                                'ACL': 'public-read',
-                                'ContentType': foto.content_type
-                            }
-                        )
-                        foto_salva_nome_s3 = novo_nome_s3
-                        app.logger.info(f"Upload para S3 bem-sucedido na edição (público): {novo_nome_s3}")
-
-                    except NoCredentialsError:
-                        app.logger.error("Erro S3: Credenciais da AWS não encontradas para upload na edição.", exc_info=True)
-                        flash("Erro de configuração do servidor: credenciais AWS não encontradas. A foto não foi enviada.", "danger")
-                        foto_salva_nome_s3 = None 
-                    except Exception as e:
-                        app.logger.error(f"Erro no upload para o S3 na edição (objeto {novo_nome_s3}): {e}", exc_info=True)
-                        flash(f"Erro ao enviar a foto para o armazenamento na nuvem: {e}. A leitura será salva sem a foto.", "danger")
-                        foto_salva_nome_s3 = None
-
+            # Lógica de recálculo
             nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
             nova_data_leitura = request.form['data_leitura_atual']
             
-            if not leitura:
-                flash("Leitura original não encontrada no banco de dados. Impossível atualizar.", "danger")
-                return redirect(url_for('listar_leituras'))
+            leitura_atual_db = db.execute(text("SELECT * FROM leituras WHERE id = :id"), {'id': id}).fetchone()
+            leitura_anterior_valor = float(leitura_atual_db.leitura_anterior)
 
-            leitura_anterior_valor = float(leitura['leitura_anterior'])
             if nova_leitura_atual < leitura_anterior_valor:
-                flash('Erro de Validação: A leitura atual não pode ser menor que a leitura anterior.', 'danger')
-                return render_template('editar_leitura.html', leitura=leitura, bloqueado=bool(pagamento_existente), foto_url_s3=foto_url_s3)
+                raise ValueError('A leitura atual não pode ser menor que a leitura anterior.')
 
             consumo_m3 = nova_leitura_atual - leitura_anterior_valor
             config = get_current_config()
             
-            valor_original_recalculado = float(leitura['valor_original']) if leitura['valor_original'] is not None else 0.0
+            valor_original_recalculado = float(leitura_atual_db.valor_original) if leitura_atual_db.valor_original is not None else 0.0
 
-            taxa_minima_valor = float(leitura.get('taxa_minima_valor_usada') or config.get('taxa_minima_consumo'))
-            taxa_minima_franquia = float(leitura.get('taxa_minima_franquia_usada') or config.get('taxa_minima_franquia_m3'))
-            valor_m3_usado = float(leitura.get('valor_m3_usado') or config.get('valor_m3'))
+            if leitura_atual_db.valor_original is not None:
+                taxa_minima_valor = float(leitura_atual_db.taxa_minima_valor_usada or config.get('taxa_minima_consumo', 15.0))
+                taxa_minima_franquia = float(leitura_atual_db.taxa_minima_franquia_usada or config.get('taxa_minima_franquia_m3', 10.0))
+                valor_m3_usado = float(leitura_atual_db.valor_m3_usado or config.get('valor_m3', 0.0))
+                
+                if consumo_m3 <= taxa_minima_franquia:
+                    valor_original_recalculado = taxa_minima_valor
+                else:
+                    consumo_excedente = consumo_m3 - taxa_minima_franquia
+                    valor_excedente = consumo_excedente * valor_m3_usado
+                    valor_original_recalculado = taxa_minima_valor + valor_excedente
             
-            if consumo_m3 <= taxa_minima_franquia:
-                valor_original_recalculado = taxa_minima_valor
-            else:
-                consumo_excedente = consumo_m3 - taxa_minima_franquia
-                valor_excedente = consumo_excedente * valor_m3_usado
-                valor_original_recalculado = taxa_minima_valor + valor_excedente
-            
-            params = {
-                'l_atu': nova_leitura_atual, 
-                'd_atu': nova_data_leitura,
-                'consumo': consumo_m3, 
-                'val_orig': valor_original_recalculado,
-                'v_m3_usado': valor_m3_usado,
-                't_min_val_usada': taxa_minima_valor,
-                't_min_fran_usada': taxa_minima_franquia,
-                'id': id
-            }
-            
-            query_update_str = """
-                UPDATE leituras SET
-                    leitura_atual = :l_atu,
-                    data_leitura_atual = :d_atu,
-                    consumo_m3 = :consumo,
-                    valor_original = :val_orig,
-                    valor_m3_usado = :v_m3_usado,
-                    taxa_minima_valor_usada = :t_min_val_usada,
-                    taxa_minima_franquia_usada = :t_min_fran_usada
-            """
-            
-            if foto_salva_nome_s3:
-                query_update_str += ", foto_hidrometro = :foto"
-                params['foto'] = foto_salva_nome_s3
-
-            query_update_str += " WHERE id = :id"
-            db.execute(text(query_update_str), params)
-
-            db.commit()
+            # --- TRANSAÇÃO ÚNICA PARA O UPDATE ---
+            with db.begin():
+                params = {
+                    'l_atu': nova_leitura_atual, 'd_atu': nova_data_leitura,
+                    'consumo': consumo_m3, 'val_orig': valor_original_recalculado,
+                    'id': id
+                }
+                query_update_str = "UPDATE leituras SET leitura_atual = :l_atu, data_leitura_atual = :d_atu, consumo_m3 = :consumo, valor_original = :val_orig"
+                
+                if foto_salva_nome:
+                    query_update_str += ", foto_hidrometro = :foto"
+                    params['foto'] = foto_salva_nome
+                
+                query_update_str += " WHERE id = :id"
+                db.execute(text(query_update_str), params)
 
             flash('Leitura atualizada com sucesso!', 'success')
             return redirect(url_for('listar_leituras'))
 
+        except ValueError as e:
+            flash(f'Erro de Validação: {str(e)}', 'danger')
+            return redirect(url_for('editar_leitura', id=id))
         except Exception as e:
-            db.rollback() 
-            
-            app.logger.error(f"Erro inesperado ao processar POST de edição de leitura ID {id}: {e}", exc_info=True)
-            flash(f'Ocorreu um erro inesperado: {str(e)}', 'danger')
-            return render_template('editar_leitura.html', leitura=leitura, bloqueado=bool(pagamento_existente), foto_url_s3=foto_url_s3)
+            flash('Ocorreu um erro inesperado ao atualizar a leitura.', 'danger')
+            app.logger.error(f"Erro ao editar leitura ID {id}: {e}", exc_info=True)
+            return redirect(url_for('editar_leitura', id=id))
 
+    # --- Lógica para GET (Carregar a página) ---
     else:
         resultado_bruto = db.execute(text("SELECT l.*, c.nome as nome_consumidor FROM leituras l JOIN consumidores c ON l.consumidor_id = c.id WHERE l.id = :id"), {'id': id}).fetchone()
         if not resultado_bruto:
@@ -1005,8 +969,6 @@ def editar_leitura(id):
             AWS_REGION = os.environ.get('AWS_REGION')
             if S3_BUCKET and AWS_REGION:
                 foto_url_s3 = f"https://{S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{leitura['foto_hidrometro']}"
-            else:
-                app.logger.warning("Variáveis de ambiente S3_BUCKET_NAME ou AWS_REGION não configuradas para gerar URL da foto na edição.")
 
         pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
         if pagamento_existente:
