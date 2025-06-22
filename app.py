@@ -847,7 +847,7 @@ def get_leitura_details(leitura_id):
         
     return jsonify(dados_para_enviar)
 
-# Em------------ editar_leitura------------------
+#------------ editar_leitura------------------
 @app.route('/leitura/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_leitura(id):
@@ -1007,7 +1007,13 @@ def editar_leitura(id):
         if pagamento_existente:
             flash("Esta leitura está bloqueada para edição pois já possui pagamentos associados.", "warning")
 
-        return render_template('editar_leitura.html', leitura=resultado_bruto._asdict(), bloqueado=bool(pagamento_existente))
+        return render_template(
+            'editar_leitura.html',
+            leitura=leitura,
+            bloqueado=bool(pagamento_existente),
+            foto_url_s3=foto_url_s3 # <-- Adicionado aqui!
+        )
+        
     
 #------------------------Excluir Leitura----------------------------    
 @app.route('/leitura/excluir/<int:id>', methods=['POST'])

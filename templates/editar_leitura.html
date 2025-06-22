@@ -119,9 +119,16 @@
               name="foto_hidrometro"
               accept="image/*"
             />
-            {% if leitura.foto_hidrometro %}
+            {% if foto_url_s3 %} {# <--- AGORA USAMOS A NOVA VARIÁVEL #}
             <img
-              src="{{ leitura.foto_hidrometro }}"
+              src="{{ foto_url_s3 }}"
+              {#
+              <---
+              AQUI
+              ESTÁ
+              A
+              MUDANÇA
+              #}
               alt="Foto do Hidrômetro"
               class="img-preview"
             />
