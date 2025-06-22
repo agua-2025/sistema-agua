@@ -594,7 +594,6 @@ def listar_consumidores():
 
 
 # ------------------Cadastrar Leitura----------------:
-# Em app.py, substitua a função cadastrar_leitura por esta:
 @app.route('/cadastrar-leitura', methods=['GET', 'POST'])
 @login_required
 def cadastrar_leitura():
@@ -612,7 +611,7 @@ def cadastrar_leitura():
                     filename = secure_filename(foto.filename)
                     novo_nome = f"{int(datetime.now().timestamp())}_{filename}"
                     
-                    # --- LÓGICA DE UPLOAD PARA O S3 ---
+                    # --- LÓGICA DE UPLOAD PARA O S3 (ESTRUTURA CORRIGIDA) ---
                     s3 = boto3.client(
                         's3',
                         aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
@@ -621,9 +620,17 @@ def cadastrar_leitura():
                     )
                     S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
                     try:
-                        s3.upload_fileobj(foto, S3_BUCKET, novo_nome)
+                        s3.upload_fileobj(
+                            foto,
+                            S3_BUCKET,
+                            novo_nome,
+                            ExtraArgs={
+                                'ACL': 'public-read',
+                                'ContentType': foto.content_type
+                            }
+                        )
                         foto_salva_nome = novo_nome
-                        app.logger.info(f"Upload para S3 bem-sucedido: {novo_nome}")
+                        app.logger.info(f"Upload para S3 bem-sucedido (público): {novo_nome}")
                     except NoCredentialsError:
                         app.logger.error("Credenciais da AWS não encontradas nas variáveis de ambiente.")
                         flash("Erro de configuração do servidor: credenciais de upload não encontradas.", "danger")
@@ -633,7 +640,7 @@ def cadastrar_leitura():
                         flash("Erro ao enviar a foto para o armazenamento.", "danger")
                         return redirect(url_for('cadastrar_leitura'))
             
-            # A lógica de salvar no banco continua a mesma, mas agora com o nome do arquivo do S3
+            # A lógica de salvar no banco continua a mesma
             with db.begin():
                 # Bloco de cálculo da fatura (mantido como estava)
                 leitura_anterior_db = db.execute(text("SELECT id, leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'cid': consumidor_id}).fetchone()
@@ -692,7 +699,6 @@ def cadastrar_leitura():
             return redirect(url_for('cadastrar_leitura'))
     
     else: # Lógica GET (não muda)
-        # ... (seu código GET existente aqui) ...
         consumidores = db.execute(text('SELECT id, nome FROM consumidores ORDER BY nome')).fetchall()
         consumidor_selecionado = request.args.get('consumidor_id', type=int)
         leitura_anterior_valor = '0'
@@ -707,12 +713,12 @@ def cadastrar_leitura():
                 data_leitura_anterior_iso = ultima_leitura.data_leitura_atual.isoformat()
 
         return render_template('cadastrar_leitura.html', 
-                               consumidores=consumidores, 
-                               consumidor_selecionado=consumidor_selecionado,
-                               leitura_anterior=leitura_anterior_valor,
-                               data_leitura_anterior=data_leitura_anterior_str,
-                               data_leitura_anterior_iso=data_leitura_anterior_iso,
-                               today_date=date.today().isoformat())
+                                consumidores=consumidores, 
+                                consumidor_selecionado=consumidor_selecionado,
+                                leitura_anterior=leitura_anterior_valor,
+                                data_leitura_anterior=data_leitura_anterior_str,
+                                data_leitura_anterior_iso=data_leitura_anterior_iso,
+                                today_date=date.today().isoformat())
     
 # --- Registrar Pagamento (AGORA COM A LÓGICA WHATSAPP EMBUTIDA) ---
 @app.route('/registrar-pagamento', methods=['GET', 'POST'])
@@ -853,14 +859,11 @@ def get_leitura_details(leitura_id):
 def editar_leitura(id):
     db = get_db()
 
-    # --- Lógica para POST (Salvar as Alterações) ---
     if request.method == 'POST':
-        # Garante que 'leitura' e 'pagamento_existente' estejam sempre definidos
         resultado_bruto_atual = db.execute(text("SELECT l.*, c.nome as nome_consumidor FROM leituras l JOIN consumidores c ON l.consumidor_id = c.id WHERE l.id = :id"), {'id': id}).fetchone()
         leitura = resultado_bruto_atual._asdict() if resultado_bruto_atual else None
         pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
 
-        # Inicia a URL da foto S3 para o template, mesmo em caso de erro no POST
         foto_url_s3 = None
         if leitura and leitura.get('foto_hidrometro'):
             S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
@@ -869,12 +872,10 @@ def editar_leitura(id):
                 foto_url_s3 = f"https://{S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{leitura['foto_hidrometro']}"
 
         try:
-            # 1. Trava de segurança (fora da transação DB, mas ainda dentro do try)
             if pagamento_existente:
                 flash("Não é possível editar esta leitura, pois já existem pagamentos registrados para ela.", "danger")
                 return render_template('editar_leitura.html', leitura=leitura, bloqueado=bool(pagamento_existente), foto_url_s3=foto_url_s3)
 
-            # Lógica de upload de foto (fora da transação DB principal)
             foto_salva_nome_s3 = None
             if 'foto_hidrometro' in request.files:
                 foto = request.files['foto_hidrometro']
@@ -886,6 +887,7 @@ def editar_leitura(id):
                     filename = secure_filename(foto.filename)
                     novo_nome_s3 = f"{int(datetime.now().timestamp())}_{filename}"
                     
+                    # --- LÓGICA DE UPLOAD PARA O S3 (ESTRUTURA CORRIGIDA) ---
                     try:
                         s3 = boto3.client(
                             's3',
@@ -899,9 +901,17 @@ def editar_leitura(id):
                             raise ValueError("Nome do bucket S3 não configurado (S3_BUCKET_NAME).")
 
                         app.logger.info(f"Tentando upload para S3: Bucket={S3_BUCKET}, Objeto={novo_nome_s3}")
-                        s3.upload_fileobj(foto, S3_BUCKET, novo_nome_s3)
+                        s3.upload_fileobj(
+                            foto,
+                            S3_BUCKET,
+                            novo_nome_s3,
+                            ExtraArgs={
+                                'ACL': 'public-read',
+                                'ContentType': foto.content_type
+                            }
+                        )
                         foto_salva_nome_s3 = novo_nome_s3
-                        app.logger.info(f"Upload para S3 bem-sucedido na edição: {novo_nome_s3}")
+                        app.logger.info(f"Upload para S3 bem-sucedido na edição (público): {novo_nome_s3}")
 
                     except NoCredentialsError:
                         app.logger.error("Erro S3: Credenciais da AWS não encontradas para upload na edição.", exc_info=True)
@@ -912,7 +922,6 @@ def editar_leitura(id):
                         flash(f"Erro ao enviar a foto para o armazenamento na nuvem: {e}. A leitura será salva sem a foto.", "danger")
                         foto_salva_nome_s3 = None
 
-            # Lógica de recálculo e validação (antes da transação DB)
             nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
             nova_data_leitura = request.form['data_leitura_atual']
             
@@ -941,8 +950,6 @@ def editar_leitura(id):
                 valor_excedente = consumo_excedente * valor_m3_usado
                 valor_original_recalculado = taxa_minima_valor + valor_excedente
             
-            # --- ATENÇÃO: A TRANSAÇÃO FOI AJUSTADA AQUI ---
-            # O "with db.begin()" foi removido.
             params = {
                 'l_atu': nova_leitura_atual, 
                 'd_atu': nova_data_leitura,
@@ -972,21 +979,18 @@ def editar_leitura(id):
             query_update_str += " WHERE id = :id"
             db.execute(text(query_update_str), params)
 
-            # 1. Commit para salvar as alterações da transação
             db.commit()
 
             flash('Leitura atualizada com sucesso!', 'success')
             return redirect(url_for('listar_leituras'))
 
         except Exception as e:
-            # 2. Rollback para reverter a transação em caso de erro
             db.rollback() 
             
             app.logger.error(f"Erro inesperado ao processar POST de edição de leitura ID {id}: {e}", exc_info=True)
             flash(f'Ocorreu um erro inesperado: {str(e)}', 'danger')
             return render_template('editar_leitura.html', leitura=leitura, bloqueado=bool(pagamento_existente), foto_url_s3=foto_url_s3)
 
-    # --- Lógica para GET (Carregar a página) ---
     else:
         resultado_bruto = db.execute(text("SELECT l.*, c.nome as nome_consumidor FROM leituras l JOIN consumidores c ON l.consumidor_id = c.id WHERE l.id = :id"), {'id': id}).fetchone()
         if not resultado_bruto:
@@ -1427,9 +1431,7 @@ def excluir_consumidor(id):
 
     return redirect(url_for('listar_consumidores'))
 
-#----------------- Get_Fatura_Contexto------------
-# Em app.py, substitua a função _get_fatura_contexto inteira por esta versão final:
-
+#----------------- Get_Fatura_Contexto (VERSÃO CORRIGIDA) ----------------
 def _get_fatura_contexto(leitura_id):
     """
     Busca e calcula todos os dados para um extrato de fatura/comprovante.
@@ -1446,6 +1448,22 @@ def _get_fatura_contexto(leitura_id):
     if not resultado_bruto: return None
     leitura_data = resultado_bruto._asdict()
 
+    # ====================================================================
+    # ### INÍCIO DA ALTERAÇÃO CIRÚRGICA ###
+    # Adicionamos a lógica para buscar a imagem do S3 e convertê-la para Base64.
+    # Isso não afeta nenhum cálculo financeiro posterior.
+    # ====================================================================
+    nome_arquivo_s3 = leitura_data.get('foto_hidrometro')
+    if nome_arquivo_s3:
+        # Chama a função que você já tem para buscar e converter
+        leitura_data['foto_hidrometro_base64'] = get_image_base64_string(nome_arquivo_s3)
+    else:
+        # Garante que a variável exista como nula se não houver foto
+        leitura_data['foto_hidrometro_base64'] = None
+    # ====================================================================
+    # ### FIM DA ALTERAÇÃO ###
+    # ====================================================================
+
     pagamentos_feitos = [p._asdict() for p in db.execute(text("SELECT * FROM pagamentos WHERE leitura_id = :id ORDER BY data_pagamento ASC"), {'id': leitura_id}).fetchall()]
     
     consumo_m3 = int(safe_float(leitura_data.get('consumo_m3')))
@@ -1458,7 +1476,6 @@ def _get_fatura_contexto(leitura_id):
     media_diaria_consumo = (consumo_m3 / dias_no_periodo) if dias_no_periodo > 0 else 0.0
 
     detalhamento_fatura = []
-    # Apenas tenta detalhar a fatura se ela tiver um valor original
     if leitura_data.get('valor_original') is not None:
         taxa_valor_usada = safe_float(leitura_data.get('taxa_minima_valor_usada'))
         taxa_franquia_usada = safe_float(leitura_data.get('taxa_minima_franquia_usada'))
@@ -1519,7 +1536,6 @@ def _get_fatura_contexto(leitura_id):
     historico_dicts = [row._asdict() for row in historico_bruto_rows]
     historico_dicts.reverse()
     
-    # AQUI ESTÁ A CORREÇÃO PRINCIPAL:
     vencimento_obj = leitura_data.get('vencimento')
 
     contexto = {
@@ -1537,7 +1553,7 @@ def _get_fatura_contexto(leitura_id):
         'situacao_da_fatura_texto': situacao_da_fatura_texto,
         'periodo_consumo': f"{data_leitura_anterior_formatada} a {leitura_data['data_leitura_atual'].strftime('%d/%m/%Y')}",
         'data_leitura_atual_formatada': leitura_data['data_leitura_atual'].strftime('%d/%m/%Y'), 
-        'vencimento_formatado': vencimento_obj.strftime('%d/%m/%Y') if vencimento_obj else 'N/A', # <-- LÓGICA CORRIGIDA
+        'vencimento_formatado': vencimento_obj.strftime('%d/%m/%Y') if vencimento_obj else 'N/A',
         'data_emissao': date.today().strftime('%d/%m/%Y'),
         'saldo_final': valor_total_atualizado,
         'dias_no_periodo': dias_no_periodo,
