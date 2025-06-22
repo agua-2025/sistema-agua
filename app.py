@@ -27,7 +27,9 @@ from flask import session
 import base64
 from mimetypes import guess_type
 from datetime import date, datetime
-
+import boto3
+from botocore.exceptions import NoCredentialsError
+import requests
 
 # --- NOVO: O "Tradutor" de JSON Definitivo ---
 class CustomJSONEncoder(json.JSONEncoder):
@@ -593,27 +595,47 @@ def listar_consumidores():
 
 # ------------------Cadastrar Leitura----------------:
 # Em app.py, substitua a função cadastrar_leitura por esta:
-
 @app.route('/cadastrar-leitura', methods=['GET', 'POST'])
 @login_required
 def cadastrar_leitura():
     db = get_db()
     if request.method == 'POST':
-        # A lógica de POST (salvamento) continua a mesma que corrigimos antes
         try:
             consumidor_id = int(request.form.get('consumidor_id'))
             leitura_atual = int(parse_number_from_br_form(request.form.get('leitura_atual')))
             data_leitura_obj = datetime.strptime(request.form.get('data_leitura_atual'), '%Y-%m-%d').date()
-            foto_salva = None
+            
+            foto_salva_nome = None
             if 'foto_hidrometro' in request.files:
                 foto = request.files['foto_hidrometro']
                 if foto and foto.filename != '' and allowed_file(foto.filename):
                     filename = secure_filename(foto.filename)
-                    novo_nome = str(int(datetime.now().timestamp())) + "_" + filename
-                    caminho_salvo = os.path.join(app.config['UPLOAD_FOLDER'], novo_nome)
-                    foto.save(caminho_salvo)
-                    foto_salva = novo_nome
+                    novo_nome = f"{int(datetime.now().timestamp())}_{filename}"
+                    
+                    # --- LÓGICA DE UPLOAD PARA O S3 ---
+                    s3 = boto3.client(
+                        's3',
+                        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+                        region_name=os.environ.get('AWS_REGION')
+                    )
+                    S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
+                    try:
+                        s3.upload_fileobj(foto, S3_BUCKET, novo_nome)
+                        foto_salva_nome = novo_nome
+                        app.logger.info(f"Upload para S3 bem-sucedido: {novo_nome}")
+                    except NoCredentialsError:
+                        app.logger.error("Credenciais da AWS não encontradas nas variáveis de ambiente.")
+                        flash("Erro de configuração do servidor: credenciais de upload não encontradas.", "danger")
+                        return redirect(url_for('cadastrar_leitura'))
+                    except Exception as e:
+                        app.logger.error(f"Erro no upload para o S3: {e}")
+                        flash("Erro ao enviar a foto para o armazenamento.", "danger")
+                        return redirect(url_for('cadastrar_leitura'))
+            
+            # A lógica de salvar no banco continua a mesma, mas agora com o nome do arquivo do S3
             with db.begin():
+                # Bloco de cálculo da fatura (mantido como estava)
                 leitura_anterior_db = db.execute(text("SELECT id, leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'cid': consumidor_id}).fetchone()
                 config = get_current_config()
                 consumo_m3 = 0
@@ -621,26 +643,30 @@ def cadastrar_leitura():
                 data_vencimento = None
                 leitura_anterior_valor = 0
                 data_leitura_anterior_obj = None
-                if not leitura_anterior_db:
-                    pass
-                else:
+
+                if leitura_anterior_db:
                     leitura_anterior_valor = int(leitura_anterior_db.leitura_atual)
                     data_leitura_anterior_obj = leitura_anterior_db.data_leitura_atual
                     if leitura_atual < leitura_anterior_valor:
                         raise ValueError('Leitura atual não pode ser menor que a anterior.')
                     consumo_m3 = leitura_atual - leitura_anterior_valor
+                    
                     valor_original = 0.0
-                    taxa_minima_valor = float(config.get('taxa_minima_consumo', 0.0))
+                    taxa_minima_valor = float(config.get('taxa_minima_consumo', 15.0))
                     taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
                     valor_m3_configurado = float(config.get('valor_m3', 0.0))
-                    if consumo_m3 <= taxa_minima_franquia:
+                    
+                    if leitura_anterior_valor > 0:
                         valor_original = taxa_minima_valor
-                    else:
-                        consumo_excedente = consumo_m3 - taxa_minima_franquia
-                        valor_excedente = consumo_excedente * valor_m3_configurado
-                        valor_original = taxa_minima_valor + valor_excedente
+                        if consumo_m3 > taxa_minima_franquia:
+                            consumo_excedente = consumo_m3 - taxa_minima_franquia
+                            valor_excedente = consumo_excedente * valor_m3_configurado
+                            valor_original = taxa_minima_valor + valor_excedente
+                    
                     dias_para_vencimento = int(config.get('dias_uteis_para_vencimento', 5))
                     data_vencimento = adicionar_dias_uteis(data_leitura_obj, dias_para_vencimento)
+
+                # INSERT no banco de dados
                 resultado = db.execute(text('''
                     INSERT INTO leituras (
                         consumidor_id, leitura_anterior, data_leitura_anterior,
@@ -651,38 +677,41 @@ def cadastrar_leitura():
                 '''), {
                     'cid': consumidor_id, 'l_ant': leitura_anterior_valor, 'd_ant': data_leitura_anterior_obj,
                     'l_atu': leitura_atual, 'd_atu': data_leitura_obj, 'consumo': consumo_m3,
-                    'val_orig': valor_original, 'venc': data_vencimento, 'foto': foto_salva,
+                    'val_orig': valor_original, 'venc': data_vencimento, 'foto': foto_salva_nome,
                     'v_m3': config.get('valor_m3'), 't_min_val': config.get('taxa_minima_consumo'), 
                     't_min_fran': config.get('taxa_minima_franquia_m3')
                 }).fetchone()
                 nova_leitura_id = resultado[0]
+
             flash('Leitura cadastrada com sucesso!', 'success')
             return redirect(url_for('comprovante_leitura', leitura_id=nova_leitura_id))
+
         except Exception as e:
             app.logger.error(f'Erro ao salvar leitura: {e}', exc_info=True)
             flash(f'Ocorreu um erro inesperado: {str(e)}', 'danger')
             return redirect(url_for('cadastrar_leitura'))
     
-    else: # Lógica GET (carregar a página)
+    else: # Lógica GET (não muda)
+        # ... (seu código GET existente aqui) ...
         consumidores = db.execute(text('SELECT id, nome FROM consumidores ORDER BY nome')).fetchall()
         consumidor_selecionado = request.args.get('consumidor_id', type=int)
         leitura_anterior_valor = '0'
         data_leitura_anterior_str = 'N/A'
-        data_leitura_anterior_iso = None # <-- Inicia como None
+        data_leitura_anterior_iso = None
 
         if consumidor_selecionado:
             ultima_leitura = db.execute(text("SELECT leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'cid': consumidor_selecionado}).fetchone()
             if ultima_leitura:
                 leitura_anterior_valor = str(int(ultima_leitura.leitura_atual))
                 data_leitura_anterior_str = ultima_leitura.data_leitura_atual.strftime('%d/%m/%Y')
-                data_leitura_anterior_iso = ultima_leitura.data_leitura_atual.isoformat() # <-- Define o valor se existir
+                data_leitura_anterior_iso = ultima_leitura.data_leitura_atual.isoformat()
 
         return render_template('cadastrar_leitura.html', 
                                consumidores=consumidores, 
                                consumidor_selecionado=consumidor_selecionado,
                                leitura_anterior=leitura_anterior_valor,
                                data_leitura_anterior=data_leitura_anterior_str,
-                               data_leitura_anterior_iso=data_leitura_anterior_iso, # <-- Variável enviada
+                               data_leitura_anterior_iso=data_leitura_anterior_iso,
                                today_date=date.today().isoformat())
     
 # --- Registrar Pagamento (AGORA COM A LÓGICA WHATSAPP EMBUTIDA) ---
@@ -1555,15 +1584,32 @@ def comprovante_leitura(leitura_id):
 
 #-----------------Funçao para mostrar imagem do hidrometro PDF whatsapp
 def get_image_base64_string(foto_filename):
+    """
+    Busca uma imagem do S3, a baixa em memória e a converte para base64.
+    """
     if not foto_filename:
         return None
-    foto_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'fotos_hidrometros', foto_filename)
-    if os.path.exists(foto_path):
-        with open(foto_path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-            mime_type = guess_type(foto_path)[0] or 'image/jpeg'
-            return f"data:{mime_type};base64,{encoded_string}"
-    return None
+
+    S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
+    AWS_REGION = os.environ.get('AWS_REGION')
+    
+    # Constrói a URL pública do objeto no S3
+    url = f"https://{S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{foto_filename}"
+
+    try:
+        # Faz o download da imagem a partir da URL
+        response = requests.get(url, stream=True)
+        response.raise_for_status() # Lança um erro se a imagem não for encontrada
+
+        # Codifica a imagem para base64
+        encoded_string = base64.b64encode(response.content).decode('utf-8')
+        mime_type = response.headers.get('Content-Type', 'image/jpeg')
+        
+        return f"data:{mime_type};base64,{encoded_string}"
+
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Erro ao baixar a imagem do S3 pela URL {url}: {e}")
+        return None
 
 #-------Visualizar e Baixar PDF da Leitura----------------------------
 @app.route('/download-leitura-pdf/<int:leitura_id>')
