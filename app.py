@@ -982,7 +982,7 @@ def editar_leitura(id):
         )
         
     
-#------------------------Excluir Leitura----------------------------    
+#------------------------Excluir Leitura----------------------Ajustando o x do Vercel    
 @app.route('/leitura/excluir/<int:id>', methods=['POST'])
 @login_required
 def excluir_leitura(id):
