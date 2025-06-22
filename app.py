@@ -855,22 +855,15 @@ def get_leitura_details(leitura_id):
         
     return jsonify(dados_para_enviar)
 
-#------------ editar_leitura (VERSÃO FINAL E CORRIGIDA) ------------------
+#------------ editar_leitura (VERSÃO FINAL COM TRANSAÇÃO CORRIGIDA) ------------------
 @app.route('/leitura/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_leitura(id):
     db = get_db()
 
-    # --- Lógica para POST (Salvar as Alterações) ---
     if request.method == 'POST':
         try:
-            # Trava de segurança: Verifica se já existe pagamento ANTES de qualquer outra coisa.
-            pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
-            if pagamento_existente:
-                flash("Não é possível editar esta leitura, pois já existem pagamentos registrados para ela.", "danger")
-                # Redireciona de volta para a própria página de edição para mostrar o erro.
-                return redirect(url_for('editar_leitura', id=id))
-
+            # PASSO 1: Lógica de upload de arquivo (fora da transação do banco)
             foto_salva_nome = None
             if 'foto_hidrometro' in request.files:
                 foto = request.files['foto_hidrometro']
@@ -888,9 +881,6 @@ def editar_leitura(id):
                         region_name=os.environ.get('AWS_REGION')
                     )
                     S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
-
-                    # --- CORREÇÃO CIRÚRGICA APLICADA AQUI ---
-                    # Removemos o parâmetro 'ACL' para ser compatível com as configurações modernas do S3.
                     s3.upload_fileobj(
                         foto,
                         S3_BUCKET,
@@ -900,35 +890,43 @@ def editar_leitura(id):
                     foto_salva_nome = novo_nome
                     app.logger.info(f"Upload para S3 na edição bem-sucedido: {novo_nome}")
 
-            # Lógica de recálculo
-            nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
-            nova_data_leitura = request.form['data_leitura_atual']
-            
-            leitura_atual_db = db.execute(text("SELECT * FROM leituras WHERE id = :id"), {'id': id}).fetchone()
-            leitura_anterior_valor = float(leitura_atual_db.leitura_anterior)
-
-            if nova_leitura_atual < leitura_anterior_valor:
-                raise ValueError('A leitura atual não pode ser menor que a leitura anterior.')
-
-            consumo_m3 = nova_leitura_atual - leitura_anterior_valor
-            config = get_current_config()
-            
-            valor_original_recalculado = float(leitura_atual_db.valor_original) if leitura_atual_db.valor_original is not None else 0.0
-
-            if leitura_atual_db.valor_original is not None:
-                taxa_minima_valor = float(leitura_atual_db.taxa_minima_valor_usada or config.get('taxa_minima_consumo', 15.0))
-                taxa_minima_franquia = float(leitura_atual_db.taxa_minima_franquia_usada or config.get('taxa_minima_franquia_m3', 10.0))
-                valor_m3_usado = float(leitura_atual_db.valor_m3_usado or config.get('valor_m3', 0.0))
-                
-                if consumo_m3 <= taxa_minima_franquia:
-                    valor_original_recalculado = taxa_minima_valor
-                else:
-                    consumo_excedente = consumo_m3 - taxa_minima_franquia
-                    valor_excedente = consumo_excedente * valor_m3_usado
-                    valor_original_recalculado = taxa_minima_valor + valor_excedente
-            
-            # --- TRANSAÇÃO ÚNICA PARA O UPDATE ---
+            # PASSO 2: Inicia a transação ÚNICA para todas as operações de banco de dados
             with db.begin():
+                # Todas as consultas e cálculos agora estão DENTRO da transação
+                
+                # Trava de segurança
+                pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
+                if pagamento_existente:
+                    raise ValueError("Não é possível editar esta leitura, pois já existem pagamentos registrados para ela.")
+
+                # Lógica de recálculo
+                nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
+                nova_data_leitura = request.form['data_leitura_atual']
+                
+                leitura_atual_db = db.execute(text("SELECT * FROM leituras WHERE id = :id"), {'id': id}).fetchone()
+                leitura_anterior_valor = float(leitura_atual_db.leitura_anterior)
+
+                if nova_leitura_atual < leitura_anterior_valor:
+                    raise ValueError('A leitura atual não pode ser menor que a leitura anterior.')
+
+                consumo_m3 = nova_leitura_atual - leitura_anterior_valor
+                config = get_current_config()
+                
+                valor_original_recalculado = float(leitura_atual_db.valor_original) if leitura_atual_db.valor_original is not None else 0.0
+
+                if leitura_atual_db.valor_original is not None:
+                    taxa_minima_valor = float(leitura_atual_db.taxa_minima_valor_usada or config.get('taxa_minima_consumo', 15.0))
+                    taxa_minima_franquia = float(leitura_atual_db.taxa_minima_franquia_usada or config.get('taxa_minima_franquia_m3', 10.0))
+                    valor_m3_usado = float(leitura_atual_db.valor_m3_usado or config.get('valor_m3', 0.0))
+                    
+                    if consumo_m3 <= taxa_minima_franquia:
+                        valor_original_recalculado = taxa_minima_valor
+                    else:
+                        consumo_excedente = consumo_m3 - taxa_minima_franquia
+                        valor_excedente = consumo_excedente * valor_m3_usado
+                        valor_original_recalculado = taxa_minima_valor + valor_excedente
+                
+                # Construção e execução do UPDATE
                 params = {
                     'l_atu': nova_leitura_atual, 'd_atu': nova_data_leitura,
                     'consumo': consumo_m3, 'val_orig': valor_original_recalculado,
@@ -943,19 +941,21 @@ def editar_leitura(id):
                 query_update_str += " WHERE id = :id"
                 db.execute(text(query_update_str), params)
 
+            # Se o bloco 'with' terminar sem erros, a transação é salva (commit).
             flash('Leitura atualizada com sucesso!', 'success')
             return redirect(url_for('listar_leituras'))
 
-        except ValueError as e:
+        except ValueError as e: # Captura erros de validação (ex: pagamento existente, leitura menor)
             flash(f'Erro de Validação: {str(e)}', 'danger')
             return redirect(url_for('editar_leitura', id=id))
-        except Exception as e:
+        except Exception as e: # Captura outros erros inesperados
             flash('Ocorreu um erro inesperado ao atualizar a leitura.', 'danger')
             app.logger.error(f"Erro ao editar leitura ID {id}: {e}", exc_info=True)
             return redirect(url_for('editar_leitura', id=id))
 
     # --- Lógica para GET (Carregar a página) ---
     else:
+        # A lógica GET continua a mesma, está correta.
         resultado_bruto = db.execute(text("SELECT l.*, c.nome as nome_consumidor FROM leituras l JOIN consumidores c ON l.consumidor_id = c.id WHERE l.id = :id"), {'id': id}).fetchone()
         if not resultado_bruto:
             flash("Leitura não encontrada.", "danger")
