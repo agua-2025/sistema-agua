@@ -3,18 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Editar Consumidor - Águas de Santa Maria</title>
-    <!-- Bootstrap CSS -->
+    <title>Editar Consumidor | Águas de Santa Maria</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <!-- Font Awesome para Ícones -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <!-- Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
@@ -24,17 +21,13 @@
         font-family: "Inter", sans-serif;
         background-color: #f4f7f9;
       }
-      .container-form {
+      .form-container {
         background-color: #ffffff;
         padding: 2.5rem;
         border-radius: 12px;
         box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
-        margin: 20px auto;
+        margin: 2rem auto;
         max-width: 800px;
-      }
-      .form-header {
-        text-align: center;
-        margin-bottom: 2rem;
       }
       .form-header h3 {
         color: #0d6efd;
@@ -43,36 +36,29 @@
       .form-label {
         font-weight: 500;
         color: #495057;
-        margin-bottom: 0.5rem;
       }
-      .form-label .fas {
-        margin-right: 8px;
-        color: #0d6efd;
-      }
-      .btn-primary {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-      }
-      .btn-primary:hover {
-        background-color: #0b5ed7;
-        border-color: #0a58ca;
+      .form-control[readonly] {
+        background-color: #e9ecef;
+        cursor: not-allowed;
       }
     </style>
   </head>
   <body class="bg-light">
-    <div class="container container-form">
-      <div class="form-header">
-        <h3><i class="fas fa-user-edit"></i> Editar Dados do Consumidor</h3>
-        <p class="text-muted">
-          Altere os campos necessários e clique em salvar.
-        </p>
-      </div>
+    <div class="container">
+      <div class="form-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="text-primary m-0">
+            <i class="fas fa-user-edit me-2"></i> Editar Consumidor
+          </h3>
+          <a
+            href="{{ url_for('listar_consumidores') }}"
+            class="btn btn-secondary"
+            ><i class="fas fa-arrow-left me-1"></i> Voltar</a
+          >
+        </div>
 
-      <!-- Alertas de Mensagens -->
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <div class="mb-3">
-        {% for category, message in messages %}
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %} {% for category, message in messages %}
         <div
           class="alert alert-{{ category }} alert-dismissible fade show"
           role="alert"
@@ -85,118 +71,118 @@
             aria-label="Close"
           ></button>
         </div>
-        {% endfor %}
+        {% endfor %} {% endif %} {% endwith %}
+
+        <form method="POST">
+          <h5 class="mb-3 border-bottom pb-2">Dados Pessoais</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-12">
+              <label for="nome" class="form-label">Nome Completo *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="nome"
+                name="nome"
+                value="{{ consumidor.nome }}"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="cpf" class="form-label">CPF</label>
+              <input
+                type="text"
+                class="form-control"
+                id="cpf"
+                name="cpf"
+                value="{{ consumidor.cpf or '' }}"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="rg" class="form-label">RG</label>
+              <input
+                type="text"
+                class="form-control"
+                id="rg"
+                name="rg"
+                value="{{ consumidor.rg or '' }}"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="telefone" class="form-label">Telefone</label>
+              <input
+                type="text"
+                class="form-control"
+                id="telefone"
+                name="telefone"
+                value="{{ consumidor.telefone or '' }}"
+              />
+            </div>
+          </div>
+
+          <h5 class="mb-3 border-bottom pb-2">Dados de Endereço e Medição</h5>
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label for="endereco" class="form-label">Endereço Completo</label>
+              <input
+                type="text"
+                class="form-control"
+                id="endereco"
+                name="endereco"
+                value="{{ consumidor.endereco }}"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="hidrometro" class="form-label"
+                >Número do Hidrômetro</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="hidrometro"
+                name="hidrometro"
+                value="{{ consumidor.hidrometro_num }}"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="data_cadastro" class="form-label"
+                >Data de Cadastro</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="data_cadastro"
+                value="{{ consumidor.data_cadastro | date_format if consumidor.data_cadastro else 'N/A' }}"
+                readonly
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="leitura_inicial" class="form-label"
+                >Leitura Inicial Registrada (m³)</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="leitura_inicial"
+                value="{{ consumidor.leitura_inicial }}"
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="fas fa-save me-2"></i>Salvar Alterações
+            </button>
+          </div>
+        </form>
       </div>
-      {% endif %} {% endwith %}
-
-      <form method="POST">
-        <!-- Linha 1: Nome e CPF -->
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label for="nome" class="form-label"
-              ><i class="fas fa-user"></i> Nome Completo *</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="nome"
-              name="nome"
-              value="{{ consumidor.nome }}"
-              required
-            />
-          </div>
-          <div class="col-md-6 mb-3">
-            <label for="cpf" class="form-label"
-              ><i class="fas fa-id-card"></i> CPF *</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="cpf"
-              name="cpf"
-              value="{{ consumidor.cpf }}"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- Linha 2: RG e Endereço -->
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label for="rg" class="form-label"
-              ><i class="fas fa-address-card"></i> RG</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="rg"
-              name="rg"
-              value="{{ consumidor.rg or '' }}"
-            />
-          </div>
-          <div class="col-md-6 mb-3">
-            <label for="endereco" class="form-label"
-              ><i class="fas fa-map-marker-alt"></i> Endereço *</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="endereco"
-              name="endereco"
-              value="{{ consumidor.endereco }}"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- Linha 3: Telefone e Hidrômetro -->
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label for="telefone" class="form-label"
-              ><i class="fas fa-phone"></i> Telefone</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="telefone"
-              name="telefone"
-              value="{{ consumidor.telefone or '' }}"
-            />
-          </div>
-          <div class="col-md-6 mb-3">
-            <label for="hidrometro" class="form-label"
-              ><i class="fas fa-tint"></i> Nº Hidrômetro *</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="hidrometro"
-              name="hidrometro"
-              value="{{ consumidor.hidrometro_num }}"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- Botões de Ação -->
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-          <button type="submit" class="btn btn-primary px-4">
-            <i class="fas fa-save me-2"></i>Atualizar Cadastro
-          </button>
-          <a
-            href="{{ url_for('listar_consumidores') }}"
-            class="btn btn-secondary px-4"
-            ><i class="fas fa-arrow-left me-2"></i>Voltar</a
-          >
-        </div>
-      </form>
     </div>
 
-    <!-- Scripts: jQuery, jQuery Mask e Bootstrap -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+      // Seu script de máscaras original foi mantido
       $(document).ready(function () {
         $("#cpf").mask("000.000.000-00");
         $("#rg").mask("00.000.000-0");

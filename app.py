@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, g
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
 from werkzeug.utils import secure_filename
-from datetime import datetime, timedelta, date # Garante que date e datetime estão aqui
+from datetime import datetime, timedelta, date 
 import secrets
 import smtplib
 from email.mime.text import MIMEText
@@ -26,7 +26,7 @@ from urllib.parse import quote
 from flask import session 
 import base64
 from mimetypes import guess_type
-
+from datetime import date, datetime
 
 
 # --- NOVO: O "Tradutor" de JSON Definitivo ---
@@ -1245,7 +1245,7 @@ def cadastrar_usuario():
 
     return render_template('cadastrar_usuario.html')
 
-# --- Editar Consumidor (VERSÃO CORRIGIDA) ---
+#----------Editar Consumidor------------------------------
 @app.route('/editar-consumidor/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_consumidor(id):
@@ -1260,7 +1260,7 @@ def editar_consumidor(id):
         hidrometro_num = request.form['hidrometro']
 
         try:
-            with db.begin(): # Garante a transação segura
+            with db.begin():
                 db.execute(text("""
                     UPDATE consumidores 
                     SET nome = :nome, cpf = :cpf, rg = :rg, endereco = :endereco, telefone = :telefone, hidrometro_num = :hidrometro_num 
@@ -1278,21 +1278,32 @@ def editar_consumidor(id):
             app.logger.error(f"Erro ao editar consumidor: {str(e)}", exc_info=True)
             flash(f"Erro ao editar o consumidor: {str(e)}", "danger")
         
-        # Em caso de erro, recarrega os dados para exibir o formulário novamente
-        resultado_bruto = db.execute(text("SELECT * FROM consumidores WHERE id = :id"), {'id': id}).fetchone()
-        consumidor = resultado_bruto._asdict() if resultado_bruto else None
-        return render_template('editar_consumidor.html', consumidor=consumidor)
+        # Em caso de erro, redireciona de volta para a página de edição
+        return redirect(url_for('editar_consumidor', id=id))
 
-    # --- Lógica para GET (carregar a página de edição) ---
+    # --- Lógica para GET (carregar a página de edição) - VERSÃO CORRIGIDA ---
     else:
-        resultado_bruto = db.execute(text("SELECT * FROM consumidores WHERE id = :id"), {'id': id}).fetchone()
+        # 1. Busca os dados principais da tabela 'consumidores'
+        consumidor_bruto = db.execute(text("SELECT * FROM consumidores WHERE id = :id"), {'id': id}).fetchone()
         
-        if not resultado_bruto:
+        if not consumidor_bruto:
             flash("Consumidor não encontrado.", "error")
             return redirect(url_for('listar_consumidores'))
+        
+        consumidor = consumidor_bruto._asdict()
 
-        # Converte o resultado para dicionário antes de enviar para o template
-        consumidor = resultado_bruto._asdict()
+        # --- BLOCO ADICIONADO ---
+        # 2. Busca a primeira leitura ("marco zero") daquele consumidor para pegar o valor inicial
+        primeira_leitura = db.execute(text("""
+            SELECT leitura_atual FROM leituras 
+            WHERE consumidor_id = :cid 
+            ORDER BY data_leitura_atual ASC, id ASC LIMIT 1
+        """), {'cid': id}).fetchone()
+        
+        # 3. Adiciona a leitura inicial ao dicionário que será enviado para o HTML
+        consumidor['leitura_inicial'] = primeira_leitura.leitura_atual if primeira_leitura else 'Não encontrada'
+        # --- FIM DO BLOCO ADICIONADO ---
+        
         return render_template('editar_consumidor.html', consumidor=consumidor)
 
 
@@ -1313,15 +1324,6 @@ def excluir_consumidor(id):
         flash("Erro ao excluir o consumidor.", "error")
 
     return redirect(url_for('listar_consumidores'))
-
-# Adicione estes imports no topo do seu arquivo app.py
-from flask import Response
-from weasyprint import HTML
-from urllib.parse import quote
-# Garanta que estes também estão presentes
-from datetime import date, datetime
-# Seus outros imports...
-
 
 #----------------- Get_Fatura_Contexto------------
 # Em app.py, substitua a função _get_fatura_contexto inteira por esta versão final:
@@ -1673,56 +1675,46 @@ def relatorio_consumidores():
         flash("Ocorreu um erro ao gerar o relatório de consumidores.", "danger")
         return redirect(url_for('dashboard'))
     
-#----------------------Lançamentos de Leituras em Planilha---------------
+#----------------------Lançamentos de Leituras em Planilha (VERSÃO FINAL CORRIGIDA)---------------
 @app.route('/lancamento_leituras', methods=['GET', 'POST'])
 @login_required
 def lancamento_leituras():
+    """
+    Renderiza e processa a página de lançamento de leituras em massa.
+    - GET: Exibe a planilha de consumidores com os dados do mês/ano selecionado.
+    - POST: Salva as novas leituras inseridas no formulário.
+    """
     db = get_db()
-    
-    # Lógica para GET (Exibir a Planilha) - Sem alterações
-    if request.method == 'GET':
-        try:
-            hoje = datetime.now()
-            mes_competencia = request.args.get('mes', hoje.strftime('%m'))
-            ano_competencia = request.args.get('ano', hoje.strftime('%Y'))
-            todos_consumidores = db.execute(text("SELECT * FROM consumidores ORDER BY nome ASC")).fetchall()
-            query_leituras_feitas = text("SELECT * FROM leituras WHERE mes_competencia = :mes AND ano_competencia = :ano")
-            leituras_feitas_raw = db.execute(query_leituras_feitas, {'mes': int(mes_competencia), 'ano': int(ano_competencia)}).fetchall()
-            leituras_feitas_map = {l.consumidor_id: l._asdict() for l in leituras_feitas_raw}
-            dados_para_planilha = []
-            for consumidor in todos_consumidores:
-                consumidor_id = consumidor.id
-                ultima_leitura_geral = db.execute(text("SELECT leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'cid': consumidor_id}).fetchone()
-                dados_consumidor = {
-                    'consumidor_info': consumidor._asdict(),
-                    'leitura_anterior': ultima_leitura_geral.leitura_atual if ultima_leitura_geral else 0,
-                    'data_leitura_anterior': ultima_leitura_geral.data_leitura_atual.strftime('%d/%m/%Y') if ultima_leitura_geral and ultima_leitura_geral.data_leitura_atual else 'N/A',
-                    'leitura_do_mes': leituras_feitas_map.get(consumidor_id)
-                }
-                dados_para_planilha.append(dados_consumidor)
-            return render_template(
-                'lancamento_leituras.html',
-                dados_planilha=dados_para_planilha,
-                mes_selecionado=mes_competencia,
-                ano_selecionado=ano_competencia,
-                ano_atual=hoje.year
-            )
-        except Exception as e:
-            app.logger.error(f"Erro ao carregar a página de lançamento de leituras: {e}", exc_info=True)
-            flash("Ocorreu um erro ao carregar a planilha de leituras.", "danger")
-            return redirect(url_for('dashboard'))
+    hoje = datetime.now()
 
-    # --- LÓGICA PARA POST (Salvar os Dados) - VERSÃO SEGURA E CORRIGIDA ---
-    elif request.method == 'POST':
+    # --- O if/else começa aqui, DENTRO da função ---
+    if request.method == 'POST':
         form_data = request.form
         mes_competencia = form_data.get('mes_competencia')
         ano_competencia = form_data.get('ano_competencia')
         leituras_salvas = 0
-        erros_de_validacao = [] # Lista para guardar mensagens de erro
-
+        erros_de_validacao = []
+        
         try:
             with db.begin():
+                query_ultimas_leituras = text("""
+                    WITH RankedLeituras AS (
+                        SELECT 
+                            l.*,
+                            ROW_NUMBER() OVER(PARTITION BY consumidor_id ORDER BY data_leitura_atual DESC, id DESC) as rn
+                        FROM leituras l
+                    )
+                    SELECT * FROM RankedLeituras WHERE rn = 1;
+                """)
+                ultimas_leituras_raw = db.execute(query_ultimas_leituras).fetchall()
+                ultimas_leituras_map = {l.consumidor_id: l for l in ultimas_leituras_raw}
+
                 config = get_current_config()
+                taxa_minima_valor = float(config.get('taxa_minima_valor', 15.0))
+                taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
+                valor_m3_configurado = float(config.get('valor_m3', 0.0))
+                dias_uteis = int(config.get('dias_uteis_para_vencimento', 5))
+
                 todos_consumidores = db.execute(text("SELECT * FROM consumidores")).fetchall()
 
                 for consumidor in todos_consumidores:
@@ -1734,65 +1726,121 @@ def lancamento_leituras():
                         leitura_atual = int(leitura_atual_str)
                         data_leitura_obj = datetime.strptime(data_leitura_str, '%Y-%m-%d').date()
                         
-                        # Busca a última leitura REAL (cronológica) para validar
-                        ultima_leitura_real = db.execute(text("SELECT leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'cid': consumidor_id}).fetchone()
+                        ultima_leitura_real = ultimas_leituras_map.get(consumidor_id)
                         leitura_anterior_real = ultima_leitura_real.leitura_atual if ultima_leitura_real else 0
                         data_anterior_real = ultima_leitura_real.data_leitura_atual if ultima_leitura_real else None
                         
-                        # --- NOVAS TRAVAS DE SEGURANÇA ---
                         if data_anterior_real and data_leitura_obj <= data_anterior_real:
                             erros_de_validacao.append(f"Para {consumidor.nome}: A data da nova leitura deve ser posterior à última data registrada ({data_anterior_real.strftime('%d/%m/%Y')}).")
-                            continue # Pula para o próximo consumidor
-
+                            continue
                         if leitura_atual < leitura_anterior_real:
                             erros_de_validacao.append(f"Para {consumidor.nome}: A nova leitura ({leitura_atual}) não pode ser menor que a anterior ({leitura_anterior_real}).")
-                            continue # Pula para o próximo consumidor
-                        # --- FIM DAS TRAVAS ---
+                            continue
 
-                        # Se passou nas validações, prossegue com o cálculo e salvamento
                         consumo_m3 = leitura_atual - leitura_anterior_real
+                        
+                        if leitura_anterior_real < 500 and leitura_atual > 500:
+                            consumo_m3_final = 0
+                        else:
+                            consumo_m3_final = consumo_m3
+
                         valor_original = 0.0
-                        if consumo_m3 > 0:
-                            # ... (lógica de cálculo da fatura) ...
-                            taxa_minima_valor = float(config.get('taxa_minima_consumo', 0.0))
-                            taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
-                            valor_m3_configurado = float(config.get('valor_m3', 0.0))
-                            if consumo_m3 <= taxa_minima_franquia:
-                                valor_original = taxa_minima_valor
-                            else:
+                        if leitura_anterior_real > 0:
+                            valor_original = taxa_minima_valor
+                            if consumo_m3 > taxa_minima_franquia:
                                 consumo_excedente = consumo_m3 - taxa_minima_franquia
                                 valor_excedente = consumo_excedente * valor_m3_configurado
                                 valor_original = taxa_minima_valor + valor_excedente
                         
-                        dias_uteis = int(config.get('dias_uteis_para_vencimento', 5))
                         data_vencimento = adicionar_dias_uteis(data_leitura_obj, dias_uteis)
 
                         db.execute(text("""
-                            INSERT INTO leituras (consumidor_id, leitura_anterior, data_leitura_anterior, leitura_atual, data_leitura_atual, consumo_m3, valor_original, vencimento, mes_competencia, ano_competencia)
-                            VALUES (:cid, :l_ant, :d_ant, :l_atu, :d_atu, :consumo, :val_orig, :venc, :mes_comp, :ano_comp)
+                            INSERT INTO leituras (
+                                consumidor_id, leitura_anterior, data_leitura_anterior, 
+                                leitura_atual, data_leitura_atual, consumo_m3, valor_original, 
+                                vencimento, mes_competencia, ano_competencia,
+                                valor_m3_usado, taxa_minima_valor_usada, taxa_minima_franquia_usada
+                            )
+                            VALUES (
+                                :cid, :l_ant, :d_ant, :l_atu, :d_atu, :consumo, :val_orig, 
+                                :venc, :mes_comp, :ano_comp,
+                                :v_m3_usado, :t_min_val_usada, :t_min_fran_usada
+                            )
                         """), {
                             'cid': consumidor_id, 'l_ant': leitura_anterior_real, 'd_ant': data_anterior_real,
-                            'l_atu': leitura_atual, 'd_atu': data_leitura_obj, 'consumo': consumo_m3,
+                            'l_atu': leitura_atual, 'd_atu': data_leitura_obj, 
+                            'consumo': consumo_m3_final, 
                             'val_orig': valor_original, 'venc': data_vencimento,
-                            'mes_comp': int(mes_competencia), 'ano_comp': int(ano_competencia)
+                            'mes_comp': int(mes_competencia), 'ano_comp': int(ano_competencia),
+                            'v_m3_usado': valor_m3_configurado,
+                            't_min_val_usada': taxa_minima_valor,
+                            't_min_fran_usada': taxa_minima_franquia
                         })
                         leituras_salvas += 1
             
-            # Exibe as mensagens de sucesso e de erro (se houver)
             if leituras_salvas > 0:
                 flash(f"{leituras_salvas} leitura(s) foram salvas com sucesso!", "success")
             if erros_de_validacao:
                 for erro in erros_de_validacao:
-                    flash(erro, "danger") # Mostra os erros específicos
-            elif leituras_salvas == 0:
+                    flash(erro, "danger")
+            elif leituras_salvas == 0 and not erros_de_validacao:
                 flash("Nenhuma nova leitura foi preenchida para salvar.", "info")
 
             return redirect(url_for('lancamento_leituras', mes=mes_competencia, ano=ano_competencia))
 
         except Exception as e:
             app.logger.error(f"Erro ao salvar leituras em massa: {e}", exc_info=True)
-            flash("Ocorreu um erro inesperado ao tentar salvar as leituras.", "danger")
-            return redirect(url_for('lancamento_leituras', mes=mes_competencia, ano=ano_competencia))
+            flash("Ocorreu um erro inesperado ao tentar salvar as leituras. A operação foi cancelada.", "danger")
+            return redirect(url_for('lancamento_leituras', mes=request.form.get('mes_competencia'), ano=request.form.get('ano_competencia')))
+
+    # --- Lógica para GET (carregar a página) ---
+    else:
+        try:
+            mes_competencia = request.args.get('mes', hoje.strftime('%m'))
+            ano_competencia = request.args.get('ano', hoje.strftime('%Y'))
+            
+            todos_consumidores = db.execute(text("SELECT * FROM consumidores ORDER BY nome ASC")).fetchall()
+            
+            query_ultimas_leituras = text("""
+                WITH RankedLeituras AS (
+                    SELECT l.*, ROW_NUMBER() OVER(PARTITION BY consumidor_id ORDER BY data_leitura_atual DESC, id DESC) as rn
+                    FROM leituras l
+                )
+                SELECT * FROM RankedLeituras WHERE rn = 1;
+            """)
+            ultimas_leituras_raw = db.execute(query_ultimas_leituras).fetchall()
+            ultimas_leituras_map = {l.consumidor_id: l for l in ultimas_leituras_raw}
+
+            query_leituras_feitas = text("SELECT * FROM leituras WHERE mes_competencia = :mes AND ano_competencia = :ano")
+            leituras_feitas_raw = db.execute(query_leituras_feitas, {'mes': int(mes_competencia), 'ano': int(ano_competencia)}).fetchall()
+            leituras_feitas_map_mes_corrente = {l.consumidor_id: l for l in leituras_feitas_raw}
+            
+            dados_para_planilha = []
+            for consumidor in todos_consumidores:
+                consumidor_id = consumidor.id
+                ultima_leitura_geral = ultimas_leituras_map.get(consumidor_id)
+                
+                dados_consumidor = {
+                    'consumidor_info': consumidor._asdict(),
+                    'leitura_anterior': ultima_leitura_geral.leitura_atual if ultima_leitura_geral else 0,
+                    'data_leitura_anterior': ultima_leitura_geral.data_leitura_atual.strftime('%d/%m/%Y') if ultima_leitura_geral and ultima_leitura_geral.data_leitura_atual else 'N/A',
+                    'ultima_leitura_data_iso': ultima_leitura_geral.data_leitura_atual.isoformat() if ultima_leitura_geral and ultima_leitura_geral.data_leitura_atual else None,
+                    'leitura_do_mes': leituras_feitas_map_mes_corrente.get(consumidor_id)
+                }
+                dados_para_planilha.append(dados_consumidor)
+            
+            return render_template(
+                'lancamento_leituras.html',
+                dados_planilha=dados_para_planilha,
+                mes_selecionado=mes_competencia,
+                ano_selecionado=ano_competencia,
+                ano_atual=hoje.year,
+                today_date=hoje.strftime('%Y-%m-%d')
+            )
+        except Exception as e:
+            app.logger.error(f"Erro ao carregar a página de lançamento de leituras: {e}", exc_info=True)
+            flash("Ocorreu um erro ao carregar a planilha de leituras.", "danger")
+            return redirect(url_for('dashboard'))
         
 # --- Listar Leituras (VERSÃO FINAL E CORRIGIDA PARA POSTGRESQL) ---
 @app.route('/leituras')
@@ -1874,7 +1922,7 @@ def listar_leituras():
         flash("Ocorreu um erro ao carregar o relatório de leituras.", "danger")
         return redirect(url_for('dashboard'))
 
-# --- Relatório Geral (VERSÃO COMPLETA E CORRIGIDA) ---
+# --- Relatório Geral (VERSÃO FINAL E CORRIGIDA) ---
 @app.route('/relatorio-geral')
 @login_required
 def relatorio_geral():
@@ -1884,6 +1932,7 @@ def relatorio_geral():
     try:
         db = get_db()
         hoje = datetime.now()
+        # Filtra pelo mês e ano atuais.
         mes_atual = hoje.strftime('%m')
         ano_atual = hoje.strftime('%Y')
 
@@ -1902,10 +1951,10 @@ def relatorio_geral():
         # 3. Saldo do Mês
         saldo_mes = total_receitas_mes - total_despesas_mes
 
-        # 4. Total de Consumidores
+        # 4. Total de Consumidores Ativos
         total_consumidores = db.execute(text("SELECT COUNT(id) FROM consumidores")).fetchone()[0]
 
-        # 5. Total de Faturas Pendentes
+        # 5. Total de Faturas Pendentes (Inadimplência)
         faturas_pendentes = db.execute(text('''
             WITH PagamentosAgregados AS (
                 SELECT
@@ -1922,7 +1971,10 @@ def relatorio_geral():
             WHERE (l.valor_original + COALESCE(p.total_multa, 0) + COALESCE(p.total_juros, 0)) > (COALESCE(p.total_pago, 0) + 0.001)
         ''')).fetchone()[0]
 
+        # ======================================================================
         # 6. Consumo Total de Água no Mês (AQUI ESTÁ A CORREÇÃO PRINCIPAL)
+        # Trocamos SUM(leitura_atual) por SUM(consumo_m3)
+        # ======================================================================
         consumo_total_mes = db.execute(text("""
             SELECT COALESCE(SUM(consumo_m3), 0) FROM leituras 
             WHERE TO_CHAR(data_leitura_atual, 'MM') = :mes AND TO_CHAR(data_leitura_atual, 'YYYY') = :ano

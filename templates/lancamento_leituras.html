@@ -6,20 +6,90 @@
     <title>Lançamento de Leituras | Águas de Santa Maria</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; }
-        .main-card { background-color: #ffffff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08); }
-        .table-input { min-width: 120px; }
-        .form-control[readonly] { background-color: #e9ecef; cursor: not-allowed; }
-        .output-cell { font-weight: 500; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+            font-size: 0.95rem; /* Fonte base um pouco menor */
+        }
+
+        .main-card {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.07);
+            border: 1px solid #e9ecef;
+        }
+
+        .card-header-custom {
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 1rem;
+        }
+
+        .filter-card {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
+        .form-control[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            font-weight: 500;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .table {
+            font-size: 0.9rem; /* Fonte da tabela reduzida */
+        }
+        
+        .table th, .table td {
+            vertical-align: middle;
+        }
+
+        .table thead th {
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 0.8rem; /* Cabeçalho da tabela também reduzido */
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        
+        .output-cell {
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* --- AJUSTE DE LARGURA DAS COLUNAS --- */
+        /* Colunas com largura mais fixa para dar espaço à coluna do consumidor */
+        .col-status { width: 5%; }
+        .col-leitura-ant { width: 10%; }
+        .col-data-ant { width: 10%; }
+        .col-input-leitura { width: 13%; }
+        .col-input-data { width: 13%; }
+        .col-calculo { width: 9%; }
+        /* A coluna .col-consumidor não tem largura definida, ela ocupará o espaço restante */
+
     </style>
 </head>
 <body>
-    <div class="container-fluid mt-4">
+    <div class="container-fluid my-4">
         <div class="main-card">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3><i class="bi bi-card-checklist me-2"></i>Lançamento de Leituras do Mês</h3>
-                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i> Voltar</a>
+            <div class="d-flex justify-content-between align-items-center mb-4 card-header-custom">
+                <h3 class="mb-0 h4"><i class="bi bi-water me-2"></i>Lançamento de Leituras do Mês</h3>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Voltar ao Painel</a>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -34,24 +104,25 @@
                 </div>
               {% endif %}
             {% endwith %}
-            <div class="bg-light border p-3 mb-4 rounded">
+
+            <div class="bg-light border p-3 mb-4 rounded filter-card">
                 <form method="get" class="row g-3 align-items-end">
                     <div class="col-md-5">
                         <label for="mes" class="form-label fw-bold">Selecione a Competência</label>
-                        <select name="mes" id="mes" class="form-select">
+                        <select name="mes" id="mes" class="form-select form-select-sm">
                             {% for m in range(1,13) %}
-                            <option value="{{ '%02d'|format(m) }}" {% if mes_selecionado == ('%02d'|format(m)) %}selected{% endif %}>
-                                {{ ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m-1] }}
-                            </option>
+                                <option value="{{ '%02d'|format(m) }}" {% if mes_selecionado == ('%02d'|format(m)) %}selected{% endif %}>
+                                    {{ ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m-1] }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label for="ano" class="form-label visually-hidden">Ano</label>
-                        <input type="number" name="ano" id="ano" class="form-control" value="{{ ano_selecionado or ano_atual }}" min="2020" max="{{ ano_atual + 1 }}" step="1" required>
+                        <label for="ano" class="form-label fw-bold">Ano</label>
+                        <input type="number" name="ano" id="ano" class="form-control form-control-sm" value="{{ ano_selecionado or ano_atual }}" min="2020" max="{{ ano_atual + 1 }}" step="1" required>
                     </div>
-                    <div class="col-md-3 d-flex">
-                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i> Carregar</button>
+                    <div class="col-md-3 d-grid">
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-filter me-2"></i>Carregar Leituras</button>
                     </div>
                 </form>
             </div>
@@ -63,59 +134,173 @@
                     <table class="table table-bordered table-hover align-middle">
                         <thead class="table-light text-center">
                             <tr>
-                                <th>Status</th>
-                                <th class="text-start">Consumidor</th>
-                                <th>Leitura Anterior</th>
-                                <th>Data Anterior</th>
-                                <th>Leitura Atual (m³)</th>
-                                <th>Data da Leitura</th>
-                                <th>Consumo</th>
-                                <th>Valor Fatura</th>
-                                <th>Vencimento</th>
+                                <th class="col-status">Status</th>
+                                <th class="text-start col-consumidor">Consumidor</th>
+                                <th class="col-leitura-ant"><i class="bi bi-speedometer2 me-1"></i>Leitura Ant.</th>
+                                <th class="col-data-ant"><i class="bi bi-calendar-event me-1"></i>Data Ant.</th>
+                                <th class="col-input-leitura"><i class="bi bi-speedometer me-1"></i>Leitura Atual (m³)</th>
+                                <th class="col-input-data"><i class="bi bi-calendar-plus me-1"></i>Data da Leitura</th>
+                                <th class="col-calculo">Consumo</th>
+                                <th class="col-calculo">Valor</th>
+                                <th class="col-calculo">Vencimento</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in dados_planilha %}
-                            <tr>
+                            <tr id="row-{{ item.consumidor_info.id }}">
                                 <td class="text-center">
                                     {% if item.leitura_do_mes %}
-                                        <span class="badge bg-success" title="Leitura já realizada"><i class="bi bi-check-circle-fill"></i></span>
+                                        <span class="badge text-bg-success" title="Leitura já realizada"><i class="bi bi-check-circle-fill"></i></span>
                                     {% else %}
-                                        <span class="badge bg-warning" title="Leitura pendente"><i class="bi bi-hourglass-split"></i></span>
+                                        <span class="badge text-bg-warning" title="Leitura pendente"><i class="bi bi-hourglass-split"></i></span>
                                     {% endif %}
                                 </td>
-                                <td class="text-start">{{ item.consumidor_info.nome }}</td>
-                                <td class="text-center">{{ item.leitura_anterior }} m³</td>
-                                <td class="text-center">{{ item.data_leitura_anterior }}</td>
+                                <td class="text-start fw-medium">{{ item.consumidor_info.nome }}</td>
+                                <td class="text-center" id="leitura_ant_{{ item.consumidor_info.id }}">{{ '%g'|format(item.leitura_anterior|float) }}</td>
+                                <td class="text-center" id="data_ant_{{ item.consumidor_info.id }}">{{ item.data_leitura_anterior }}</td>
                                 <td>
                                     {% if item.leitura_do_mes %}
-                                        <input type="text" class="form-control table-input mx-auto" value="{{ item.leitura_do_mes.leitura_atual }}" readonly>
+                                        <input type="text" class="form-control form-control-sm text-center" value="{{ '%g'|format(item.leitura_do_mes.leitura_atual|int) }}" readonly>
                                     {% else %}
-                                        <input type="number" name="leitura_atual_{{ item.consumidor_info.id }}" class="form-control table-input mx-auto">
+                                        <input type="number" name="leitura_atual_{{ item.consumidor_info.id }}" id="leitura_atual_{{ item.consumidor_info.id }}" class="form-control form-control-sm text-center calc-trigger" data-id="{{ item.consumidor_info.id }}" step="any" min="0">
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if item.leitura_do_mes %}
-                                        <input type="text" class="form-control table-input mx-auto" 
-                                               value="{{ item.leitura_do_mes.data_leitura_atual.strftime('%d/%m/%Y') if item.leitura_do_mes.data_leitura_atual else '' }}" readonly>
+                                        <input type="text" class="form-control form-control-sm text-center" value="{{ item.leitura_do_mes.data_leitura_atual.strftime('%d/%m/%Y') if item.leitura_do_mes.data_leitura_atual else '' }}" readonly>
                                     {% else %}
-                                        <input type="date" name="data_leitura_{{ item.consumidor_info.id }}" class="form-control table-input mx-auto">
+                                        <input type="date" name="data_leitura_{{ item.consumidor_info.id }}" id="data_leitura_{{ item.consumidor_info.id }}" class="form-control form-control-sm text-center calc-trigger" data-id="{{ item.consumidor_info.id }}" {% if item.ultima_leitura_data_iso %}min="{{ item.ultima_leitura_data_iso }}"{% endif %} ... {# max="{{ today_date }}" #}>
                                     {% endif %}
                                 </td>
-                                <td class="text-center output-cell">--</td>
-                                <td class="text-center output-cell">--</td>
-                                <td class="text-center output-cell">--</td>
+                                <td class="output-cell" id="consumo_out_{{ item.consumidor_info.id }}">
+                                    {% if item.leitura_do_mes %}{{ '%g'|format(item.leitura_do_mes.consumo_m3|int) }} m³{% else %}--{% endif %}
+                                </td>
+                                <td class="output-cell text-success fw-bold" id="valor_out_{{ item.consumidor_info.id }}">
+                                     {% if item.leitura_do_mes and item.leitura_do_mes.valor_original is not none %}R$ {{ "%.2f"|format(item.leitura_do_mes.valor_original|float) | replace('.', ',') }}{% elif item.leitura_do_mes and item.leitura_do_mes.valor_original is none %}R$ 0,00{% else %}--{% endif %}
+                                </td>
+                                <td class="output-cell" id="vencimento_out_{{ item.consumidor_info.id }}">
+                                    {% if item.leitura_do_mes and item.leitura_do_mes.vencimento %}{{ item.leitura_do_mes.vencimento.strftime('%d/%m/%Y') }}{% else %}--{% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                <div class="d-flex justify-content-end mt-3">
-                    <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-check-all me-2"></i>Salvar Leituras Preenchidas</button>
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" id="saveButton" class="btn btn-success"><i class="bi bi-check-all me-2"></i>Salvar Leituras Preenchidas</button>
                 </div>
             </form>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let config = {};
+        // Busca as configurações da API ao carregar a página
+        fetch('/api/configuracoes-leitura')
+            .then(response => response.json())
+            .then(data => { 
+                // Garante que os valores numéricos sejam tratados como números
+                config.taxa_minima_valor = parseFloat(data.taxa_minima_valor);
+                config.taxa_minima_franquia_m3 = parseFloat(data.taxa_minima_franquia_m3);
+                config.valor_m3 = parseFloat(data.valor_m3);
+                config.dias_uteis = parseInt(data.dias_uteis, 10);
+            })
+            .catch(error => console.error('Erro ao buscar configurações:', error));
+
+        function calcularLinha(consumerId) {
+            if (isNaN(config.taxa_minima_valor)) return;
+
+            // --- 1. Obter todos os elementos e valores ---
+            const leituraAntElem = document.getElementById(`leitura_ant_${consumerId}`);
+            const leituraAntVal = parseFloat(leituraAntElem.textContent.replace(' m³', '')) || 0;
+
+            const leituraAtualInput = document.getElementById(`leitura_atual_${consumerId}`);
+            const dataAtualInput = document.getElementById(`data_leitura_${consumerId}`);
+            if (!leituraAtualInput || !dataAtualInput) return;
+
+            const leituraAtualVal = parseFloat(leituraAtualInput.value) || 0;
+            const dataAtualVal = dataAtualInput.value;
+
+            const consumoOut = document.getElementById(`consumo_out_${consumerId}`);
+            const valorOut = document.getElementById(`valor_out_${consumerId}`);
+            const vencimentoOut = document.getElementById(`vencimento_out_${consumerId}`);
+            const saveButton = document.getElementById('saveButton');
+
+            consumoOut.textContent = '--';
+            valorOut.textContent = '--';
+            vencimentoOut.textContent = '--';
+
+            // --- 2. Validação de Leitura Inválida ---
+            if (leituraAtualVal > 0 && leituraAtualVal < leituraAntVal) {
+                leituraAtualInput.classList.add('is-invalid');
+                leituraAtualInput.title = 'A leitura atual não pode ser menor que a anterior.';
+                saveButton.disabled = true;
+                return;
+            } else {
+                leituraAtualInput.classList.remove('is-invalid');
+                leituraAtualInput.title = '';
+                saveButton.disabled = false;
+            }
+
+            if (!leituraAtualInput.value) {
+                return;
+            }
+
+            // --- 3. Cálculo e Exibição do Consumo ---
+            const consumo = leituraAtualVal - leituraAntVal;
+            consumoOut.textContent = `${consumo.toLocaleString('pt-BR')} m³`;
+
+            // --- 4. Cálculo e Exibição do Valor da Fatura (LÓGICA CORRIGIDA) ---
+            let valorFinal = 0.0;
+            
+            // A única exceção para não cobrar é a primeira leitura (fatura informativa).
+            if (leituraAntVal > 0) {
+                // Para todos os outros, a cobrança PARTE da taxa mínima.
+                valorFinal = config.taxa_minima_valor;
+                
+                // Se o consumo ultrapassar a franquia, calcula e soma o valor excedente.
+                if (consumo > config.taxa_minima_franquia_m3) {
+                    const consumoExcedente = consumo - config.taxa_minima_franquia_m3;
+                    const valorExcedente = consumoExcedente * config.valor_m3;
+                    valorFinal = config.taxa_minima_valor + valorExcedente;
+                }
+            }
+            // Se for a primeira leitura (leituraAntVal === 0), o valorFinal permanece 0.0.
+            
+            valorOut.textContent = 'R$ ' + valorFinal.toFixed(2).replace('.', ',');
+
+
+            // --- 5. Cálculo e Exibição do Vencimento ---
+            if (dataAtualVal) {
+                if (leituraAntVal === 0) {
+                    vencimentoOut.textContent = 'Informativa';
+                } else {
+                    let dataVenc = new Date(dataAtualVal + 'T12:00:00');
+                    if (!isNaN(dataVenc)) {
+                        let diasUteis = config.dias_uteis || 5;
+                        let diasAdicionados = 0;
+                        while (diasAdicionados < diasUteis) {
+                            dataVenc.setDate(dataVenc.getDate() + 1);
+                            if (dataVenc.getDay() !== 0 && dataVenc.getDay() !== 6) {
+                                diasAdicionados++;
+                            }
+                        }
+                        vencimentoOut.textContent = dataVenc.toLocaleDateString('pt-BR');
+                    }
+                }
+            }
+        }
+
+        // Adiciona os event listeners para os inputs que disparam o cálculo
+        document.querySelectorAll('.calc-trigger').forEach(input => {
+            const eventType = input.type === 'date' ? 'change' : 'input';
+            input.addEventListener(eventType, () => {
+                const consumerId = input.dataset.id;
+                // Um pequeno delay para garantir que a config já foi carregada da API
+                setTimeout(() => calcularLinha(consumerId), 100);
+            });
+        });
+    });
+</script>
+</body>
 </html>

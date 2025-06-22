@@ -1,79 +1,104 @@
-{% extends "base.html" %}
-
-{% block title %}Relatório Geral{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Relatório Geral{% endblock %} {%
+block content %}
 <div class="container my-4">
-    <div class="card p-4 p-md-5 shadow-sm" style="border-radius: 12px; background-color: #ffffff;">
+  <div
+    class="card p-4 p-md-5 shadow-sm"
+    style="border-radius: 12px; background-color: #ffffff"
+  >
+    <h3 class="text-center fw-bold mb-2" style="color: #0056b3">
+      <i class="bi bi-pie-chart-fill me-2"></i>Relatório Geral Consolidado
+    </h3>
+    <p class="text-center text-muted mb-4">
+      Um resumo dos principais indicadores do sistema.
+    </p>
 
-        <h3 class="text-center fw-bold mb-2" style="color: #0056b3;">
-            <i class="bi bi-pie-chart-fill me-2"></i>Relatório Geral Consolidado
-        </h3>
-        <p class="text-center text-muted mb-4">
-            Um resumo dos principais indicadores do sistema.
-        </p>
+    {# NOTA PARA VOCÊ: Esta seção requer que a sua rota em Python (`def
+    relatorio_geral():`) passe as variáveis abaixo. Ex: `resumo =
+    {'total_receitas': 15000, 'total_despesas': 4000, ...}` e `return
+    render_template('relatorio_geral.html', resumo=resumo)` #}
 
-        {# NOTA PARA VOCÊ: Esta seção requer que a sua rota em Python (`def relatorio_geral():`) passe as variáveis abaixo.
-           Ex: `resumo = {'total_receitas': 15000, 'total_despesas': 4000, ...}` e `return render_template('relatorio_geral.html', resumo=resumo)`
-        #}
-
-        <!-- Resumo dos Indicadores -->
-        <div class="row g-4 text-center">
-            <div class="col-md-4">
-                <div class="p-3 border rounded bg-light h-100">
-                    <h6 class="text-muted">Saldo do Mês</h6>
-                    <p class="fs-3 fw-bold text-primary">R$ {{ "%.2f"|format(resumo.saldo_mes) | replace('.', ',') }}</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="p-3 border rounded bg-light h-100">
-                    <h6 class="text-muted">Receitas no Mês</h6>
-                    <p class="fs-3 fw-bold text-success">R$ {{ "%.2f"|format(resumo.total_receitas_mes) | replace('.', ',') }}</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="p-3 border rounded bg-light h-100">
-                    <h6 class="text-muted">Despesas no Mês</h6>
-                    <p class="fs-3 fw-bold text-danger">R$ {{ "%.2f"|format(resumo.total_despesas_mes) | replace('.', ',') }}</p>
-                </div>
-            </div>
+    <!-- Resumo dos Indicadores -->
+    <div class="row g-4 text-center">
+      <div class="col-md-4">
+        <div class="p-3 border rounded bg-light h-100">
+          <h6 class="text-muted">Saldo do Mês</h6>
+          <p class="fs-3 fw-bold text-primary">
+            R$ {{ "%.2f"|format(resumo.saldo_mes) | replace('.', ',') }}
+          </p>
         </div>
-
-        <hr class="my-4">
-
-        <!-- Detalhes Adicionais -->
-        <div class="row g-3">
-            <div class="col-md-6">
-                <ul class="list-group">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Total de Consumidores Ativos
-                        <span class="badge bg-primary rounded-pill fs-6">{{ resumo.total_consumidores }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Total de Faturas Pendentes
-                        <span class="badge bg-warning rounded-pill fs-6">{{ resumo.faturas_pendentes }}</span>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <ul class="list-group">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Consumo de Água no Mês
-                        <span class="badge bg-info rounded-pill fs-6">{{ "%.3f"|format(resumo.consumo_total_mes|float) | replace('.', ',') }} m³</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Pagamentos Realizados Hoje
-                        <span class="badge bg-success rounded-pill fs-6">{{ resumo.pagamentos_hoje }}</span>
-                    </li>
-                </ul>
-            </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 border rounded bg-light h-100">
+          <h6 class="text-muted">Receitas no Mês</h6>
+          <p class="fs-3 fw-bold text-success">
+            R$ {{ "%.2f"|format(resumo.total_receitas_mes) | replace('.', ',')
+            }}
+          </p>
         </div>
-
-        <div class="text-center mt-5">
-            <a href="{{ url_for('relatorios') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Voltar para a Central de Relatórios
-            </a>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 border rounded bg-light h-100">
+          <h6 class="text-muted">Despesas no Mês</h6>
+          <p class="fs-3 fw-bold text-danger">
+            R$ {{ "%.2f"|format(resumo.total_despesas_mes) | replace('.', ',')
+            }}
+          </p>
         </div>
+      </div>
     </div>
+
+    <hr class="my-4" />
+
+    <!-- Detalhes Adicionais -->
+    <div class="row g-3">
+      <div class="col-md-6">
+        <ul class="list-group">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            Total de Consumidores Ativos
+            <span class="badge bg-primary rounded-pill fs-6"
+              >{{ resumo.total_consumidores }}</span
+            >
+          </li>
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            Total de Faturas Pendentes
+            <span class="badge bg-warning rounded-pill fs-6"
+              >{{ resumo.faturas_pendentes }}</span
+            >
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-group">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            Consumo de Água no Mês
+            <span class="badge bg-info rounded-pill fs-6"
+              >{{ resumo.consumo_total_mes|int }} m³</span
+            >
+          </li>
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            Pagamentos Realizados Hoje
+            <span class="badge bg-success rounded-pill fs-6"
+              >{{ resumo.pagamentos_hoje }}</span
+            >
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="text-center mt-5">
+      <a href="{{ url_for('relatorios') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Voltar para a Central de
+        Relatórios
+      </a>
+    </div>
+  </div>
 </div>
 {% endblock %}
