@@ -315,19 +315,25 @@
               <span class="label d-block text-center mb-1"
                 >FOTO DO HIDRÔMETRO</span
               >
-
               {% if leitura.foto_hidrometro_base64 %}
               <img
                 src="{{ leitura.foto_hidrometro_base64 }}"
                 alt="Foto do hidrômetro"
+                style="max-width: 300px; height: auto"
+                {#
+                Adicionei
+                um
+                estilo
+                básico
+                para
+                controle
+                de
+                tamanho
+                #}
               />
-              {% elif leitura.foto_hidrometro %}
-              <img
-                src="{{ url_for('static', filename='fotos_hidrometros/' + leitura.foto_hidrometro) }}"
-                alt="Foto do hidrômetro"
-              />
-              {% else %}
-              <div class="no-photo-text">Nenhuma foto foi enviada.</div>
+              {% else %} {# Opcional: Adicione um placeholder ou uma mensagem se
+              a foto não estiver disponível #}
+              <p>Foto do hidrômetro não disponível ou falha ao carregar.</p>
               {% endif %}
             </section>
           </div>
