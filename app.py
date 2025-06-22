@@ -847,7 +847,7 @@ def get_leitura_details(leitura_id):
         
     return jsonify(dados_para_enviar)
 
-#------------ editar_leitura------------------
+#------------ editar_leitura (Versão corrigida e pronta para colar) ------------------
 @app.route('/leitura/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_leitura(id):
@@ -906,12 +906,10 @@ def editar_leitura(id):
                     except NoCredentialsError:
                         app.logger.error("Erro S3: Credenciais da AWS não encontradas para upload na edição.", exc_info=True)
                         flash("Erro de configuração do servidor: credenciais AWS não encontradas. A foto não foi enviada.", "danger")
-                        # Permite que a operação continue sem a foto
                         foto_salva_nome_s3 = None 
                     except Exception as e:
                         app.logger.error(f"Erro no upload para o S3 na edição (objeto {novo_nome_s3}): {e}", exc_info=True)
                         flash(f"Erro ao enviar a foto para o armazenamento na nuvem: {e}. A leitura será salva sem a foto.", "danger")
-                        # Permite que a operação continue sem a foto
                         foto_salva_nome_s3 = None
 
             # Lógica de recálculo e validação (antes da transação DB)
@@ -928,7 +926,7 @@ def editar_leitura(id):
                 return render_template('editar_leitura.html', leitura=leitura, bloqueado=bool(pagamento_existente), foto_url_s3=foto_url_s3)
 
             consumo_m3 = nova_leitura_atual - leitura_anterior_valor
-            config = get_current_config() # Esta função já usa get_db()
+            config = get_current_config()
             
             valor_original_recalculado = float(leitura['valor_original']) if leitura['valor_original'] is not None else 0.0
 
@@ -943,47 +941,50 @@ def editar_leitura(id):
                 valor_excedente = consumo_excedente * valor_m3_usado
                 valor_original_recalculado = taxa_minima_valor + valor_excedente
             
-            # --- AGORA, ENVOLVEMOS APENAS A OPERAÇÃO DE BANCO DE DADOS NA TRANSAÇÃO ---
-            with db.begin():
-                params = {
-                    'l_atu': nova_leitura_atual, 
-                    'd_atu': nova_data_leitura,
-                    'consumo': consumo_m3, 
-                    'val_orig': valor_original_recalculado,
-                    'v_m3_usado': valor_m3_usado,
-                    't_min_val_usada': taxa_minima_valor,
-                    't_min_fran_usada': taxa_minima_franquia,
-                    'id': id
-                }
-                
-                query_update_str = """
-                    UPDATE leituras SET
-                        leitura_atual = :l_atu,
-                        data_leitura_atual = :d_atu,
-                        consumo_m3 = :consumo,
-                        valor_original = :val_orig,
-                        valor_m3_usado = :v_m3_usado,
-                        taxa_minima_valor_usada = :t_min_val_usada,
-                        taxa_minima_franquia_usada = :t_min_fran_usada
-                """
-                
-                if foto_salva_nome_s3:
-                    query_update_str += ", foto_hidrometro = :foto"
-                    params['foto'] = foto_salva_nome_s3
+            # --- ATENÇÃO: A TRANSAÇÃO FOI AJUSTADA AQUI ---
+            # O "with db.begin()" foi removido.
+            params = {
+                'l_atu': nova_leitura_atual, 
+                'd_atu': nova_data_leitura,
+                'consumo': consumo_m3, 
+                'val_orig': valor_original_recalculado,
+                'v_m3_usado': valor_m3_usado,
+                't_min_val_usada': taxa_minima_valor,
+                't_min_fran_usada': taxa_minima_franquia,
+                'id': id
+            }
+            
+            query_update_str = """
+                UPDATE leituras SET
+                    leitura_atual = :l_atu,
+                    data_leitura_atual = :d_atu,
+                    consumo_m3 = :consumo,
+                    valor_original = :val_orig,
+                    valor_m3_usado = :v_m3_usado,
+                    taxa_minima_valor_usada = :t_min_val_usada,
+                    taxa_minima_franquia_usada = :t_min_fran_usada
+            """
+            
+            if foto_salva_nome_s3:
+                query_update_str += ", foto_hidrometro = :foto"
+                params['foto'] = foto_salva_nome_s3
 
-                query_update_str += " WHERE id = :id"
-                db.execute(text(query_update_str), params)
+            query_update_str += " WHERE id = :id"
+            db.execute(text(query_update_str), params)
+
+            # 1. Commit para salvar as alterações da transação
+            db.commit()
 
             flash('Leitura atualizada com sucesso!', 'success')
             return redirect(url_for('listar_leituras'))
 
-        except Exception as e: # Captura qualquer erro não tratado anteriormente
+        except Exception as e:
+            # 2. Rollback para reverter a transação em caso de erro
+            db.rollback() 
+            
             app.logger.error(f"Erro inesperado ao processar POST de edição de leitura ID {id}: {e}", exc_info=True)
             flash(f'Ocorreu um erro inesperado: {str(e)}', 'danger')
-            # Retorna para a página de edição para que o usuário possa corrigir
-            # 'leitura', 'pagamento_existente', 'foto_url_s3' já estão definidos acima
             return render_template('editar_leitura.html', leitura=leitura, bloqueado=bool(pagamento_existente), foto_url_s3=foto_url_s3)
-
 
     # --- Lógica para GET (Carregar a página) ---
     else:
