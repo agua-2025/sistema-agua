@@ -2198,7 +2198,7 @@ def baixar_db():
         return redirect(url_for('dashboard'))
 
 
-# --- Relatório de Inadimplência (VERSÃO FINAL E CORRIGIDA) ---
+# --- Relatório de Inadimplência (VERSÃO COM TRATAMENTO DE VALORES NULOS) ---
 @app.route('/relatorio-inadimplencia')
 @login_required
 def relatorio_inadimplencia():
@@ -2208,6 +2208,7 @@ def relatorio_inadimplencia():
         hoje = date.today().strftime('%Y-%m-%d')
         hoje_obj = date.today()
 
+        # A query principal não precisa de alteração
         faturas_raw = db.execute(text('''
             SELECT 
                 l.id AS leitura_id,
@@ -2232,15 +2233,17 @@ def relatorio_inadimplencia():
         for p_bruto in faturas_raw:
             p_raw = p_bruto._asdict()
             try:
-                valor_original_da_fatura = float(p_raw['valor_original'])
-                total_pago_acumulado = float(p_raw['total_pago_acumulado'])
-                total_multa_acumulada = float(p_raw['total_multa_acumulada'])
-                total_juros_acumulados = float(p_raw['total_juros_acumulados'])
+                # --- CORREÇÃO APLICADA AQUI: Usando safe_float em vez de float() ---
+                valor_original_da_fatura = safe_float(p_raw.get('valor_original'))
+                total_pago_acumulado = safe_float(p_raw.get('total_pago_acumulado'))
+                total_multa_acumulada = safe_float(p_raw.get('total_multa_acumulada'))
+                total_juros_acumulados = safe_float(p_raw.get('total_juros_acumulados'))
+                # --- FIM DA CORREÇÃO ---
 
                 valor_pendente = (valor_original_da_fatura + total_multa_acumulada + total_juros_acumulados) - total_pago_acumulado
 
                 if valor_pendente > 0.01:
-                    vencimento_data = p_raw['vencimento']
+                    vencimento_data = p_raw.get('vencimento')
                     if not vencimento_data:
                         continue
 
@@ -2261,14 +2264,12 @@ def relatorio_inadimplencia():
                     
                     is_vencido = vencimento_data < hoje_obj
 
-                    # --- CORREÇÃO APLICADA AQUI ---
-                    # Convertendo as datas para texto ANTES de enviar para o template
                     pendencias_calculadas.append({
-                        'consumidor': p_raw['consumidor'],
-                        'endereco': p_raw['endereco'],
-                        'telefone': p_raw['telefone'],
-                        'data_leitura_atual': p_raw['data_leitura_atual'].strftime('%Y-%m-%d') if p_raw['data_leitura_atual'] else 'N/A',
-                        'vencimento': vencimento_data.strftime('%Y-%m-%d') if vencimento_data else 'N/A',
+                        'consumidor': p_raw.get('consumidor'),
+                        'endereco': p_raw.get('endereco'),
+                        'telefone': p_raw.get('telefone'),
+                        'data_leitura_atual': p_raw.get('data_leitura_atual').strftime('%d/%m/%Y') if p_raw.get('data_leitura_atual') else 'N/A',
+                        'vencimento': vencimento_data.strftime('%d/%m/%Y') if vencimento_data else 'N/A',
                         'valor_original': valor_original_da_fatura,
                         'total_pago': total_pago_acumulado,
                         'valor_pendente': valor_pendente, 
@@ -2625,6 +2626,92 @@ def gerar_pdf_relatorio_financeiro():
         mimetype='application/pdf',
         headers={'Content-Disposition': 'inline; filename=relatorio_financeiro.pdf'}
     )
+
+#---------------------- Central de Fechamento Mensal (VERSÃO FINAL) ----------------------
+@app.route('/fechamento-mensal', methods=['GET', 'POST'])
+@login_required
+def fechamento_mensal():
+    db = get_db()
+    resultado = None
+    
+    # --- Lógica POST: Quando um NOVO fechamento é criado ---
+    if request.method == 'POST':
+        try:
+            leitura_anterior_master = float(request.form.get('leitura_anterior_master_criar', 0))
+            leitura_atual_master = float(request.form.get('leitura_atual_master_criar'))
+            mes_competencia_criar = int(request.form.get('mes_competencia_criar'))
+            ano_competencia_criar = int(request.form.get('ano_competencia_criar'))
+
+            if leitura_atual_master <= leitura_anterior_master:
+                flash("A leitura atual do medidor principal não pode ser menor ou igual à anterior.", "danger")
+                return redirect(url_for('fechamento_mensal'))
+
+            with db.begin():
+                consumo_master = leitura_atual_master - leitura_anterior_master
+                soma_consumidores_bruto = db.execute(text("""
+                    SELECT COALESCE(SUM(consumo_m3), 0) FROM leituras
+                    WHERE mes_competencia = :mes AND ano_competencia = :ano
+                """), {'mes': mes_competencia_criar, 'ano': ano_competencia_criar}).fetchone()
+                soma_consumidores = float(soma_consumidores_bruto[0])
+                perda_m3 = consumo_master - soma_consumidores
+                perda_percentual = (perda_m3 / consumo_master * 100) if consumo_master > 0 else 0
+
+                db.execute(text("""
+                    INSERT INTO fechamentos (
+                        mes_competencia, ano_competencia, leitura_anterior_master, leitura_atual_master,
+                        consumo_master_calculado, soma_consumidores_calculado, perda_calculada_m3, perda_percentual
+                    ) VALUES (:mes, :ano, :l_ant, :l_atu, :c_master, :s_consum, :p_m3, :p_perc)
+                """), {
+                    'mes': mes_competencia_criar, 'ano': ano_competencia_criar, 'l_ant': leitura_anterior_master,
+                    'l_atu': leitura_atual_master, 'c_master': consumo_master, 's_consum': soma_consumidores,
+                    'p_m3': perda_m3, 'p_perc': perda_percentual
+                })
+            
+            flash("Novo fechamento salvo com sucesso! O resultado está exibido abaixo.", "success")
+            return redirect(url_for('fechamento_mensal', mes=mes_competencia_criar, ano=ano_competencia_criar))
+
+        except IntegrityError:
+            flash(f"Já existe um fechamento registrado para a competência {mes_competencia_criar:02d}/{ano_competencia_criar}.", "warning")
+            return redirect(url_for('fechamento_mensal'))
+        except Exception as e:
+            flash(f"Ocorreu um erro ao criar o fechamento: {e}", "danger")
+            app.logger.error(f"Erro no POST de fechamento mensal: {e}", exc_info=True)
+            return redirect(url_for('fechamento_mensal'))
+
+    # --- Lógica GET: Carrega a página e exibe consultas do histórico ---
+    else:
+        mes_consulta = request.args.get('mes', type=int)
+        ano_consulta = request.args.get('ano', type=int)
+
+        if mes_consulta and ano_consulta:
+            resultado_bruto = db.execute(text("""
+                SELECT * FROM fechamentos WHERE mes_competencia = :mes AND ano_competencia = :ano
+            """), {'mes': mes_consulta, 'ano': ano_consulta}).fetchone()
+            if resultado_bruto:
+                resultado = resultado_bruto._asdict()
+            else:
+                flash(f"Nenhum fechamento encontrado para a competência {mes_consulta:02d}/{ano_consulta}.", "info")
+
+        ultima_leitura_registrada = db.execute(text("""
+            SELECT leitura_atual_master FROM fechamentos ORDER BY ano_competencia DESC, mes_competencia DESC LIMIT 1
+        """)).fetchone()
+        
+        is_primeiro_fechamento = ultima_leitura_registrada is None
+        leitura_anterior_para_form = float(ultima_leitura_registrada[0]) if not is_primeiro_fechamento else 0
+
+        # No final da função fechamento_mensal, substitua o 'return' por este:
+
+    return render_template(
+    'fechamento_mensal.html',
+    leitura_anterior_criar=leitura_anterior_para_form,
+    is_primeiro_fechamento=is_primeiro_fechamento,
+    resultado=resultado,
+    ano_atual=datetime.now().year,
+    mes_atual=datetime.now().month,
+    # --- LINHAS ADICIONADAS/CORRIGIDAS ---
+    mes_consulta_selecionado=mes_consulta,
+    ano_consulta_selecionado=(ano_consulta or datetime.now().year)
+)
 
 # --- NOVO: COMANDO PARA INICIAR O BANCO DE DADOS (VERSÃO CORRIGIDA) ---
 @app.cli.command("init-admin")

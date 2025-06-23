@@ -109,6 +109,19 @@
           </a>
         </div>
         <div class="col-md-6 col-lg-4">
+          <a href="{{ url_for('fechamento_mensal') }}" class="report-card">
+            <i
+              class="bi bi-calendar2-check-fill icon"
+              style="color: #6f42c1"
+            ></i>
+            <h5>Fechamento Mensal</h5>
+            <p>
+              Reconcile o consumo da fonte principal com a soma dos consumidores
+              para identificar perdas na rede.
+            </p>
+          </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
           <a href="{{ url_for('listar_leituras') }}" class="report-card">
             <i class="bi bi-droplet-half icon"></i>
             <h5>Relatório de Leituras</h5>
@@ -138,13 +151,14 @@
         </div>
         {# NOVO CARD: Relatório Financeiro #}
         <div class="col-md-6 col-lg-4">
-            <a href="{{ url_for('relatorio_financeiro') }}" class="report-card">
-                <i class="bi bi-currency-dollar icon"></i>
-                <h5>Relatório Financeiro (Receitas vs. Despesas)</h5>
-                <p>
-                    Visualize o balanço entre receitas e despesas do sistema para um período específico.
-                </p>
-            </a>
+          <a href="{{ url_for('relatorio_financeiro') }}" class="report-card">
+            <i class="bi bi-currency-dollar icon"></i>
+            <h5>Relatório Financeiro (Receitas vs. Despesas)</h5>
+            <p>
+              Visualize o balanço entre receitas e despesas do sistema para um
+              período específico.
+            </p>
+          </a>
         </div>
       </div>
 

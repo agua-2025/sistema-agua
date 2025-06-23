@@ -4,181 +4,156 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Configurações do Sistema | Águas de Santa Maria</title>
-    <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <!-- Bootstrap Icons (já estava, mantido) -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <!-- Font Awesome para Ícones (adicionado para padronização) -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <!-- Google Fonts Inter (já estava, mantido) -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <style>
-      /* Estilos globais para o body, centralizando o conteúdo do formulário na tela */
+      /* Seus estilos CSS originais foram mantidos aqui, sem alterações */
       body {
         font-family: "Inter", sans-serif;
-        background-color: #f4f7f9; /* Fundo cinza claro, padrão do seu sistema */
-        min-height: 100vh; /* Garante que o body ocupe toda a altura da tela */
-        display: flex; /* Habilita o Flexbox para centralização */
-        align-items: center; /* Centraliza verticalmente o formulário */
-        justify-content: center; /* Centraliza horizontalmente o formulário */
-        padding: 15px; /* Adiciona um espaçamento seguro nas bordas para celulares */
-        color: #343a40; /* Cor de texto padrão */
-        font-size: 0.9rem; /* Fonte base ajustada */
+        background-color: #f4f7f9;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+        color: #343a40;
+        font-size: 0.9rem;
       }
-
-      /* Contêiner principal do formulário, estilizado como um card flutuante */
       .container-form {
-        background-color: #ffffff; /* Fundo branco para o card, como no modelo */
-        padding: 2.5rem; /* Espaçamento interno generoso dentro do card */
-        border-radius: 12px; /* Cantos arredondados, padrão do seu sistema */
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08); /* Sombra suave para dar profundidade */
-        width: 100%; /* Garante que o card ocupe a largura total em telas pequenas */
-        max-width: 900px; /* Largura máxima, ajustada para caber bem o conteúdo */
+        background-color: #ffffff;
+        padding: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 900px;
       }
-
-      /* Estilos para o cabeçalho do formulário (Título da Página) */
       .form-header {
         text-align: center;
-        margin-bottom: 2rem; /* Espaçamento abaixo do cabeçalho */
-        display: flex; /* Para alinhar o título e o botão de voltar */
-        justify-content: space-between; /* Espaço entre título e botão */
-        align-items: center; /* Alinha verticalmente */
-        flex-wrap: wrap; /* Permite quebrar linha em telas pequenas */
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
       }
-
       .form-header h3 {
-        color: #0d6efd; /* Título em azul, como no seu padrão */
-        font-weight: 600; /* Negrito para o título */
-        font-size: 1.75rem; /* Tamanho da fonte do título */
-        display: flex; /* Para alinhar o ícone e o texto do título */
-        align-items: center; /* Centraliza verticalmente ícone e texto */
-        margin: 0; /* Remove margem padrão do h3 para melhor alinhamento no flex */
+        color: #0d6efd;
+        font-weight: 600;
+        font-size: 1.75rem;
+        display: flex;
+        align-items: center;
+        margin: 0;
       }
-
-      .form-header h3 .bi, .form-header h3 .fas { /* Suporte a Font Awesome e Bootstrap Icons no título */
-        margin-right: 10px; /* Espaçamento entre o ícone e o texto do título */
-        font-size: 1.5rem; /* Tamanho do ícone do título */
+      .form-header h3 .bi,
+      .form-header h3 .fas {
+        margin-right: 10px;
+        font-size: 1.5rem;
       }
-
-      /* Estilos para os títulos das seções (ex: "Leitura Geral", "Regras de Negócio") */
       .section-title {
         font-weight: 600;
-        color: #007bff; /* Cor azul para os títulos de seção */
+        color: #007bff;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
-        border-bottom: 2px solid #007bff; /* Linha azul de separação */
+        border-bottom: 2px solid #007bff;
       }
-
-      /* Card de cada seção (Leitura Geral, etc.) */
       .section-card {
-        border: 1px solid #e9ecef; /* Borda suave */
-        border-radius: 8px; /* Cantos arredondados */
-        margin-bottom: 1.5rem; /* Espaço entre as seções */
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
       }
-
       .section-card .section-header {
-        background-color: #f8f9fa; /* Fundo do cabeçalho da seção */
-        padding: 0.8rem 1.2rem; /* Espaçamento no cabeçalho da seção */
+        background-color: #f8f9fa;
+        padding: 0.8rem 1.2rem;
         font-weight: 600;
-        font-size: 1rem; /* Tamanho da fonte do cabeçalho da seção */
+        font-size: 1rem;
         border-bottom: 1px solid #e9ecef;
-        border-top-left-radius: 8px; /* Cantos arredondados superiores */
+        border-top-left-radius: 8px;
         border-top-right-radius: 8px;
       }
-
       .section-card .section-body {
-        padding: 1.2rem; /* Espaçamento no corpo da seção */
+        padding: 1.2rem;
       }
-
-      /* Estilos para os labels dos campos do formulário */
       .form-label {
         font-weight: 500;
-        color: #495057; /* Cor do texto do label (quase preto/cinza escuro) */
-        font-size: 0.85rem; /* Tamanho da fonte do label */
+        color: #495057;
+        font-size: 0.85rem;
         margin-bottom: 0.5rem;
-        display: flex; /* Habilita flexbox para alinhar ícone e texto do label */
-        align-items: center; /* Alinha verticalmente ícone e texto */
+        display: flex;
+        align-items: center;
       }
-
-      /* Estilos para os ícones dentro dos labels */
       .form-label .fas {
-        margin-right: 8px; /* Espaçamento entre o ícone e o texto do label */
-        color: #0d6efd; /* Cor azul dos ícones nos labels */
-        font-size: 0.9rem; /* Tamanho do ícone nos labels */
+        margin-right: 8px;
+        color: #0d6efd;
+        font-size: 0.9rem;
       }
-
-      /* Ajuste para campos de input e select */
       .form-control,
       .form-select {
         font-size: 0.9rem;
       }
-
-      /* Estilo para o input-group-text (R$, %) */
       .input-group-text {
-        font-size: 0.9rem; /* Tamanho da fonte do texto do input group */
+        font-size: 0.9rem;
         font-weight: 500;
       }
-
-      /* Adaptação dos botões de ação para responsividade */
       .form-actions {
         display: flex;
-        flex-direction: column; /* Em telas pequenas, os botões ficam empilhados verticalmente */
-        gap: 10px; /* Espaçamento entre os botões empilhados */
-        justify-content: flex-end; /* Alinha os botões à direita (quando em linha) */
+        flex-direction: column;
+        gap: 10px;
+        justify-content: flex-end;
       }
-
-      @media (min-width: 768px) { /* A partir de tablets (md), botões voltam a ficar lado a lado */
+      @media (min-width: 768px) {
         .form-actions {
           flex-direction: row;
         }
       }
-
-      /* Margem inferior para colunas em telas pequenas quando empilhadas */
-      .row .col-md-6, .row .col-12 { /* Ajuste mais abrangente para colunas */
-        margin-bottom: 1rem !important; /* Força um espaçamento inferior para campos em colunas */
+      .row .col-md-6,
+      .row .col-12 {
+        margin-bottom: 1rem !important;
       }
-      /* Remove margem do último item em cada linha */
       .row > div:last-child {
         margin-bottom: 0 !important;
       }
-      /* Corrige margem inferior para a última linha de uma seção, se houver múltiplas linhas */
       .section-body .row:last-of-type > div {
         margin-bottom: 0 !important;
       }
-
-      /* Estilo para campos desabilitados/readonly */
-      .form-control[readonly], .form-control:disabled {
-          background-color: #e9ecef; /* Cor de fundo para campos não editáveis */
-          opacity: 1; /* Garante que não fiquem transparentes */
+      .form-control[readonly],
+      .form-control:disabled {
+        background-color: #e9ecef;
+        opacity: 1;
       }
     </style>
   </head>
   <body class="bg-light">
     <div class="container container-form">
-      <!-- Cabeçalho da página -->
       <div class="form-header">
         <h3><i class="fas fa-cog"></i> Configurações do Sistema</h3>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm px-3">
+        <a
+          href="{{ url_for('dashboard') }}"
+          class="btn btn-secondary btn-sm px-3"
+        >
           <i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard
         </a>
       </div>
 
-      <!-- Seção para mensagens flash -->
-      {% if mensagem %}
-      <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-        {{ mensagem }}
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show mb-3"
+        role="alert"
+      >
+        {{ message }}
         <button
           type="button"
           class="btn-close"
@@ -186,96 +161,107 @@
           aria-label="Close"
         ></button>
       </div>
-      {% endif %}
+      {% endfor %} {% endif %} {% endwith %}
 
       <form method="POST" id="configForm">
-        <!-- Seção: Leitura Geral (Editar) -->
-        <h5 class="section-title">Leitura Geral (Editar)</h5>
+        <h5 class="section-title">Valores e Taxas (Editar)</h5>
         <div class="section-card">
           <div class="section-body">
-            <div class="row">
-              <div class="col-md-6">
-                <label for="hidr_geral_anterior" class="form-label"
-                  ><i class="fas fa-water"></i> Leitura Geral Anterior</label
+            <div class="row mb-3">
+              <div class="col-md-4 mb-3 mb-md-0">
+                <label for="valor_m3" class="form-label"
+                  ><i class="fas fa-dollar-sign"></i> Valor do m³
+                  Excedente</label
                 >
-                <input
-                  type="number"
-                  class="form-control"
-                  name="hidr_geral_anterior"
-                  id="hidr_geral_anterior"
-                  required
-                  value="{{ config['hidr_geral_anterior'] if config and config['hidr_geral_anterior'] is not none else '' }}"
-                />
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="valor_m3"
+                    id="valor_m3"
+                    required
+                    value="{{ config.valor_m3 }}"
+                  />
+                </div>
+              </div>
+              <div class="col-md-4 mb-3 mb-md-0">
+                <label for="taxa_minima_consumo" class="form-label"
+                  ><i class="fas fa-hand-holding-usd"></i> Valor da Taxa
+                  Mínima</label
+                >
+                <div class="input-group">
+                  <span class="input-group-text">R$</span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="taxa_minima_consumo"
+                    id="taxa_minima_consumo"
+                    required
+                    value="{{ config.taxa_minima_consumo }}"
+                  />
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label for="taxa_minima_franquia_m3" class="form-label"
+                  ><i class="fas fa-box-open"></i> Faixa da Franquia (m³)</label
+                >
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="taxa_minima_franquia_m3"
+                    id="taxa_minima_franquia_m3"
+                    required
+                    value="{{ config.taxa_minima_franquia_m3 }}"
+                  />
+                  <span class="input-group-text">m³</span>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3 mb-md-0">
+                <label for="multa_percentual" class="form-label"
+                  ><i class="fas fa-percent"></i> Multa por Atraso</label
+                >
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="multa_percentual"
+                    id="multa_percentual"
+                    value="{{ config.multa_percentual }}"
+                  />
+                  <span class="input-group-text">%</span>
+                </div>
               </div>
               <div class="col-md-6">
-                <label for="hidr_geral_atual" class="form-label"
-                  ><i class="fas fa-tint"></i> Leitura Geral Atual</label
+                <label for="juros_diario_percentual" class="form-label"
+                  ><i class="fas fa-chart-line"></i> Juros Diário</label
                 >
-                <input
-                  type="number"
-                  class="form-control"
-                  name="hidr_geral_atual"
-                  id="hidr_geral_atual"
-                  required
-                  value="{{ config['hidr_geral_atual'] if config and config['hidr_geral_atual'] is not none else '' }}"
-                />
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="juros_diario_percentual"
+                    id="juros_diario_percentual"
+                    value="{{ config.juros_diario_percentual }}"
+                  />
+                  <span class="input-group-text">%</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <h5 class="section-title">Valores e Taxas (Editar)</h5>
-<div class="section-card">
-    <div class="section-body">
-        <div class="row mb-3">
-            <div class="col-md-4 mb-3 mb-md-0">
-                <label for="valor_m3" class="form-label"><i class="fas fa-dollar-sign"></i> Valor do m³ Excedente</label>
-                <div class="input-group">
-                    <span class="input-group-text">R$</span>
-                    <input type="text" class="form-control" name="valor_m3" id="valor_m3" required value="{{ config.valor_m3 }}">
-                </div>
-            </div>
-            <div class="col-md-4 mb-3 mb-md-0">
-                <label for="taxa_minima_consumo" class="form-label"><i class="fas fa-hand-holding-usd"></i> Valor da Taxa Mínima</label>
-                <div class="input-group">
-                    <span class="input-group-text">R$</span>
-                    <input type="text" class="form-control" name="taxa_minima_consumo" id="taxa_minima_consumo" required value="{{ config.taxa_minima_consumo }}">
-                </div>
-            </div>
-            <div class="col-md-4">
-                <label for="taxa_minima_franquia_m3" class="form-label"><i class="fas fa-box-open"></i> Faixa da Franquia (m³)</label>
-                 <div class="input-group">
-                    <input type="text" class="form-control" name="taxa_minima_franquia_m3" id="taxa_minima_franquia_m3" required value="{{ config.taxa_minima_franquia_m3 }}">
-                    <span class="input-group-text">m³</span>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3 mb-md-0">
-                <label for="multa_percentual" class="form-label"><i class="fas fa-percent"></i> Multa por Atraso</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" name="multa_percentual" id="multa_percentual" value="{{ config.multa_percentual }}">
-                    <span class="input-group-text">%</span>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <label for="juros_diario_percentual" class="form-label"><i class="fas fa-chart-line"></i> Juros Diário</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" name="juros_diario_percentual" id="juros_diario_percentual" value="{{ config.juros_diario_percentual }}">
-                    <span class="input-group-text">%</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-        <!-- Seção: Regras de Negócio (Editar) -->
         <h5 class="section-title">Regras de Negócio (Editar)</h5>
         <div class="section-card">
           <div class="section-body">
             <div class="row">
               <div class="col-md-6">
                 <label for="data_ultima_config" class="form-label"
-                  ><i class="fas fa-calendar-alt"></i> Data da Configuração</label
+                  ><i class="fas fa-calendar-alt"></i> Data da
+                  Configuração</label
                 >
                 <input
                   type="date"
@@ -288,7 +274,8 @@
               </div>
               <div class="col-md-6">
                 <label for="dias_uteis_para_vencimento" class="form-label"
-                  ><i class="fas fa-clock"></i> Dias úteis para vencimento</label
+                  ><i class="fas fa-clock"></i> Dias úteis para
+                  vencimento</label
                 >
                 <input
                   type="number"
@@ -304,7 +291,6 @@
           </div>
         </div>
 
-        <!-- Botões de Ação do Formulário -->
         <div class="form-actions mt-4">
           <button type="button" id="cancelBtn" class="btn btn-secondary px-4">
             <i class="fas fa-times me-1"></i> Cancelar
@@ -314,113 +300,132 @@
           </button>
         </div>
       </form>
-
     </div>
 
-    <!-- Modal de Confirmação (Substitui confirm()/alert()) -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="confirmationModal"
+      tabindex="-1"
+      aria-labelledby="confirmationModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="confirmationModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmação de Salvamento</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title" id="confirmationModalLabel">
+              <i class="fas fa-exclamation-triangle me-2"></i>Confirmação de
+              Salvamento
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
-            Você tem certeza que deseja salvar estas configurações? Esta é uma área sensível do sistema e as alterações podem afetar os cálculos futuros.
+            Você tem certeza que deseja salvar estas configurações? Esta é uma
+            área sensível do sistema e as alterações podem afetar os cálculos
+            futuros.
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não, Cancelar</button>
-            <button type="button" class="btn btn-primary" id="confirmSaveBtn">Sim, Salvar</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Não, Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" id="confirmSaveBtn">
+              Sim, Salvar
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Bootstrap JS (com bundle para modais) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Font Awesome JS (para ícones) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Seu script de máscaras e modal original foi mantido aqui, sem alterações
         const configForm = document.getElementById("configForm");
-        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        const confirmationModal = new bootstrap.Modal(
+          document.getElementById("confirmationModal")
+        );
 
-        // Mapeamento centralizado de todos os campos que precisam de formatação
         const fieldsToFormat = {
-            'valor_m3': { places: 2 },
-            'taxa_minima_consumo': { places: 2 },
-            'taxa_minima_franquia_m3': { places: 3 }, // O novo campo já está aqui
-            'multa_percentual': { places: 2 },
-            'juros_diario_percentual': { places: 3 }
+          valor_m3: { places: 2 },
+          taxa_minima_consumo: { places: 2 },
+          taxa_minima_franquia_m3: { places: 3 },
+          multa_percentual: { places: 2 },
+          juros_diario_percentual: { places: 3 },
         };
 
-        // Função para formatar o valor inicial que vem do backend
         function formatNumberForDisplay(value, decimalPlaces) {
-            if (value === null || value === undefined || value === '') return '';
-            const num = parseFloat(String(value).replace(',', '.'));
-            if (isNaN(num)) return '';
-            return num.toLocaleString('pt-BR', {
-                minimumFractionDigits: decimalPlaces,
-                maximumFractionDigits: decimalPlaces,
-            });
+          if (value === null || value === undefined || value === "") return "";
+          const num = parseFloat(String(value).replace(",", "."));
+          if (isNaN(num)) return "";
+          return num.toLocaleString("pt-BR", {
+            minimumFractionDigits: decimalPlaces,
+            maximumFractionDigits: decimalPlaces,
+          });
         }
 
-        // Função para criar máscara de digitação
         function maskDecimal(input, decimalPlaces) {
-            let value = input.value;
-            value = value.replace(/[^0-9,]/g, ''); // Permite apenas números e vírgula
-            const parts = value.split(',');
-            if (parts.length > 2) value = parts[0] + ',' + parts.slice(1).join('');
-            if (parts[1] && parts[1].length > decimalPlaces) {
-                parts[1] = parts[1].substring(0, decimalPlaces);
-                value = parts.join(',');
-            }
-            input.value = value;
+          let value = input.value;
+          value = value.replace(/[^0-9,]/g, "");
+          const parts = value.split(",");
+          if (parts.length > 2)
+            value = parts[0] + "," + parts.slice(1).join("");
+          if (parts[1] && parts[1].length > decimalPlaces) {
+            parts[1] = parts[1].substring(0, decimalPlaces);
+            value = parts.join(",");
+          }
+          input.value = value;
         }
 
-        // Loop para aplicar formatação e máscaras em todos os campos
         for (const id in fieldsToFormat) {
-            const input = document.getElementById(id);
-            if (input) {
-                const config = fieldsToFormat[id];
-                input.value = formatNumberForDisplay(input.value, config.places);
-                input.addEventListener('input', () => maskDecimal(input, config.places));
-            }
+          const input = document.getElementById(id);
+          if (input) {
+            const config = fieldsToFormat[id];
+            input.value = formatNumberForDisplay(input.value, config.places);
+            input.addEventListener("input", () =>
+              maskDecimal(input, config.places)
+            );
+          }
         }
 
-        // Lógica para preencher a data se estiver vazia
-        const dataConfigInput = document.getElementById('data_ultima_config');
+        const dataConfigInput = document.getElementById("data_ultima_config");
         if (dataConfigInput && !dataConfigInput.value) {
-            dataConfigInput.value = new Date().toISOString().split('T')[0];
+          dataConfigInput.value = new Date().toISOString().split("T")[0];
         }
 
-        // Lógica do Modal e do Envio do Formulário
-        document.getElementById("saveConfigBtn").addEventListener("click", function () {
+        document
+          .getElementById("saveConfigBtn")
+          .addEventListener("click", function () {
             confirmationModal.show();
-        });
+          });
 
-        document.getElementById('confirmSaveBtn').addEventListener("click", function() {
+        document
+          .getElementById("confirmSaveBtn")
+          .addEventListener("click", function () {
             confirmationModal.hide();
-            // Loop para preparar todos os campos para o envio (troca vírgula por ponto)
             for (const id in fieldsToFormat) {
-                const input = document.getElementById(id);
-                if (input && input.value) {
-                    input.value = input.value.replace(/\./g, '').replace(',', '.');
-                }
+              const input = document.getElementById(id);
+              if (input && input.value) {
+                input.value = input.value.replace(/\./g, "").replace(",", ".");
+              }
             }
             configForm.submit();
-        });
+          });
 
-        // Lógica do botão de cancelar (mantida do seu original)
-        const cancelBtn = document.getElementById('cancelBtn');
+        const cancelBtn = document.getElementById("cancelBtn");
         if (cancelBtn) {
-            cancelBtn.addEventListener('click', function() {
-                window.location.href = "{{ url_for('dashboard') }}";
-            });
+          cancelBtn.addEventListener("click", function () {
+            window.location.href = "{{ url_for('dashboard') }}";
+          });
         }
-    });
-</script>
+      });
+    </script>
   </body>
 </html>

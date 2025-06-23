@@ -169,7 +169,7 @@
                                     {% if item.leitura_do_mes %}
                                         <input type="text" class="form-control form-control-sm text-center" value="{{ item.leitura_do_mes.data_leitura_atual.strftime('%d/%m/%Y') if item.leitura_do_mes.data_leitura_atual else '' }}" readonly>
                                     {% else %}
-                                        <input type="date" name="data_leitura_{{ item.consumidor_info.id }}" id="data_leitura_{{ item.consumidor_info.id }}" class="form-control form-control-sm text-center calc-trigger" data-id="{{ item.consumidor_info.id }}" {% if item.ultima_leitura_data_iso %}min="{{ item.ultima_leitura_data_iso }}"{% endif %} ... {# max="{{ today_date }}" #}>
+                                        <input type="date" name="data_leitura_{{ item.consumidor_info.id }}" id="data_leitura_{{ item.consumidor_info.id }}" class="form-control form-control-sm text-center calc-trigger" data-id="{{ item.consumidor_info.id }}" {% if item.ultima_leitura_data_iso %}min="{{ item.ultima_leitura_data_iso }}"{% endif %} max="{{ today_date }}"
                                     {% endif %}
                                 </td>
                                 <td class="output-cell" id="consumo_out_{{ item.consumidor_info.id }}">
