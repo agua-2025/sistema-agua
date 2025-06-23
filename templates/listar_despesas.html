@@ -8,13 +8,11 @@
     
     {% include '_flash_messages.html' %}
 
-    <!-- Botões de Ação Principais -->
     <div class="mb-4">
         <a href="{{ url_for('cadastrar_despesa') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Nova Despesa</a>
         <a href="{{ url_for('dashboard') }}" class="btn btn-light border"><i class="bi bi-house-door me-1"></i> Ir para o Dashboard</a>
     </div>
 
-    <!-- Seção de Filtros -->
     <form class="mb-4 p-3 border rounded bg-light" method="GET" action="{{ url_for('listar_despesas') }}">
         <div class="row align-items-end">
             <div class="col-md-3 mb-2 mb-md-0">
@@ -53,7 +51,6 @@
         </div>
     </form>
 
-    <!-- Total do Período -->
     <p class="fs-5">Total de Despesas no período filtrado: <strong>R$ {{ "%.2f"|format(total_despesas_periodo) | replace('.', ',') }}</strong></p>
 
     {% if despesas %}
@@ -79,15 +76,17 @@
                     <td class="text-end">R$ {{ "%.2f"|format(despesa.valor) | replace('.', ',') }}</td>
                     <td class="text-center">
                         <a href="{{ url_for('editar_despesa', id=despesa.id) }}" class="btn btn-sm btn-warning">Editar</a>
-                        <a href="{{ url_for('excluir_despesa', id=despesa.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta despesa?');">Excluir</a>
-                    </td>
+                        
+                        <form action="{{ url_for('excluir_despesa', id=despesa.id) }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta despesa?');" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                        </form>
+                        </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <!-- Paginação -->
     {% if pagination and pagination.total_pages > 1 %}
     <nav aria-label="Navegação da página" class="mt-4">
         <ul class="pagination justify-content-center">
