@@ -10,12 +10,13 @@
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
     <script src="https://unpkg.com/imask"></script>
     <style>
       body {
         background-color: #f4f7f9;
+        font-family: "Inter", sans-serif;
       }
       .form-container {
         max-width: 800px;
@@ -25,27 +26,55 @@
         border-radius: 12px;
         box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
       }
+      .form-section-title {
+        font-weight: 600;
+        color: #495057;
+      }
+      /* Estilos para o feedback da validação do CPF */
+      .cpf-feedback {
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+        display: none; /* Começa escondido */
+      }
+      .cpf-feedback.is-valid {
+        color: #198754;
+        display: block;
+      }
+      .cpf-feedback.is-invalid {
+        color: #dc3545;
+        display: block;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="form-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h3 class="text-primary">
-            <i class="fas fa-user-plus me-2"></i> Cadastrar Novo Consumidor
+        <div
+          class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3"
+        >
+          <h3 class="text-primary mb-0">
+            <i class="bi bi-person-plus-fill me-2"></i> Cadastrar Novo
+            Consumidor
           </h3>
           <a
             href="{{ url_for('listar_consumidores') }}"
-            class="btn btn-secondary"
-            ><i class="fas fa-arrow-left me-1"></i> Voltar</a
+            class="btn btn-outline-secondary"
+            ><i class="bi bi-arrow-left me-1"></i> Voltar</a
           >
         </div>
 
+        {% include '_flash_messages.html' %}
+
         <form method="POST">
-          <h5 class="mb-3 border-bottom pb-2">Dados Pessoais</h5>
+          <h5 class="mb-3 pb-2 form-section-title">
+            <i class="bi bi-person-lines-fill me-2 text-muted"></i>Dados
+            Pessoais
+          </h5>
           <div class="row g-3 mb-4">
             <div class="col-md-12">
-              <label for="nome" class="form-label">Nome Completo *</label>
+              <label for="nome" class="form-label"
+                >Nome Completo <span class="text-danger">*</span></label
+              >
               <input
                 type="text"
                 class="form-control"
@@ -55,57 +84,79 @@
               />
             </div>
             <div class="col-md-6">
-              <label for="cpf" class="form-label">CPF</label>
+              <label for="cpf" class="form-label"
+                >CPF <span class="text-danger">*</span></label
+              >
               <input
                 type="text"
                 class="form-control"
                 id="cpf"
                 name="cpf"
+                inputmode="numeric"
                 placeholder="000.000.000-00"
+                required
               />
+              <div id="cpf-feedback" class="cpf-feedback"></div>
             </div>
             <div class="col-md-6">
               <label for="rg" class="form-label">RG</label>
-              <input type="text" class="form-control" id="rg" name="rg" />
-            </div>
-            <div class="col-md-6">
-              <label for="telefone" class="form-label">Telefone</label>
               <input
                 type="text"
                 class="form-control"
+                id="rg"
+                name="rg"
+                inputmode="numeric"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="telefone" class="form-label"
+                >Telefone <span class="text-danger">*</span></label
+              >
+              <input
+                type="tel"
+                class="form-control"
                 id="telefone"
                 name="telefone"
+                inputmode="numeric"
                 placeholder="(00) 90000-0000"
+                required
               />
             </div>
           </div>
 
-          <h5 class="mb-3 border-bottom pb-2">Dados de Endereço e Medição</h5>
+          <h5 class="mb-3 pb-2 form-section-title">
+            <i class="bi bi-geo-alt-fill me-2 text-muted"></i>Dados de Endereço
+            e Medição
+          </h5>
           <div class="row g-3">
             <div class="col-md-12">
-              <label for="endereco" class="form-label">Endereço Completo</label>
+              <label for="endereco" class="form-label"
+                >Endereço Completo <span class="text-danger">*</span></label
+              >
               <input
                 type="text"
                 class="form-control"
                 id="endereco"
                 name="endereco"
+                required
               />
             </div>
             <div class="col-md-6">
               <label for="hidrometro" class="form-label"
-                >Número do Hidrômetro</label
+                >Número do Hidrômetro <span class="text-danger">*</span></label
               >
               <input
                 type="text"
                 class="form-control"
                 id="hidrometro"
                 name="hidrometro"
+                required
               />
             </div>
-
             <div class="col-md-6">
               <label for="leitura_inicial" class="form-label"
-                >Leitura Inicial do Hidrômetro (m³) *</label
+                >Leitura Inicial do Hidrômetro (m³)
+                <span class="text-danger">*</span></label
               >
               <input
                 type="number"
@@ -113,12 +164,14 @@
                 id="leitura_inicial"
                 name="leitura_inicial"
                 value="0"
+                min="0"
                 required
               />
             </div>
             <div class="col-md-6">
               <label for="data_instalacao" class="form-label"
-                >Data da Instalação/Cadastro *</label
+                >Data da Instalação/Cadastro
+                <span class="text-danger">*</span></label
               >
               <input
                 type="date"
@@ -131,9 +184,14 @@
             </div>
           </div>
 
-          <div class="d-flex justify-content-end gap-2 mt-4">
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a
+              href="{{ url_for('listar_consumidores') }}"
+              class="btn btn-light border"
+              >Cancelar</a
+            >
             <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save me-1"></i> Salvar Consumidor
+              <i class="bi bi-save-fill me-1"></i> Salvar Consumidor
             </button>
           </div>
         </form>
@@ -142,16 +200,63 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+      // Função de validação de CPF (a mesma lógica do Python, mas em JavaScript)
+      function validaCPF(cpf) {
+        cpf = String(cpf).replace(/[^\d]/g, "");
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+        let soma = 0,
+          resto;
+        for (let i = 1; i <= 9; i++)
+          soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+        resto = (soma * 10) % 11;
+        if (resto === 10 || resto === 11) resto = 0;
+        if (resto !== parseInt(cpf.substring(9, 10))) return false;
+        soma = 0;
+        for (let i = 1; i <= 10; i++)
+          soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+        resto = (soma * 10) % 11;
+        if (resto === 10 || resto === 11) resto = 0;
+        if (resto !== parseInt(cpf.substring(10, 11))) return false;
+        return true;
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
-        // Máscara para o campo CPF
         const cpfInput = document.getElementById("cpf");
+        const cpfFeedback = document.getElementById("cpf-feedback");
+
         if (cpfInput) {
-          const cpfMask = IMask(cpfInput, {
-            mask: "000.000.000-00",
+          // Máscara para o campo CPF
+          const cpfMask = IMask(cpfInput, { mask: "000.000.000-00" });
+
+          // Evento para validar o CPF quando o usuário termina de digitar
+          cpfInput.addEventListener("blur", function () {
+            const cpfValue = cpfMask.unmaskedValue;
+            if (cpfValue.length === 11) {
+              if (validaCPF(cpfValue)) {
+                cpfFeedback.textContent = "CPF válido!";
+                cpfFeedback.className = "cpf-feedback is-valid";
+                cpfInput.classList.remove("is-invalid");
+                cpfInput.classList.add("is-valid");
+              } else {
+                cpfFeedback.textContent = "CPF inválido!";
+                cpfFeedback.className = "cpf-feedback is-invalid";
+                cpfInput.classList.remove("is-valid");
+                cpfInput.classList.add("is-invalid");
+              }
+            } else if (cpfValue.length > 0) {
+              cpfFeedback.textContent = "CPF incompleto.";
+              cpfFeedback.className = "cpf-feedback is-invalid";
+              cpfInput.classList.remove("is-valid");
+              cpfInput.classList.add("is-invalid");
+            } else {
+              cpfFeedback.textContent = "";
+              cpfFeedback.className = "cpf-feedback";
+              cpfInput.classList.remove("is-valid", "is-invalid");
+            }
           });
         }
 
-        // Máscara dinâmica para o campo Telefone (aceita 8 ou 9 dígitos)
+        // Máscara para o Telefone
         const telefoneInput = document.getElementById("telefone");
         if (telefoneInput) {
           const telefoneMask = IMask(telefoneInput, {

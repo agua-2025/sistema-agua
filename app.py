@@ -244,6 +244,38 @@ def adicionar_dias_uteis(data_inicial, dias_uteis):
             dias_adicionados += 1
     return data_final
 
+#--------------Validçaão do CPF------------------
+def is_cpf_valido(cpf: str) -> bool:
+    """Valida um CPF brasileiro. Retorna True se válido, False caso contrário."""
+    # Remove caracteres não numéricos
+    cpf = ''.join(filter(str.isdigit, str(cpf)))
+
+    # Verifica se tem 11 dígitos
+    if len(cpf) != 11:
+        return False
+
+    # Verifica se todos os dígitos são iguais (ex: 111.111.111-11), que são inválidos
+    if cpf == cpf[0] * 11:
+        return False
+
+    # Cálculo do primeiro dígito verificador
+    soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
+    resto = (soma * 10) % 11
+    if resto == 10:
+        resto = 0
+    if resto != int(cpf[9]):
+        return False
+
+    # Cálculo do segundo dígito verificador
+    soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
+    resto = (soma * 10) % 11
+    if resto == 10:
+        resto = 0
+    if resto != int(cpf[10]):
+        return False
+
+    return True
+
 # FUNÇÃO ENVIAR_EMAIL CORRIGIDA E ÚNICA
 def enviar_email(destino, assunto, corpo):
     msg = MIMEText(corpo, 'plain', 'utf-8')
@@ -447,27 +479,39 @@ def api_configuracoes_leitura():
         'taxa_minima_franquia_m3': config.get('taxa_minima_franquia_m3', 10.0)
     })
 
-# --- CRUD Consumidores (VERSÃO CORRIGIDA) ---
+
+# --- CRUD Consumidores (VERSÃO COM VALIDAÇÕES ATUALIZADAS) ---
 @app.route('/cadastrar-consumidor', methods=['GET', 'POST'])
 @login_required
 def cadastrar_consumidor():
     if request.method == 'POST':
         try:
-            # Coleta todos os dados do formulário
-            nome = request.form['nome']
-            cpf = request.form['cpf']
-            rg = request.form['rg']
-            endereco = request.form['endereco']
-            telefone = request.form['telefone']
-            hidrometro_num = request.form['hidrometro']
+            # Coleta e limpa os dados do formulário
+            nome = request.form.get('nome', '').strip()
+            cpf = request.form.get('cpf', '').strip()
+            rg = request.form.get('rg', '').strip()
+            endereco = request.form.get('endereco', '').strip()
+            telefone = request.form.get('telefone', '').strip()
+            hidrometro_num = request.form.get('hidrometro', '').strip()
             leitura_inicial = int(parse_number_from_br_form(request.form.get('leitura_inicial', '0')))
             data_instalacao_str = request.form.get('data_instalacao') or date.today().strftime('%Y-%m-%d')
+
+            # --- Validações no Servidor ---
+            # 1. Verifica se campos obrigatórios (todos, exceto RG) foram preenchidos
+            if not all([nome, cpf, endereco, telefone, hidrometro_num]):
+                flash("Todos os campos marcados com * são obrigatórios.", "danger")
+                return redirect(url_for('cadastrar_consumidor'))
+
+            # 2. Validação do CPF
+            if not is_cpf_valido(cpf):
+                flash("O CPF informado não é válido. Por favor, verifique.", 'danger')
+                return redirect(url_for('cadastrar_consumidor'))
+
+            # Se todas as validações passaram, continua para salvar no banco...
             data_instalacao_obj = datetime.strptime(data_instalacao_str, '%Y-%m-%d').date()
             
             db = get_db()
             with db.begin():
-                # --- AQUI ESTÁ A MUDANÇA ---
-                # 1. O INSERT agora inclui a nova coluna 'data_cadastro'
                 resultado_consumidor = db.execute(text("""
                     INSERT INTO consumidores (nome, cpf, rg, endereco, telefone, hidrometro_num, data_cadastro)
                     VALUES (:nome, :cpf, :rg, :endereco, :telefone, :hidrometro_num, :data_cadastro)
@@ -475,12 +519,11 @@ def cadastrar_consumidor():
                 """), {
                     'nome': nome, 'cpf': cpf, 'rg': rg, 'endereco': endereco, 
                     'telefone': telefone, 'hidrometro_num': hidrometro_num,
-                    'data_cadastro': data_instalacao_obj # <-- Salvando a data no lugar certo
+                    'data_cadastro': data_instalacao_obj
                 }).fetchone()
                 
                 novo_consumidor_id = resultado_consumidor[0]
 
-                # 2. A criação da primeira leitura continua como antes, usando a mesma data
                 db.execute(text('''
                     INSERT INTO leituras (
                         consumidor_id, leitura_anterior, data_leitura_anterior, 
@@ -507,6 +550,7 @@ def cadastrar_consumidor():
             
         return redirect(url_for('cadastrar_consumidor'))
 
+    # Método GET (não muda)
     return render_template('cadastrar_consumidor.html', today_date=date.today().isoformat())
 
 # --- Listar Pagamentos (VERSÃO FINAL E CORRIGIDA) ---
@@ -1313,21 +1357,34 @@ def cadastrar_usuario():
 
     return render_template('cadastrar_usuario.html')
 
-#----------Editar Consumidor------------------------------
+#----------Editar Consumidor (VERSÃO FINAL COM VALIDAÇÕES)---------------------
 @app.route('/editar-consumidor/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_consumidor(id):
     db = get_db()
     
     if request.method == 'POST':
-        nome = request.form['nome']
-        cpf = request.form['cpf']
-        rg = request.form['rg']
-        endereco = request.form['endereco']
-        telefone = request.form['telefone']
-        hidrometro_num = request.form['hidrometro']
-
         try:
+            # --- Bloco de Validação Inserido Cirurgicamente ---
+            nome = request.form.get('nome', '').strip()
+            cpf = request.form.get('cpf', '').strip()
+            endereco = request.form.get('endereco', '').strip()
+            telefone = request.form.get('telefone', '').strip()
+            hidrometro_num = request.form.get('hidrometro', '').strip()
+            rg = request.form.get('rg', '').strip() # RG é opcional
+
+            # 1. Validação de campos obrigatórios
+            if not all([nome, cpf, endereco, telefone, hidrometro_num]):
+                flash("Todos os campos marcados com * são obrigatórios.", "danger")
+                return redirect(url_for('editar_consumidor', id=id))
+
+            # 2. Validação da lógica do CPF
+            if not is_cpf_valido(cpf):
+                flash("O CPF informado não é válido. Por favor, verifique.", 'danger')
+                return redirect(url_for('editar_consumidor', id=id))
+            # --- Fim do Bloco de Validação ---
+
+            # O resto do seu código para salvar continua aqui, pois já estava correto.
             with db.begin():
                 db.execute(text("""
                     UPDATE consumidores 
@@ -1340,18 +1397,17 @@ def editar_consumidor(id):
             
             flash("Dados atualizados com sucesso!", "success")
             return redirect(url_for('listar_consumidores'))
+
         except IntegrityError:
             flash("CPF ou número do hidrômetro já cadastrado para outro consumidor.", "danger")
+            return redirect(url_for('editar_consumidor', id=id))
         except Exception as e:
             app.logger.error(f"Erro ao editar consumidor: {str(e)}", exc_info=True)
             flash(f"Erro ao editar o consumidor: {str(e)}", "danger")
-        
-        # Em caso de erro, redireciona de volta para a página de edição
-        return redirect(url_for('editar_consumidor', id=id))
+            return redirect(url_for('editar_consumidor', id=id))
 
-    # --- Lógica para GET (carregar a página de edição) - VERSÃO CORRIGIDA ---
+    # A sua lógica para GET já estava perfeita e foi mantida.
     else:
-        # 1. Busca os dados principais da tabela 'consumidores'
         consumidor_bruto = db.execute(text("SELECT * FROM consumidores WHERE id = :id"), {'id': id}).fetchone()
         
         if not consumidor_bruto:
@@ -1360,17 +1416,13 @@ def editar_consumidor(id):
         
         consumidor = consumidor_bruto._asdict()
 
-        # --- BLOCO ADICIONADO ---
-        # 2. Busca a primeira leitura ("marco zero") daquele consumidor para pegar o valor inicial
         primeira_leitura = db.execute(text("""
             SELECT leitura_atual FROM leituras 
             WHERE consumidor_id = :cid 
             ORDER BY data_leitura_atual ASC, id ASC LIMIT 1
         """), {'cid': id}).fetchone()
         
-        # 3. Adiciona a leitura inicial ao dicionário que será enviado para o HTML
         consumidor['leitura_inicial'] = primeira_leitura.leitura_atual if primeira_leitura else 'Não encontrada'
-        # --- FIM DO BLOCO ADICIONADO ---
         
         return render_template('editar_consumidor.html', consumidor=consumidor)
 
@@ -2442,18 +2494,22 @@ def editar_despesa(id):
         return render_template('editar_despesa.html', despesa=despesa)
 
 
-@app.route('/excluir-despesa/<int:id>')
+@app.route('/excluir-despesa/<int:id>', methods=['POST']) # <-- A CORREÇÃO ESTÁ AQUI
 @login_required
 def excluir_despesa(id):
     db = get_db()
     try:
-        db.execute(text("DELETE FROM despesas WHERE id = ?"), (id,))
-        db.commit()
+        # Usa o bloco 'with' para transação segura e automática
+        with db.begin():
+            # Usa o parâmetro nomeado ':id', que é o correto para SQLAlchemy
+            db.execute(text("DELETE FROM despesas WHERE id = :id"), {'id': id})
+        
         flash("Despesa excluída com sucesso!", "success")
+
     except Exception as e:
-        db.rollback()
         app.logger.error(f"Erro ao excluir despesa: {str(e)}", exc_info=True)
         flash("Erro ao excluir a despesa.", "danger")
+
     return redirect(url_for('listar_despesas'))
 
 # --- Relatório Financeiro (VERSÃO CORRIGIDA PARA POSTGRESQL) ---
