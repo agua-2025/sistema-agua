@@ -83,31 +83,6 @@
         font-weight: 700;
         color: #212529;
       }
-      .photo-section {
-        text-align: center;
-        background-color: #f8f9fa;
-        border-radius: 0.25rem;
-        padding: 1rem;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        width: 100%;
-        height: 300px;
-        overflow: hidden;
-        position: relative;
-      }
-      .photo-section img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        border-radius: 0.25rem;
-      }
-      .photo-section .no-photo-text {
-        margin: auto;
-        color: #6c757d;
-      }
       .buttons {
         padding: 2rem;
         text-align: center;
@@ -115,21 +90,63 @@
         justify-content: center;
         gap: 10px;
       }
+
+      /* --- INÍCIO DA CORREÇÃO CIRÚRGICA --- */
+
+      /* 1. Ajuste na seção da foto para não forçar uma altura fixa */
+      .photo-section {
+        text-align: center;
+        padding: 1.5rem; /* Mantém seu padding original */
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; /* Alinha o título no topo */
+        align-items: center;
+      }
+
+      /* 2. A nova 'moldura' para a foto */
+      .foto-hidrometro-container {
+        width: 100%;
+        max-width: 350px; /* Largura máxima da moldura */
+        aspect-ratio: 4 / 3; /* Proporção 4:3 */
+        border-radius: 0.25rem;
+        overflow: hidden; /* Essencial para cortar o excesso da imagem */
+        margin-top: 1rem; /* Espaço abaixo do título */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dee2e6;
+        background-color: #f8f9fa;
+      }
+      .foto-hidrometro-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* A mágica para preencher sem distorcer */
+        object-position: center;
+      }
+      .foto-hidrometro-container .no-photo-text {
+        color: #6c757d;
+      }
+
+      /* --- FIM DA CORREÇÃO CIRÚRGICA --- */
+
       @media print {
         @page {
           size: A4;
-          margin: 10mm;
+          margin: 8mm; /* Margem da página ligeiramente reduzida */
         }
+
         body {
-          background-color: #fff;
-          font-size: 8.5pt;
-          line-height: 1.25;
+          background-color: #fff !important;
+          font-size: 9pt; /* Aumentei um pouco para legibilidade, pois vamos economizar espaço em outros lugares */
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-        .no-print {
+
+        .no-print,
+        .buttons {
           display: none !important;
         }
+
         .receipt-container {
           max-width: 100%;
           margin: 0;
@@ -137,58 +154,75 @@
           box-shadow: none;
           border: none;
         }
+
         .receipt-header {
-          padding: 7mm 0;
-          gap: 5px;
+          padding: 0.5rem;
+          gap: 10px;
         }
+
         .comprovante-logo {
-          max-height: 12mm !important;
+          max-height: 10mm !important;
         }
+
         .receipt-header h2 {
-          font-size: 14pt;
+          font-size: 13pt;
         }
+
         .receipt-header p {
           font-size: 9pt;
         }
+
         .receipt-body {
-          padding: 0 5mm;
+          padding: 0;
         }
+
         .section-block {
           border: 1px solid #eee !important;
           box-shadow: none !important;
-          padding: 4mm !important;
-          margin-bottom: 3.5mm !important;
+          padding: 1rem !important;
+          margin-bottom: 0.75rem !important; /* Margem entre seções reduzida */
           page-break-inside: avoid;
         }
+
         .section-title {
-          font-size: 9pt;
-          margin-bottom: 3mm;
-          padding-bottom: 2mm;
+          font-size: 10pt;
+          font-weight: bold;
+          margin-bottom: 0.75rem;
+          padding-bottom: 0.25rem;
         }
+
         .info-item .label {
-          font-size: 7pt;
+          font-size: 7.5pt;
         }
         .info-item .value {
-          font-size: 8.5pt;
+          font-size: 9pt;
         }
-        .photo-section {
-          height: 150px !important;
-          padding: 4mm !important;
+
+        hr {
+          margin: 1rem 0 !important; /* Margem do divisor reduzida */
         }
+
+        /* O AJUSTE MAIS IMPORTANTE: FOTO */
+        .foto-hidrometro-container {
+          height: 170px !important; /* Altura da foto drasticamente reduzida para impressão */
+          margin-top: 0.5rem !important;
+        }
+
         .table {
-          font-size: 8pt;
-          margin-bottom: 1rem !important;
+          font-size: 9pt;
+          margin-bottom: 0.5rem !important;
         }
         .table tfoot td {
           font-size: 10pt !important;
         }
-        .alert {
-          padding: 0.4rem !important;
-          font-size: 7pt !important;
-          margin-top: 0.5rem !important;
+        .due-date-box {
+          padding: 0.5rem !important;
         }
-        .buttons {
-          display: none !important;
+
+        .alert {
+          padding: 0.5rem !important;
+          font-size: 8pt !important;
+          margin-top: 1rem !important;
         }
       }
     </style>
@@ -312,29 +346,20 @@
           </div>
           <div class="col-md-5">
             <section class="section-block photo-section mb-3">
-              <span class="label d-block text-center mb-1"
-                >FOTO DO HIDRÔMETRO</span
-              >
-              {% if leitura.foto_hidrometro_base64 %}
-              <img
-                src="{{ leitura.foto_hidrometro_base64 }}"
-                alt="Foto do hidrômetro"
-                style="max-width: 300px; height: auto"
-                {#
-                Adicionei
-                um
-                estilo
-                básico
-                para
-                controle
-                de
-                tamanho
-                #}
-              />
-              {% else %} {# Opcional: Adicione um placeholder ou uma mensagem se
-              a foto não estiver disponível #}
-              <p>Foto do hidrômetro não disponível ou falha ao carregar.</p>
-              {% endif %}
+              <h3 class="section-title">Foto do Hidrômetro</h3>
+              <div class="foto-hidrometro-container">
+                {% if leitura.foto_hidrometro_base64 or foto_url_s3 %}
+                <img
+                  src="{{ foto_url_s3 or leitura.foto_hidrometro_base64 }}"
+                  alt="Foto do Hidrômetro"
+                />
+                {% else %}
+                <div class="no-photo-text">
+                  <i class="fas fa-camera fa-2x text-muted mb-2"></i>
+                  <p class="mb-0">Sem foto</p>
+                </div>
+                {% endif %}
+              </div>
             </section>
           </div>
         </div>
