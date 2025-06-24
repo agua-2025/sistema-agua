@@ -1,96 +1,144 @@
-{% extends "base.html" %}
-
-{% block title %}Consultar Fatura{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Consultar Fatura{% endblock %} {%
+block head %} {{ super() }}
+<style>
+  body {
+    background-color: #f4f7f9;
+    font-family: "Inter", sans-serif;
+  }
+  .main-card {
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.07);
+  }
+  .search-card {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+  }
+  .table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+  }
+  .table tbody tr:hover {
+    background-color: #f1f3f5;
+  }
+  .table td {
+    vertical-align: middle;
+  }
+</style>
+{% endblock %} {% block content %}
 <div class="container my-4">
-    <div class="card p-4 p-md-5 shadow-sm" style="border-radius: 12px; background-color: #ffffff;">
-
-        <h3 class="text-center fw-bold mb-2" style="color: #0056b3;">
-            <i class="bi bi-search me-2"></i>Consultar Fatura
+  <div class="main-card">
+    <div class="card-body p-4 p-md-5">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold mb-2 text-primary">
+          <i class="bi bi-search me-2"></i>Consultar Fatura
         </h3>
-        <p class="text-center text-muted mb-4">
-            Busque por uma fatura específica para ver seu extrato detalhado.
+        <p class="text-muted">
+          Busque por uma fatura específica para ver seu extrato detalhado.
         </p>
+      </div>
 
-        <!-- Campo de Busca -->
-        <div class="row justify-content-center mb-4">
-            <div class="col-md-8">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control" id="searchInput" onkeyup="filterTable()" placeholder="Buscar por nome ou ID da fatura...">
-                </div>
-            </div>
+      <div class="card search-card p-3 mb-4">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0"
+            ><i class="bi bi-search"></i
+          ></span>
+          <input
+            type="text"
+            class="form-control border-start-0"
+            id="searchInput"
+            onkeyup="filterTable()"
+            placeholder="Buscar por nome do cliente ou ID da fatura..."
+          />
         </div>
+      </div>
 
-        <!-- Tabela de Faturas -->
-        <div class="table-responsive">
-            <table class="table table-hover align-middle" id="faturasTable">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID da Fatura</th>
-                        <th>Consumidor</th>
-                        <th>Data da Fatura</th>
-                        <th class="text-end">Valor Original</th>
-                        <th class="text-center">Ação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for leitura in leituras_pagas %}
-                    <tr>
-                        <td>#{{ leitura.id }}</td>
-                        <td>{{ leitura.consumidor_nome }}</td>
-                        <td>{{ leitura.data_leitura_atual | date_format }}</td>
-                        <td class="text-end">R$ {{ "%.2f"|format(leitura.valor_original) | replace('.', ',') }}</td>
-                        <td class="text-center">
-                            <a href="{{ url_for('detalhes_pagamento', leitura_id=leitura.id) }}" class="btn btn-sm btn-primary">
-                                Ver Detalhes
-                            </a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center py-4">Nenhuma fatura com pagamentos encontrados.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" id="faturasTable">
+          <thead class="table-light">
+            <tr class="text-center">
+              <th class="text-start">Consumidor</th>
+              <th>ID da Fatura</th>
+              <th>Data da Fatura</th>
+              <th class="text-end">Valor Original</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for leitura in leituras_pagas %}
+            <tr>
+              <td class="text-start fw-bold">{{ leitura.cliente_nome }}</td>
+              <td class="text-center">#{{ leitura.id }}</td>
+              <td class="text-center">
+                {{ leitura.data_leitura_atual | date_format }}
+              </td>
+              <td class="text-end">
+                R$ {{ "%.2f"|format(leitura.valor_original|float) | replace('.',
+                ',') }}
+              </td>
+              <td class="text-center">
+                <a
+                  href="{{ url_for('detalhes_pagamento', leitura_id=leitura.id) }}"
+                  class="btn btn-sm btn-primary"
+                >
+                  <i class="bi bi-eye-fill me-1"></i> Ver Detalhes
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-5 text-muted">
+                <i class="bi bi-folder-x fs-3"></i>
+                <p class="mt-2">Nenhuma fatura com pagamentos encontrados.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-        <div class="text-center mt-4">
-            <a href="{{ url_for('relatorios') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Voltar para a Central de Relatórios
-            </a>
-        </div>
+      <div class="text-center mt-4">
+        <a href="{{ url_for('relatorios') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i> Voltar para a Central de
+          Relatórios
+        </a>
+      </div>
     </div>
+  </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <script>
-function filterTable() {
-    // Declaração de variáveis
+  function filterTable() {
     let input, filter, table, tr, tdName, tdId, i, txtValueName, txtValueId;
     input = document.getElementById("searchInput");
     filter = input.value.toUpperCase();
     table = document.getElementById("faturasTable");
     tr = table.getElementsByTagName("tr");
 
-    // Loop por todas as linhas da tabela, e esconde aquelas que não correspondem à busca
-    for (i = 1; i < tr.length; i++) { // Começa em 1 para pular o cabeçalho
-        tdName = tr[i].getElementsByTagName("td")[1]; // Coluna do Nome do Consumidor
-        tdId = tr[i].getElementsByTagName("td")[0]; // Coluna do ID da Fatura
-        if (tdName || tdId) {
-            txtValueName = tdName.textContent || tdName.innerText;
-            txtValueId = tdId.textContent || tdId.innerText;
-            
-            if (txtValueName.toUpperCase().indexOf(filter) > -1 || txtValueId.indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
+    for (i = 1; i < tr.length; i++) {
+      // Coluna do Nome do Consumidor (índice 0 agora)
+      tdName = tr[i].getElementsByTagName("td")[0];
+      // Coluna do ID da Fatura (índice 1 agora)
+      tdId = tr[i].getElementsByTagName("td")[1];
+
+      if (tdName || tdId) {
+        txtValueName = tdName.textContent || tdName.innerText;
+        txtValueId = tdId.textContent || tdId.innerText;
+
+        // Busca pelo nome OU pelo ID (removendo o '#')
+        if (
+          txtValueName.toUpperCase().indexOf(filter) > -1 ||
+          txtValueId.replace("#", "").indexOf(filter) > -1
+        ) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
         }
+      }
     }
-}
+  }
 </script>
 {% endblock %}

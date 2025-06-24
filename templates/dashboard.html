@@ -108,8 +108,8 @@
       <div class="row g-4 mb-4">
         <div class="col-lg-3 col-md-6">
           <div class="stats-card bg-primary">
-            <i class="bi bi-people-fill icon"></i>
-            <h6>Consumidores</h6>
+            <i class="bi bi-house-door-fill icon"></i>
+            <h6>Unidades Ativas</h6>
             <p class="display-5 mb-0">{{ total_consumidores }}</p>
           </div>
         </div>
@@ -143,12 +143,9 @@
               <i class="bi bi-lightning-charge-fill me-2"></i>Ações Rápidas
             </h5>
             <div class="vstack gap-3">
-              <a
-                href="{{ url_for('cadastrar_consumidor') }}"
-                class="action-link"
-              >
+              <a href="{{ url_for('cadastrar_cliente') }}" class="action-link">
                 <i class="bi bi-person-plus-fill"></i>
-                <span>Cadastrar Novo Consumidor</span>
+                <span>Cadastrar Novo Cliente</span>
               </a>
               <a
                 href="{{ url_for('lancamento_leituras') }}"
@@ -164,15 +161,9 @@
                 <i class="bi bi-cash-coin"></i>
                 <span>Registrar um Pagamento</span>
               </a>
-              {# Links de Despesa movidos para Central de Relatórios ou nova
-              seção, como relatorios.html #}
               <a href="{{ url_for('cadastrar_despesa') }}" class="action-link">
                 <i class="bi bi-file-earmark-plus-fill"></i>
                 <span>Cadastrar Despesa</span>
-              </a>
-              <a href="{{ url_for('listar_despesas') }}" class="action-link">
-                <i class="bi bi-card-list"></i>
-                <span>Listar Despesas</span>
               </a>
             </div>
           </div>
@@ -188,21 +179,17 @@
               {% if session.papel == 'admin' %}
               <a href="{{ url_for('cadastrar_usuario') }}" class="action-link">
                 <i class="bi bi-person-fill-add"></i>
-                <span>Cadastrar Usuário</span>
+                <span>Cadastrar Usuário do Sistema</span>
               </a>
               {% endif %}
-              <a
-                href="{{ url_for('listar_consumidores') }}"
-                class="action-link"
-              >
+              <a href="{{ url_for('listar_clientes') }}" class="action-link">
                 <i class="bi bi-person-lines-fill"></i>
-                <span>Gerenciar Consumidores</span>
+                <span>Gerenciar Clientes e Unidades</span>
               </a>
               <a href="{{ url_for('relatorios') }}" class="action-link">
                 <i class="bi bi-file-earmark-bar-graph-fill"></i>
                 <span>Central de Relatórios</span>
               </a>
-
               {% if session.papel == 'admin' %}
               <a href="{{ url_for('configuracoes') }}" class="action-link">
                 <i class="bi bi-gear-fill"></i>
