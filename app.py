@@ -489,7 +489,7 @@ def api_configuracoes_leitura():
     })
 
 
-#-----Cadastrar Cliente----------------------------
+#-----Cadastrar Cliente (VERSÃO FINAL COM CANCELAR INTELIGENTE)---------------------
 @app.route('/cadastrar-cliente', methods=['GET', 'POST'])
 @login_required
 def cadastrar_cliente():
@@ -561,7 +561,7 @@ def cadastrar_cliente():
                 })
 
             flash('Cliente, sua unidade e leitura inicial foram cadastrados com sucesso!', 'success')
-            return redirect(url_for('listar_clientes')) # <-- Mudaremos esta rota no próximo passo
+            return redirect(url_for('listar_clientes'))
 
         except IntegrityError:
             flash("CPF ou número do hidrômetro já cadastrado. Verifique os dados.", 'danger')
@@ -571,7 +571,15 @@ def cadastrar_cliente():
             
         return redirect(url_for('cadastrar_cliente'))
 
-    return render_template('cadastrar_cliente.html', today_date=date.today().isoformat())
+    # --- LÓGICA GET ATUALIZADA PARA O BOTÃO "CANCELAR" INTELIGENTE ---
+    else:
+        # Pega o parâmetro 'next' da URL, com um padrão seguro caso ele não exista.
+        next_url = request.args.get('next', url_for('listar_clientes')) 
+        return render_template(
+            'cadastrar_cliente.html', 
+            today_date=date.today().isoformat(),
+            next_url=next_url # Envia a URL de retorno para o template
+        )
 
 #------Adicionar Nova Unidade Consumidora----------------------
 @app.route('/cliente/<int:cliente_id>/adicionar-unidade', methods=['GET', 'POST'])
@@ -927,42 +935,41 @@ def cadastrar_leitura():
                                today_date=date.today().isoformat())
     
 # --- Registrar Pagamento (AGORA COM A LÓGICA WHATSAPP EMBUTIDA) ---
+# --- Registrar Pagamento (VERSÃO FINAL COM TODAS AS REGRAS DE NEGÓCIO) ---
 @app.route('/registrar-pagamento', methods=['GET', 'POST'])
 @login_required
 def registrar_pagamento():
     db = get_db()
     
-    # --- Lógica para POST (salvar o pagamento) ---
     if request.method == 'POST':
         try:
-            # Coleta de dados do formulário
-            consumidor_id = request.form['consumidor_id']
-            leitura_id = request.form['leitura_id']
-            data_pagamento_str = date.today().strftime('%Y-%m-%d')
-            forma_pagamento = request.form['forma_pagamento']
-            valor_pago = parse_number_from_br_form(request.form.get('valor_pago', '0'))
-
-            if valor_pago <= 0:
-                flash('O valor do pagamento deve ser maior que R$ 0,00.', 'warning')
-                return redirect(url_for('registrar_pagamento'))
-
-            # ABRIMOS A TRANSAÇÃO AQUI PARA ENVOLVER TODAS AS OPERAÇÕES
+            # A transação agora envolve toda a lógica de cálculo e salvamento
             with db.begin():
-                resultado_bruto = db.execute(text('SELECT valor_original, vencimento FROM leituras WHERE id = :leitura_id'), {'leitura_id': leitura_id}).fetchone()
-                leitura_selecionada = resultado_bruto._asdict() if resultado_bruto else None
+                # Coleta de dados do formulário
+                leitura_id = int(request.form['leitura_id'])
+                unidade_id = int(request.form['unidade_id']) # Recebemos o ID da unidade
+                data_pagamento_str = request.form.get('data_pagamento') or date.today().strftime('%Y-%m-%d')
+                forma_pagamento = request.form['forma_pagamento']
+                valor_pago = parse_number_from_br_form(request.form.get('valor_pago', '0'))
+
+                if valor_pago <= 0:
+                    raise ValueError('O valor do pagamento deve ser maior que R$ 0,00.')
                 
-                if not leitura_selecionada:
-                    flash('Leitura selecionada é inválida.', 'error')
-                    # Retornar aqui não causa problema, pois o 'with' gerencia o rollback
-                    return redirect(url_for('registrar_pagamento'))
+                # Busca dados da fatura e da unidade para obter o cliente_id
+                leitura = db.execute(text('SELECT valor_original, vencimento FROM leituras WHERE id = :id'), {'id': leitura_id}).fetchone()
+                unidade = db.execute(text('SELECT cliente_id FROM unidades_consumidoras WHERE id = :id'), {'id': unidade_id}).fetchone()
 
-                config = get_current_config() # Esta função já usa get_db()
-                valor_original_fatura = float(leitura_selecionada['valor_original'])
-                data_vencimento = leitura_selecionada['vencimento']
+                if not leitura or not unidade:
+                    raise ValueError("Fatura ou Unidade selecionada é inválida.")
 
-                total_pago_acumulado_antes = db.execute(text("SELECT COALESCE(SUM(valor_pago), 0) FROM pagamentos WHERE leitura_id = :leitura_id"), {'leitura_id': leitura_id}).fetchone()[0]
-                total_multa_acumulada_antes = db.execute(text("SELECT COALESCE(SUM(valor_multa), 0) FROM pagamentos WHERE leitura_id = :leitura_id"), {'leitura_id': leitura_id}).fetchone()[0]
-                total_juros_acumulados_antes = db.execute(text("SELECT COALESCE(SUM(valor_juros), 0) FROM pagamentos WHERE leitura_id = :leitura_id"), {'leitura_id': leitura_id}).fetchone()[0]
+                # --- SUA LÓGICA ORIGINAL DE CÁLCULO DE JUROS, MULTAS, ETC. RESTAURADA ---
+                config = get_current_config()
+                valor_original_fatura = safe_float(leitura.valor_original)
+                data_vencimento = leitura.vencimento
+
+                total_pago_acumulado_antes = db.execute(text("SELECT COALESCE(SUM(valor_pago), 0) FROM pagamentos WHERE leitura_id = :id"), {'id': leitura_id}).fetchone()[0]
+                total_multa_acumulada_antes = db.execute(text("SELECT COALESCE(SUM(valor_multa), 0) FROM pagamentos WHERE leitura_id = :id"), {'id': leitura_id}).fetchone()[0]
+                total_juros_acumulados_antes = db.execute(text("SELECT COALESCE(SUM(valor_juros), 0) FROM pagamentos WHERE leitura_id = :id"), {'id': leitura_id}).fetchone()[0]
                 
                 valor_base_antes = max(valor_original_fatura + total_multa_acumulada_antes + total_juros_acumulados_antes - total_pago_acumulado_antes, 0)
 
@@ -978,32 +985,49 @@ def registrar_pagamento():
                 total_corrigido = round(valor_base_antes + multa_a_ser_paga + juros_devido, 2)
                 saldo_devedor = max(0, total_corrigido - valor_pago)
                 saldo_credor = max(0, valor_pago - total_corrigido)
+                # --- FIM DA LÓGICA DE CÁLCULO ---
 
+                # INSERT na tabela pagamentos com todos os campos calculados
                 db.execute(text('''
                     INSERT INTO pagamentos (
-                        leitura_id, consumidor_id, data_pagamento, forma_pagamento, valor_pago, 
+                        leitura_id, cliente_id, data_pagamento, forma_pagamento, valor_pago, 
                         dias_atraso, valor_multa, valor_juros, total_corrigido, saldo_devedor, saldo_credor
-                    ) VALUES (:leitura_id, :consumidor_id, :data_pagamento, :forma_pagamento, :valor_pago, :dias_atraso, :valor_multa, :valor_juros, :total_corrigido, :saldo_devedor, :saldo_credor)
+                    ) VALUES (
+                        :leitura_id, :cliente_id, :data_pagamento, :forma_pagamento, :valor_pago, 
+                        :dias_atraso, :valor_multa, :valor_juros, :total_corrigido, :saldo_devedor, :saldo_credor
+                    )
                 '''), {
-                    'leitura_id': int(leitura_id), 'consumidor_id': int(consumidor_id), 'data_pagamento': data_pagamento_str, 
-                    'forma_pagamento': forma_pagamento, 'valor_pago': valor_pago, 'dias_atraso': dias_atraso, 
-                    'valor_multa': multa_a_ser_paga, 'valor_juros': juros_devido, 'total_corrigido': total_corrigido, 
-                    'saldo_devedor': saldo_devedor, 'saldo_credor': saldo_credor
+                    'leitura_id': leitura_id, 
+                    'cliente_id': unidade.cliente_id, # Salva o ID do cliente correto
+                    'data_pagamento': data_pagamento_str, 
+                    'forma_pagamento': forma_pagamento, 
+                    'valor_pago': valor_pago,
+                    'dias_atraso': dias_atraso,
+                    'valor_multa': multa_a_ser_paga,
+                    'valor_juros': juros_devido,
+                    'total_corrigido': total_corrigido,
+                    'saldo_devedor': saldo_devedor,
+                    'saldo_credor': saldo_credor
                 })
             
             flash('Pagamento registrado com sucesso!', 'success')
             return redirect(url_for('listar_pagamentos'))
 
+        except ValueError as e:
+            flash(str(e), 'warning')
+            return redirect(url_for('registrar_pagamento'))
+        except IntegrityError:
+            flash("Erro de integridade. Verifique se a fatura já foi paga.", "danger")
+            return redirect(url_for('registrar_pagamento'))
         except Exception as e:
             app.logger.error(f"Erro ao registrar pagamento: {e}", exc_info=True)
-            flash('Erro ao registrar pagamento. Verifique os dados e tente novamente.', 'danger')
+            flash(f'Erro inesperado ao registrar pagamento: {str(e)}', 'danger')
             return redirect(url_for('registrar_pagamento'))
 
-    # --- Lógica para GET (carregar o formulário) ---
+    # Lógica GET: Apenas busca a lista de clientes
     else:
-        consumidores = db.execute(text('SELECT id, nome FROM consumidores ORDER BY nome')).fetchall()
-        return render_template('registrar_pagamento.html', consumidores=consumidores, leituras=[])
-
+        clientes = db.execute(text('SELECT id, nome FROM clientes ORDER BY nome')).fetchall()
+        return render_template('registrar_pagamento.html', clientes=clientes, today_date=date.today().isoformat())
 
 # --- API para obter detalhes da leitura (VERSÃO COM TRADUÇÃO MANUAL) ---
 @app.route('/get-leitura-details/<int:leitura_id>')
@@ -1224,91 +1248,42 @@ def excluir_leitura(id):
 
     return redirect(url_for('listar_leituras'))
 
-# --- API para retornar leituras pendentes (VERSÃO COM TRADUÇÃO MANUAL) ---
-@app.route('/api/leituras/<int:consumidor_id>')
+#----------Retorna Unidades Consumidoras--------------
+@app.route('/api/unidades/<int:cliente_id>')
 @login_required
-def api_leituras(consumidor_id):
-    if 'usuario' not in session:
-        return jsonify({'erro': 'Não autorizado'}), 401
-
+def api_unidades(cliente_id):
+    """Retorna as unidades consumidoras de um cliente específico."""
     db = get_db()
-    config = get_current_config()
-    if not config:
-        app.logger.error("Configurações de cálculo não foram encontradas.")
-        return jsonify({'erro': 'Erro de configuração interna.'}), 500
+    unidades_brutas = db.execute(text("""
+        SELECT id, endereco, hidrometro_num 
+        FROM unidades_consumidoras 
+        WHERE cliente_id = :cid 
+        ORDER BY endereco
+    """), {'cid': cliente_id}).fetchall()
+    unidades = [u._asdict() for u in unidades_brutas]
+    return jsonify(unidades)
 
+#------------------Retorna Unidade Consumidoras ao Cliente específico--------------
+@app.route('/api/leituras/<int:unidade_id>')
+@login_required
+def api_leituras(unidade_id):
+    """Retorna as faturas PENDENTES de uma UNIDADE específica para o dropdown."""
+    db = get_db()
     try:
         leituras_brutas = db.execute(text('''
             SELECT
-                l.id, l.data_leitura_atual, l.vencimento, l.valor_original,
-                l.data_leitura_anterior,
-                COALESCE(SUM(p.valor_pago), 0) AS total_pago_acumulado,
-                COALESCE(SUM(p.valor_multa), 0) AS total_multa_acumulada,
-                COALESCE(SUM(p.valor_juros), 0) AS total_juros_acumulados
+                l.id, l.data_leitura_atual, l.vencimento, l.valor_original
             FROM leituras l
-            LEFT JOIN pagamentos p ON p.leitura_id = l.id
-            WHERE l.consumidor_id = :cid
-            GROUP BY l.id
-            HAVING (l.valor_original + COALESCE(SUM(p.valor_multa), 0) + COALESCE(SUM(p.valor_juros), 0) - COALESCE(SUM(p.valor_pago), 0)) > 0.001
+            WHERE 
+                l.unidade_id = :uid AND 
+                l.valor_original IS NOT NULL AND
+                l.valor_original > (SELECT COALESCE(SUM(p.valor_pago), 0) FROM pagamentos p WHERE p.leitura_id = l.id)
             ORDER BY l.data_leitura_atual DESC
-        '''), {'cid': consumidor_id}).fetchall()
-
-        hoje = date.today().strftime('%Y-%m-%d')
-        resultado_final = []
-
-        for l_bruto in leituras_brutas:
-            l = l_bruto._asdict()
-            try:
-                valor_original_da_fatura = float(l['valor_original'])
-                total_pago_acumulado = float(l['total_pago_acumulado'])
-                total_multa_acumulada = float(l['total_multa_acumulada'])
-                total_juros_acumulados = float(l['total_juros_acumulados'])
-
-                valor_base_para_novas_penalidades = max(
-                    valor_original_da_fatura + total_multa_acumulada + total_juros_acumulados - total_pago_acumulado, 0
-                )
-                
-                multa_calculada_potencial, juros_calculado_agora, dias_atraso = calcular_penalidades(
-                    valor_original_da_fatura, valor_base_para_novas_penalidades, l['vencimento'],
-                    hoje, config['multa_percentual'], config['juros_diario_percentual']
-                )
-
-                multa_para_exibir_agora = 0.0
-                if dias_atraso > 0 and total_multa_acumulada == 0:
-                    multa_para_exibir_agora = multa_calculada_potencial
-                
-                valor_corrigido_total = round(valor_base_para_novas_penalidades + multa_para_exibir_agora + juros_calculado_agora, 2)
-
-                dados_da_leitura = {
-                    'id': l['id'], 
-                    'data_leitura_atual': l['data_leitura_atual'],
-                    'vencimento': l['vencimento'], 
-                    'valor_original_da_fatura': round(valor_original_da_fatura, 2),
-                    'total_pago_acumulado': round(total_pago_acumulado, 2),
-                    'valor_base_para_novas_penalidades': round(valor_base_para_novas_penalidades, 2),
-                    'valor_corrigido_total_para_proximo_pagamento': valor_corrigido_total,
-                    'dias_atraso': dias_atraso, 
-                    'multa_calculada_agora': round(multa_para_exibir_agora, 2),
-                    'juros_calculado_agora': round(juros_calculado_agora, 2),
-                    'data_leitura_anterior': l['data_leitura_anterior']
-                }
-
-                # Tradução manual das datas para um formato que o JavaScript entende
-                if isinstance(dados_da_leitura['data_leitura_atual'], date):
-                    dados_da_leitura['data_leitura_atual'] = dados_da_leitura['data_leitura_atual'].isoformat()
-                if isinstance(dados_da_leitura['vencimento'], date):
-                    dados_da_leitura['vencimento'] = dados_da_leitura['vencimento'].isoformat()
-                
-                resultado_final.append(dados_da_leitura)
-
-            except Exception as e_loop:
-                app.logger.warning(f"Erro processando leitura {l.get('id', 'N/A')}: {str(e_loop)}")
-                continue
-
-        return jsonify(resultado_final)
-
+        '''), {'uid': unidade_id}).fetchall()
+        leituras_pendentes = [l._asdict() for l in leituras_brutas]
+        return jsonify(leituras_pendentes)
     except Exception as e:
-        app.logger.error(f"Erro ao buscar leituras via API: {str(e)}", exc_info=True)
+        app.logger.error(f"Erro na API de leituras para unidade {unidade_id}: {e}", exc_info=True)
         return jsonify({'erro': 'Erro interno no servidor'}), 500
     
 
@@ -1551,15 +1526,20 @@ def editar_cliente(id):
 
     # ATUALIZADO: A lógica GET agora busca na tabela 'clientes'
     else:
+    # Busca os dados do cliente
         cliente_bruto = db.execute(text("SELECT * FROM clientes WHERE id = :id"), {'id': id}).fetchone()
-        
-        if not cliente_bruto:
-            flash("Cliente não encontrado.", "error")
-            return redirect(url_for('listar_clientes'))
-        
-        cliente = cliente_bruto._asdict()
-        
-        return render_template('editar_cliente.html', cliente=cliente)
+    
+    if not cliente_bruto:
+        flash("Cliente não encontrado.", "error")
+        return redirect(url_for('listar_clientes'))
+    
+    cliente = cliente_bruto._asdict()
+    
+    # LÓGICA DO REDIRECIONAMENTO INTELIGENTE
+    # Pega o parâmetro 'next' da URL. Se não existir, o padrão é voltar para a página de detalhes.
+    next_url = request.args.get('next', url_for('detalhes_cliente', cliente_id=id))
+    
+    return render_template('editar_cliente.html', cliente=cliente, next_url=next_url)
 
 
 # --- Excluir Consumidor (VERSÃO CORRIGIDA) ---

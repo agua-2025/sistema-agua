@@ -143,7 +143,10 @@
               <i class="bi bi-lightning-charge-fill me-2"></i>Ações Rápidas
             </h5>
             <div class="vstack gap-3">
-              <a href="{{ url_for('cadastrar_cliente') }}" class="action-link">
+              <a
+                href="{{ url_for('cadastrar_cliente', next=request.path) }}"
+                class="action-link"
+              >
                 <i class="bi bi-person-plus-fill"></i>
                 <span>Cadastrar Novo Cliente</span>
               </a>

@@ -50,11 +50,7 @@
           <h3 class="text-primary mb-0">
             <i class="bi bi-pencil-square me-2"></i> Editar Dados do Cliente
           </h3>
-          <a
-            href="{{ url_for('listar_clientes') }}"
-            class="btn btn-outline-secondary"
-            ><i class="bi bi-arrow-left me-1"></i> Voltar</a
-          >
+          <a href="{{ next_url or url_for('detalhes_cliente', cliente_id=cliente.id) }}" ...>
         </div>
 
         {% include '_flash_messages.html' %}
@@ -121,11 +117,7 @@
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-            <a
-              href="{{ url_for('listar_clientes') }}"
-              class="btn btn-light border"
-              >Cancelar</a
-            >
+           <a href="{{ next_url or url_for('detalhes_cliente', cliente_id=cliente.id) }}" ...>
             <button type="submit" class="btn btn-primary">
               <i class="bi bi-save-fill me-1"></i> Salvar Alterações
             </button>

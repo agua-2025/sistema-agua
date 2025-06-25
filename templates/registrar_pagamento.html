@@ -1,431 +1,335 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Registrar Pagamento - Águas de Santa Maria</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: #f4f7f9;
-        font-size: 0.9rem;
-      }
-      .container {
-        background-color: #ffffff;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
-        margin-top: 20px;
-        max-width: 900px;
-      }
-      h3 {
-        color: #0056b3;
-        font-weight: 600;
-        text-align: center;
-      }
-      .section-title {
-        font-weight: 600;
-        color: #007bff;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #007bff;
-      }
-      .form-label {
-        font-weight: 500;
-        font-size: 0.85rem;
-      }
-      .info-display-box {
-        background-color: #e9ecef;
-        border-radius: 6px;
-        padding: 0.55rem 0.75rem;
-        min-height: calc(1.5em + 1.1rem + 2px);
-        display: flex;
-        align-items: center;
-      }
-      .total-box {
-        background-color: #e9ecef;
-        border-radius: 6px;
-        padding: 1rem;
-        text-align: center;
-      }
-      .total-box .form-label {
-        font-weight: 600;
-        color: #0056b3;
-      }
-      .total-box .display-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-      }
-      /* Adicionado estilo para campos readonly/disabled */
-      .form-control[readonly], .form-control:disabled {
-          background-color: #e9ecef; /* Cor padrão do Bootstrap para campos desabilitados */
-          opacity: 1; /* Garante que não fique semi-transparente */
-      }
-    </style>
-  </head>
-  <body class="bg-light">
-    <div class="container">
-      <h3 class="mb-4">
-        <i class="bi bi-cash-coin me-2"></i>Registrar Pagamento
-      </h3>
-
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <div class="mb-3">
-        {% for category, message in messages %}
-        <div
-          class="alert alert-{{ category }} alert-dismissible fade show"
-          role="alert"
+{% extends "base.html" %} {% block title %}Registrar Pagamento{% endblock %} {%
+block head %} {{ super() }}
+<style>
+  /* Estilos para um visual mais compacto e profissional */
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+  select:disabled,
+  input:disabled,
+  button:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+  }
+  #debtDetails {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+  }
+  .debt-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px dashed #ced4da;
+  }
+  .debt-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .debt-item .label {
+    color: #6c757d;
+  }
+  .debt-item .value {
+    font-weight: 600;
+    font-family: "Roboto Mono", monospace;
+  }
+  .total-row {
+    border-top: 2px solid #212529;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding-top: 0.75rem !important;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container my-4">
+  <div class="col-lg-10 mx-auto">
+    <div class="card shadow-sm">
+      <div
+        class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2"
+      >
+        <h4 class="mb-0 fs-5">
+          <i class="bi bi-cash-coin me-2"></i>Registrar Pagamento
+        </h4>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-sm"
+          ><i class="bi bi-arrow-left"></i> Voltar</a
         >
-          {{ message }}
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-          ></button>
-        </div>
-        {% endfor %}
       </div>
-      {% endif %} {% endwith %}
+      <div class="card-body p-4">
+        {% include '_flash_messages.html' %}
 
-      <form method="POST" id="pagamentoForm">
-        <h5 class="section-title">Seleção da Fatura</h5>
-        <div class="row mb-3">
-          <div class="col-md-6 mb-3 mb-md-0">
-            <label for="consumidor_id" class="form-label">Consumidor *</label>
-            <select
-              class="form-select"
-              id="consumidor_id"
-              name="consumidor_id"
-              required
-            >
-              <option value="" disabled selected>
-                Selecione um consumidor
-              </option>
-              {% for consumidor in consumidores %}
-              <option value="{{ consumidor.id }}">{{ consumidor.nome }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label for="leitura_id" class="form-label">Fatura Pendente *</label>
-            <select
-              class="form-select"
-              id="leitura_id"
-              name="leitura_id"
-              required
-            >
-              <option value="">Aguardando seleção do consumidor</option>
-            </select>
-          </div>
-        </div>
-
-        <hr class="my-4" />
-
-        <div class="row">
-          <div class="col-lg-7">
-            <h5 class="section-title">Cálculo de Valores</h5>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Vencimento Original</label>
-                <div class="info-display-box" id="vencimento_original">
-                  DD/MM/AAAA
-                </div>
+        <form
+          method="POST"
+          id="paymentForm"
+          action="{{ url_for('registrar_pagamento') }}"
+        >
+          <h5 class="fs-6 fw-bold">1. Seleção da Fatura</h5>
+          <div class="p-3 border rounded bg-light mb-4">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="cliente_id" class="form-label">Cliente</label
+                ><select id="cliente_id" class="form-select" required>
+                  <option value="" disabled selected>
+                    -- Escolha um cliente --
+                  </option>
+                  {% for cliente in clientes %}
+                  <option value="{{ cliente.id }}">{{ cliente.nome }}</option>
+                  {% endfor %}
+                </select>
               </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Saldo Devedor Anterior</label>
-                <div class="info-display-box" id="saldo_anterior">R$ 0,00</div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Multa</label>
-                <div class="info-display-box" id="multa">R$ 0,00</div>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Juros</label>
-                <div class="info-display-box" id="juros">R$ 0,00</div>
-              </div>
-            </div>
-
-            <h5 class="section-title mt-3">Registro do Pagamento</h5>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="data_pagamento" class="form-label"
-                  >Data do Pagamento *</label
-                >
-                <input
-                  type="date"
-                  class="form-control"
-                  id="data_pagamento"
-                  name="data_pagamento"
-                  required
-                  readonly="readonly" />
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="forma_pagamento" class="form-label"
-                  >Forma de Pagamento *</label
-                >
-                <select
+              <div class="col-md-6">
+                <label for="unidade_id" class="form-label"
+                  >Unidade Consumidora</label
+                ><select
+                  id="unidade_id"
+                  name="unidade_id"
                   class="form-select"
-                  id="forma_pagamento"
-                  name="forma_pagamento"
                   required
+                  disabled
                 >
-                  <option value="PIX">PIX</option>
-                  <option value="Transferencia">Transferência</option>
-                  <option value="Boleto">Boleto</option>
-                  <option value="Dinheiro">Dinheiro</option>
+                  <option value="" disabled selected>
+                    -- Primeiro escolha um cliente --
+                  </option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="leitura_id" class="form-label"
+                  >Fatura Pendente</label
+                ><select
+                  id="leitura_id"
+                  name="leitura_id"
+                  class="form-select"
+                  required
+                  disabled
+                >
+                  <option value="">-- Escolha uma unidade --</option>
                 </select>
               </div>
             </div>
           </div>
 
-          <div class="col-lg-5">
-            <h5 class="section-title">Valores Finais</h5>
-            <div class="mb-3">
-              <div class="total-box">
-                <label class="form-label">TOTAL A PAGAR HOJE</label>
-                <div class="display-value" id="total_a_pagar">R$ 0,00</div>
+          <h5 class="fs-6 fw-bold">2. Detalhes e Confirmação</h5>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div id="debtDetails" class="p-3 h-100">
+                <div class="debt-item">
+                  <span class="label">Valor Original</span
+                  ><span class="value text-muted">--</span>
+                </div>
+                <div class="debt-item">
+                  <span class="label">Dias em Atraso</span
+                  ><span class="value text-muted">--</span>
+                </div>
+                <div class="debt-item">
+                  <span class="label">Multa</span
+                  ><span class="value text-muted">--</span>
+                </div>
+                <div class="debt-item">
+                  <span class="label">Juros</span
+                  ><span class="value text-muted">--</span>
+                </div>
+                <div class="debt-item total-row">
+                  <span class="label">Total Corrigido</span
+                  ><span class="value text-primary">--</span>
+                </div>
               </div>
             </div>
-            <div class="mb-3">
-              <label for="valor_pago" class="form-label"
-                >Valor Efetivamente Pago *</label
-              >
-              <input
-                type="text"
-                class="form-control form-control-lg"
-                id="valor_pago"
-                name="valor_pago"
-                required
-                placeholder="R$ 0,00"
-              />
+
+            <div class="col-md-6">
+              <fieldset id="paymentFields" disabled>
+                <div class="mb-3">
+                  <label for="valor_pago" class="form-label"
+                    >Valor a Pagar</label
+                  >
+                  <div class="input-group">
+                    <span class="input-group-text">R$</span
+                    ><input
+                      type="text"
+                      class="form-control"
+                      id="valor_pago"
+                      name="valor_pago"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="forma_pagamento" class="form-label"
+                    >Forma de Pagamento</label
+                  ><select
+                    id="forma_pagamento"
+                    name="forma_pagamento"
+                    class="form-select"
+                    required
+                  >
+                    <option>Dinheiro</option>
+                    <option>PIX</option>
+                    <option>Cartão de Débito</option>
+                    <option>Cartão de Crédito</option>
+                    <option>Transferência</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="data_pagamento" class="form-label"
+                    >Data do Pagamento</label
+                  ><input
+                    type="date"
+                    class="form-control"
+                    id="data_pagamento"
+                    name="data_pagamento"
+                    value="{{ today_date }}"
+                  />
+                </div>
+              </fieldset>
             </div>
           </div>
-        </div>
 
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-          <button type="submit" class="btn btn-primary px-4">
-            <i class="bi bi-check-circle-fill me-2"></i>Registrar Pagamento
-          </button>
-          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary px-4"
-            >Cancelar</a
-          >
-        </div>
-      </form>
+          <div class="d-grid mt-4">
+            <button
+              type="submit"
+              id="submitButton"
+              class="btn btn-primary btn-lg"
+              disabled
+            >
+              <i class="bi bi-check-circle-fill me-2"></i>Confirmar e Registrar
+              Pagamento
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const clienteSelect = document.getElementById("cliente_id");
+    const unidadeSelect = document.getElementById("unidade_id");
+    const leituraSelect = document.getElementById("leitura_id");
+    const paymentFields = document.getElementById("paymentFields");
+    const debtDetailsDiv = document.getElementById("debtDetails");
+    const valorPagoInput = document.getElementById("valor_pago");
+    const submitButton = document.getElementById("submitButton");
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    function formatDate(dateString) {
+      if (!dateString || typeof dateString !== "string") return "N/A";
+      const parts = dateString.split("-");
+      if (parts.length !== 3) return "Data Inválida";
+      const date = new Date(parts[0], parts[1] - 1, parts[2]);
+      if (isNaN(date.getTime())) return "Data Inválida";
+      return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+    }
 
-    <script>
-      // Função para formatar um número para o padrão de moeda brasileiro (R$)
-      function formatCurrency(value) {
-        const number = parseFloat(value);
-        if (isNaN(number)) return "R$ 0,00";
-        return "R$ " + number.toFixed(2).replace(".", ",");
-      }
+    function formatCurrency(value) {
+      const num = parseFloat(value);
+      if (isNaN(num)) return "0,00";
+      return num.toFixed(2).replace(".", ",");
+    }
 
-      // Função para formatar uma string de data (YYYY-MM-DD) para o padrão brasileiro (DD/MM/YYYY)
-      function formatDate(dateString) {
-        if (!dateString) {
-          return "N/A";
-        }
-        const date = new Date(dateString + "T00:00:00");
-        if (isNaN(date.getTime())) {
-          return "Data Inválida";
-        }
-        return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
-      }
+    function resetPaymentSection() {
+      paymentFields.disabled = true;
+      submitButton.disabled = true;
+      valorPagoInput.value = "";
+      debtDetailsDiv.innerHTML = `
+            <div class="debt-item"><span class="label">Valor Original</span><span class="value text-muted">--</span></div>
+            <div class="debt-item"><span class="label">Dias em Atraso</span><span class="value text-muted">--</span></div>
+            <div class="debt-item"><span class="label">Multa</span><span class="value text-muted">--</span></div>
+            <div class="debt-item"><span class="label">Juros</span><span class="value text-muted">--</span></div>
+            <div class="debt-item total-row"><span class="label">Total Corrigido</span><span class="value text-primary">--</span></div>
+        `;
+    }
 
-      // Função para formatar a data de referência da fatura (Mês/Ano)
-      function formatRefDate(dateString) {
-        if (!dateString) {
-          return "Ref. N/A";
-        }
-        const date = new Date(dateString + "T00:00:00");
-        if (isNaN(date.getTime())) {
-          return "Ref. Inválida";
-        }
+    clienteSelect.addEventListener("change", function () {
+      const clienteId = this.value;
+      unidadeSelect.innerHTML =
+        '<option value="" disabled selected>-- Carregando... --</option>';
+      unidadeSelect.disabled = true;
+      leituraSelect.innerHTML =
+        '<option value="">-- Escolha uma unidade --</option>';
+      leituraSelect.disabled = true;
+      resetPaymentSection();
+      if (!clienteId) return;
 
-        const mes = String(date.getMonth() + 1).padStart(2, "0");
-        const ano = date.getFullYear();
-        return `Fatura Ref. ${mes}/${ano}`;
-      }
-
-      // Espera o documento carregar para executar o código
-      document.addEventListener("DOMContentLoaded", function () {
-        const consumidorSelect = document.getElementById("consumidor_id");
-        const faturaSelect = document.getElementById("leitura_id");
-        const dataPagamentoInput = document.getElementById("data_pagamento");
-
-        const vencimentoDisplay = document.getElementById(
-          "vencimento_original"
-        );
-        const saldoAnteriorDisplay = document.getElementById("saldo_anterior");
-        const multaDisplay = document.getElementById("multa");
-        const jurosDisplay = document.getElementById("juros");
-        const totalPagarDisplay = document.getElementById("total_a_pagar");
-        const valorPagoInput = document.getElementById("valor_pago");
-
-        // --- INÍCIO DAS MODIFICAÇÕES CRÍTICAS ---
-
-        // 1. Define a data de hoje como padrão no campo de data de pagamento e o mantém READONLY.
-        //    (Já estava correto, apenas reforçando a importância)
-        const today = new Date();
-        dataPagamentoInput.value = today.toISOString().split("T")[0];
-
-        // 2. Função para limpar campos de valores calculados
-        function clearValueFields() {
-          vencimentoDisplay.textContent = "DD/MM/AAAA";
-          saldoAnteriorDisplay.textContent = "R$ 0,00";
-          multaDisplay.textContent = "R$ 0,00";
-          jurosDisplay.textContent = "R$ 0,00";
-          totalPagarDisplay.textContent = "R$ 0,00";
-          valorPagoInput.value = ""; // Limpa o valor pago também
-        }
-
-        // 3. Modifica fetchFaturas para considerar a fatura selecionada anteriormente (se houver)
-        //    e para usar a data de pagamento SOMENTE para o cálculo das multas/juros na API.
-        function fetchFaturas(consumidorId, keepSelectedFaturaId = null) {
-          const dataPagamentoRef = dataPagamentoInput.value; // Data de hoje, que é fixa
-          
-          faturaSelect.innerHTML = '<option value="">Carregando...</option>';
-          clearValueFields(); // Limpa os campos enquanto carrega
-
-          if (!consumidorId) {
-            faturaSelect.innerHTML =
-              '<option value="" disabled selected>Selecione um Consumidor</option>';
-            return;
-          }
-
-          fetch(
-            `/api/leituras/${consumidorId}?data_pagamento_ref=${dataPagamentoRef}`
-          )
-            .then((response) => {
-              if (!response.ok) throw new Error("Falha de rede");
-              return response.json();
-            })
-            .then((faturas) => {
-              faturaSelect.innerHTML =
-                '<option value="" disabled selected>Selecione uma Fatura</option>';
-              if (faturas && faturas.length > 0) {
-                faturas.forEach(function (fatura) {
-                  const displayText = `${formatRefDate(
-                    fatura.data_leitura_atual
-                  )} | Saldo: ${formatCurrency(
-                    fatura.valor_corrigido_total_para_proximo_pagamento
-                  )}`;
-                  const option = new Option(displayText, fatura.id);
-                  faturaSelect.add(option);
-                });
-                
-                // Tenta re-selecionar a fatura se um ID foi passado
-                if (keepSelectedFaturaId) {
-                    faturaSelect.value = keepSelectedFaturaId;
-                    // Se a fatura foi re-selecionada, dispara o fetchDetalhesFatura para preencher os dados
-                    if (faturaSelect.value === String(keepSelectedFaturaId)) {
-                        fetchDetalhesFatura(keepSelectedFaturaId);
-                    } else {
-                        // Se não conseguiu re-selecionar, limpa os campos para evitar dados antigos
-                        clearValueFields();
-                    }
-                }
-
-              } else {
-                faturaSelect.innerHTML =
-                  '<option value="">Nenhuma fatura pendente</option>';
-              }
-            })
-            .catch((error) => {
-              console.error("Erro ao buscar faturas:", error);
-              faturaSelect.innerHTML =
-                '<option value="">Erro ao carregar faturas</option>';
-            });
-        }
-
-        // 4. Modifica fetchDetalhesFatura para preencher o valor_pago
-        function fetchDetalhesFatura(leituraId) {
-          const dataPagamentoRef = dataPagamentoInput.value; // Data de hoje, que é fixa
-          if (!leituraId) {
-            clearValueFields();
-            return;
-          }
-
-          fetch(
-            `/get-leitura-details/${leituraId}?data_pagamento_ref=${dataPagamentoRef}`
-          )
-            .then((response) => {
-              if (!response.ok) throw new Error("Falha de rede");
-              return response.json();
-            })
-            .then((details) => {
-              vencimentoDisplay.textContent = formatDate(
-                details.data_vencimento
-              );
-              saldoAnteriorDisplay.textContent = formatCurrency(
-                details.valor_base_para_novas_penalidades
-              );
-              multaDisplay.textContent = formatCurrency(details.multa);
-              jurosDisplay.textContent = formatCurrency(details.juros);
-              totalPagarDisplay.textContent = formatCurrency(
-                details.total_corrigido
-              );
-              // Preenche valor_pago com o total corrigido por padrão
-              valorPagoInput.value = details.total_corrigido
-                .toFixed(2)
-                .replace(".", ",");
-            })
-            .catch((error) => {
-              console.error("Erro ao buscar detalhes da fatura:", error);
-              clearValueFields();
-            });
-        }
-
-        // 5. Ajusta os "escutadores" de eventos
-        consumidorSelect.addEventListener("change", () => {
-          // Quando o consumidor muda, limpa a fatura e recarrega as faturas para ele
-          faturaSelect.innerHTML = '<option value="" disabled selected>Selecione uma Fatura</option>';
-          clearValueFields();
-          fetchFaturas(consumidorSelect.value);
+      fetch(`/api/unidades/${clienteId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          unidadeSelect.innerHTML =
+            '<option value="" disabled selected>-- Escolha uma unidade --</option>';
+          data.forEach((u) => {
+            unidadeSelect.innerHTML += `<option value="${u.id}">${u.endereco} (Hidr. ${u.hidrometro_num})</option>`;
+          });
+          unidadeSelect.disabled = false;
         });
+    });
 
-        faturaSelect.addEventListener("change", () => {
-          // Quando a fatura muda, busca os detalhes dela
-          fetchDetalhesFatura(faturaSelect.value);
+    unidadeSelect.addEventListener("change", function () {
+      const unidadeId = this.value;
+      leituraSelect.innerHTML =
+        '<option value="" disabled selected>-- Carregando... --</option>';
+      leituraSelect.disabled = true;
+      resetPaymentSection();
+      if (!unidadeId) return;
+
+      fetch(`/api/leituras/${unidadeId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          leituraSelect.innerHTML =
+            '<option value="" disabled selected>-- Escolha uma fatura --</option>';
+          if (data.length > 0) {
+            data.forEach((l) => {
+              const valorFmt = formatCurrency(l.valor_original);
+              const vencFmt = formatDate(l.vencimento);
+              leituraSelect.innerHTML += `<option value="${l.id}">Ref. #${l.id} | Venc: ${vencFmt} | Valor: R$ ${valorFmt}</option>`;
+            });
+            leituraSelect.disabled = false;
+          } else {
+            leituraSelect.innerHTML =
+              '<option value="" disabled selected>-- Nenhuma fatura pendente --</option>';
+          }
         });
+    });
 
-        // REMOVIDO: o event listener na dataPagamentoInput que estava chamando fetchFaturas
-        // e causando a perda da fatura selecionada. A data de pagamento agora é readonly
-        // e sempre a data atual. Se o backend precisar da data de referência, ele já a tem.
+    leituraSelect.addEventListener("change", function () {
+      const leituraId = this.value;
+      resetPaymentSection();
+      if (!leituraId) return;
 
-        // --- FIM DAS MODIFICAÇÕES CRÍTICAS ---
+      debtDetailsDiv.innerHTML =
+        '<p class="text-center text-muted">Calculando...</p>';
 
-        // Inicia o carregamento das faturas se um consumidor já estiver selecionado (ex: após um postback)
-        // Isso é importante caso você esteja pré-selecionando o consumidor via Jinja2 no Flask.
-        if (consumidorSelect.value) {
-            // Guarda a fatura selecionada (se houver) antes de recarregar
-            const initialSelectedFatura = faturaSelect.value;
-            fetchFaturas(consumidorSelect.value, initialSelectedFatura);
-        } else {
-            // Garante que a fatura esteja desabilitada no início se nenhum consumidor for selecionado
-            faturaSelect.innerHTML = '<option value="" disabled selected>Aguardando seleção do consumidor</option>';
-        }
-
-      });
-    </script>
-  </body>
-</html>
+      fetch(
+        `/get-leitura-details/${leituraId}?data_pagamento_ref={{ today_date }}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          debtDetailsDiv.innerHTML = `
+                    <div class="debt-item"><span class="label">Valor Original</span><span class="value">R$ ${formatCurrency(
+                      data.valor_original_fatura
+                    )}</span></div>
+                    <div class="debt-item"><span class="label">Dias em Atraso</span><span class="value">${
+                      data.dias_atraso
+                    }</span></div>
+                    <div class="debt-item"><span class="label">Multa</span><span class="value text-danger">R$ ${formatCurrency(
+                      data.multa
+                    )}</span></div>
+                    <div class="debt-item"><span class="label">Juros</span><span class="value text-danger">R$ ${formatCurrency(
+                      data.juros
+                    )}</span></div>
+                    <div class="debt-item total-row"><span class="label">Total Corrigido</span><span class="value text-primary">R$ ${formatCurrency(
+                      data.total_corrigido
+                    )}</span></div>
+                `;
+          valorPagoInput.value = formatCurrency(data.total_corrigido);
+          paymentFields.disabled = false;
+          submitButton.disabled = false;
+        })
+        .catch((error) => {
+          console.error("Erro ao buscar detalhes da dívida:", error);
+          debtDetailsDiv.innerHTML =
+            '<p class="text-center text-danger">Não foi possível carregar os detalhes.</p>';
+        });
+    });
+  });
+</script>
+{% endblock %}
