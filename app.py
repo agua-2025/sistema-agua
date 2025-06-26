@@ -1584,11 +1584,10 @@ def excluir_consumidor(id):
 def _get_fatura_contexto(leitura_id):
     """
     Busca e calcula todos os dados para um extrato de fatura/comprovante.
-    VERSÃO REESTRUTURADA: Usa a nova estrutura de tabelas.
+    VERSÃO FINAL: Com a busca de fotos do S3 restaurada.
     """
     db = get_db()
     
-    # --- CONSULTA PRINCIPAL ATUALIZADA COM OS JOINS CORRETOS ---
     resultado_bruto = db.execute(text('''
         SELECT 
             l.*, 
@@ -1608,8 +1607,18 @@ def _get_fatura_contexto(leitura_id):
     
     leitura_data = resultado_bruto._asdict()
 
-    # O resto da lógica da função para calcular pagamentos, juros, etc.,
-    # continua muito parecida, pois ela já opera com os dados da leitura.
+    # --- BLOCO DA FOTO ADICIONADO DE VOLTA ---
+    # Busca a foto no S3 e a converte para base64, se ela existir.
+    nome_arquivo_s3 = leitura_data.get('foto_hidrometro')
+    if nome_arquivo_s3:
+        # Chama a função que você já tem para buscar e converter
+        leitura_data['foto_hidrometro_base64'] = get_image_base64_string(nome_arquivo_s3)
+    else:
+        # Garante que a variável exista como nula se não houver foto
+        leitura_data['foto_hidrometro_base64'] = None
+    # --- FIM DO BLOCO DA FOTO ---
+
+    # O resto da sua lógica de cálculo original é mantida.
     pagamentos_feitos = [p._asdict() for p in db.execute(text("SELECT * FROM pagamentos WHERE leitura_id = :id ORDER BY data_pagamento ASC"), {'id': leitura_id}).fetchall()]
     
     consumo_m3 = int(safe_float(leitura_data.get('consumo_m3')))
@@ -1672,8 +1681,6 @@ def _get_fatura_contexto(leitura_id):
 
     data_leitura_anterior_formatada = data_leitura_anterior_obj.strftime('%d/%m/%Y') if data_leitura_anterior_obj else 'Início'
     
-    # --- CONSULTA DO HISTÓRICO ATUALIZADA ---
-    # Agora ela busca todas as leituras de todas as unidades daquele cliente
     historico_bruto_rows = db.execute(text('''
         SELECT TO_CHAR(data_leitura_atual, 'MM/YYYY') AS mes_ano, SUM(consumo_m3) AS consumo_total
         FROM leituras WHERE unidade_id IN (SELECT id FROM unidades_consumidoras WHERE cliente_id = :cid)
@@ -1686,7 +1693,6 @@ def _get_fatura_contexto(leitura_id):
     
     vencimento_obj = leitura_data.get('vencimento')
 
-    # Monta o dicionário de contexto final que será enviado para o template HTML
     contexto = {
         'leitura': leitura_data, 
         'pagamentos_feitos': pagamentos_feitos, 
@@ -1751,7 +1757,6 @@ def gerar_comprovante_pdf(leitura_id):
 
 # ---download do PDF do Comprovante de Leitura---
 @app.route('/download-comprovante-pdf/<int:leitura_id>')
-# @login_required <-- REMOVIDO também para consistência
 def download_comprovante_pdf(leitura_id):
     contexto = _get_fatura_contexto(leitura_id)
     if not contexto:
