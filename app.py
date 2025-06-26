@@ -2299,22 +2299,21 @@ def baixar_db():
         return redirect(url_for('dashboard'))
 
 
-# --- Relatório de Inadimplência (VERSÃO COM TRATAMENTO DE VALORES NULOS) ---
+# --- Relatório de Inadimplência (VERSÃO REESTRUTURADA) ---
 @app.route('/relatorio-inadimplencia')
 @login_required
 def relatorio_inadimplencia():
     try:
         db = get_db()
         config = get_current_config() 
-        hoje = date.today().strftime('%Y-%m-%d')
+        hoje_str = date.today().strftime('%Y-%m-%d')
         hoje_obj = date.today()
 
-        # A query principal não precisa de alteração
         faturas_raw = db.execute(text('''
             SELECT 
                 l.id AS leitura_id,
-                c.nome AS consumidor,
-                c.endereco,
+                c.nome AS cliente_nome,
+                u.endereco,
                 c.telefone,
                 l.data_leitura_atual,
                 l.vencimento,
@@ -2323,7 +2322,9 @@ def relatorio_inadimplencia():
                 COALESCE((SELECT SUM(p.valor_multa) FROM pagamentos p WHERE p.leitura_id = l.id), 0) AS total_multa_acumulada,
                 COALESCE((SELECT SUM(p.valor_juros) FROM pagamentos p WHERE p.leitura_id = l.id), 0) AS total_juros_acumulados
             FROM leituras l
-            JOIN consumidores c ON l.consumidor_id = c.id
+            JOIN unidades_consumidoras u ON l.unidade_id = u.id
+            JOIN clientes c ON u.cliente_id = c.id
+            WHERE l.valor_original IS NOT NULL
             ORDER BY l.vencimento ASC
         ''')).fetchall()
         
@@ -2334,53 +2335,63 @@ def relatorio_inadimplencia():
         for p_bruto in faturas_raw:
             p_raw = p_bruto._asdict()
             try:
-                # --- CORREÇÃO APLICADA AQUI: Usando safe_float em vez de float() ---
                 valor_original_da_fatura = safe_float(p_raw.get('valor_original'))
                 total_pago_acumulado = safe_float(p_raw.get('total_pago_acumulado'))
                 total_multa_acumulada = safe_float(p_raw.get('total_multa_acumulada'))
                 total_juros_acumulados = safe_float(p_raw.get('total_juros_acumulados'))
-                # --- FIM DA CORREÇÃO ---
 
-                valor_pendente = (valor_original_da_fatura + total_multa_acumulada + total_juros_acumulados) - total_pago_acumulado
+                valor_pendente_base = (valor_original_da_fatura + total_multa_acumulada + total_juros_acumulados) - total_pago_acumulado
 
-                if valor_pendente > 0.01:
+                if valor_pendente_base > 0.01:
                     vencimento_data = p_raw.get('vencimento')
-                    if not vencimento_data:
-                        continue
+                    if not vencimento_data: continue
+
+                    # --- Início da correção pontual no formato da data de vencimento ---
+                    # Garantir que vencimento_data é um objeto de data/datetime antes de formatar
+                    if isinstance(vencimento_data, datetime):
+                        vencimento_data_obj = vencimento_data.date()
+                    elif isinstance(vencimento_data, date):
+                        vencimento_data_obj = vencimento_data
+                    else:
+                        # Se não for um objeto de data, tentar parsear de string (formato YYYY-MM-DD)
+                        try:
+                            vencimento_data_obj = datetime.strptime(str(vencimento_data), '%Y-%m-%d').date()
+                        except ValueError:
+                            # Se não conseguir parsear, pular esta entrada ou definir como 'N/A'
+                            app.logger.warning(f"Data de vencimento inválida para formatação: {vencimento_data}. Pulando entrada.")
+                            continue 
+                    
+                    # Formatar a data usando f-string para maior controle e clareza
+                    vencimento_formatado = f"{vencimento_data_obj.day:02d}/{vencimento_data_obj.month:02d}/{vencimento_data_obj.year}"
+                    # --- Fim da correção pontual ---
 
                     multa_calculada_potencial, juros_calc, dias_atraso = calcular_penalidades(
-                        valor_original_da_fatura,
-                        valor_pendente,
-                        vencimento_data,
-                        hoje,
-                        config['multa_percentual'],
-                        config['juros_diario_percentual']
+                        valor_original_da_fatura, valor_pendente_base, vencimento_data_obj, # Usar vencimento_data_obj corrigido aqui
+                        hoje_str, config['multa_percentual'], config['juros_diario_percentual']
                     )
                     
                     multa_para_exibir_agora = 0.0
                     if dias_atraso > 0 and total_multa_acumulada == 0:
                         multa_para_exibir_agora = multa_calculada_potencial
 
-                    valor_atualizado = round(valor_pendente + multa_para_exibir_agora + juros_calc, 2)
+                    valor_atualizado = round(valor_pendente_base + multa_para_exibir_agora + juros_calc, 2)
                     
-                    is_vencido = vencimento_data < hoje_obj
-
-                    pendencias_calculadas.append({
-                        'consumidor': p_raw.get('consumidor'),
-                        'endereco': p_raw.get('endereco'),
-                        'telefone': p_raw.get('telefone'),
-                        'data_leitura_atual': p_raw.get('data_leitura_atual').strftime('%d/%m/%Y') if p_raw.get('data_leitura_atual') else 'N/A',
-                        'vencimento': vencimento_data.strftime('%d/%m/%Y') if vencimento_data else 'N/A',
-                        'valor_original': valor_original_da_fatura,
-                        'total_pago': total_pago_acumulado,
-                        'valor_pendente': valor_pendente, 
-                        'valor_atualizado': valor_atualizado,
-                        'is_vencido': is_vencido
-                    })
-                    
-                    total_pendente_geral += valor_pendente 
-                    total_atualizado_geral += valor_atualizado
-
+                    if valor_atualizado > 0.01:
+                        is_vencido = vencimento_data_obj < hoje_obj # Usar vencimento_data_obj corrigido aqui
+                        pendencias_calculadas.append({
+                            'consumidor': p_raw.get('cliente_nome'),
+                            'endereco': p_raw.get('endereco'),
+                            'telefone': p_raw.get('telefone'),
+                            'data_leitura_atual': p_raw.get('data_leitura_atual').strftime('%d/%m/%Y') if p_raw.get('data_leitura_atual') else 'N/A',
+                            'vencimento': vencimento_formatado, # Usar a string formatada aqui
+                            'valor_original': valor_original_da_fatura,
+                            'total_pago': total_pago_acumulado,
+                            'valor_pendente': valor_pendente_base, 
+                            'valor_atualizado': valor_atualizado,
+                            'is_vencido': is_vencido
+                        })
+                        total_pendente_geral += valor_pendente_base 
+                        total_atualizado_geral += valor_atualizado
             except Exception as e_loop:
                 app.logger.error(f"Erro ao processar inadimplência para leitura ID {p_raw.get('leitura_id')}: {e_loop}", exc_info=True)
                 continue
@@ -2397,7 +2408,6 @@ def relatorio_inadimplencia():
         app.logger.error(f"Erro crítico no relatório de inadimplência: {str(e)}", exc_info=True)
         flash("Ocorreu um erro ao gerar o relatório de inadimplência.", "danger")
         return redirect(url_for('dashboard'))
-   
     
 # --- Rotas de Gerenciamento de Despesas (VERSÃO CORRIGIDA) ---
 @app.route('/cadastrar-despesa', methods=['GET', 'POST'])
