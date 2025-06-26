@@ -1871,11 +1871,10 @@ def download_leitura_pdf(leitura_id):
         app.logger.error(f"Erro ao gerar PDF do comprovante de leitura {leitura_id}: {e}", exc_info=True)
         return "Erro ao gerar PDF.", 500
 
-# --- Relatório de Consumidores (VERSÃO CORRIGIDA PARA POSTGRESQL) ---
-# --- Relatório de Consumidores (VERSÃO REESTRUTURADA) ---
-@app.route('/relatorio-consumidores')
+# --- Relatório de Unidades (VERSÃO FINAL REESTRUTURADA) ---
+@app.route('/relatorio-unidades') # URL ATUALIZADA
 @login_required
-def relatorio_consumidores():
+def relatorio_unidades():
     try:
         db = get_db()
         mes_filtro = request.args.get('mes')
@@ -1889,9 +1888,7 @@ def relatorio_consumidores():
         if mes_filtro and mes_filtro.lower() == 'todos':
             mes_filtro = None
 
-        # --- CONSULTA PRINCIPAL ATUALIZADA ---
-        # Esta consulta complexa busca cada unidade e anexa a ela a sua ÚLTIMA leitura,
-        # aplicando os filtros de data se existirem.
+        # A consulta SQL foi refinada para ser mais robusta
         query = """
             WITH UltimaLeitura AS (
                 SELECT 
@@ -1901,17 +1898,15 @@ def relatorio_consumidores():
                     l.data_leitura_atual,
                     l.foto_hidrometro,
                     CASE
-                        WHEN COALESCE((SELECT SUM(p.valor_pago) FROM pagamentos p WHERE p.leitura_id = l.id), 0) >= l.valor_original THEN 'Pago'
-                        WHEN l.vencimento < CURRENT_DATE THEN 'Pendente'
+                        WHEN l.valor_original IS NULL THEN 'Informativa'
+                        WHEN (SELECT COALESCE(SUM(p.valor_pago), 0) FROM pagamentos p WHERE p.leitura_id = l.id) >= l.valor_original THEN 'Pago'
                         ELSE 'Pendente'
                     END as status_pagamento,
                     ROW_NUMBER() OVER(PARTITION BY l.unidade_id ORDER BY l.data_leitura_atual DESC, l.id DESC) as rn
                 FROM leituras l
             )
             SELECT 
-                c.id as cliente_id,
                 c.nome, c.cpf, c.telefone,
-                u.id as unidade_id,
                 u.endereco, u.hidrometro_num,
                 ul.leitura_anterior,
                 ul.leitura_atual,
@@ -1937,28 +1932,30 @@ def relatorio_consumidores():
 
         query += " ORDER BY c.nome, u.endereco"
 
-        consumidores_brutos = db.execute(text(query), params).fetchall()
-        consumidores = [c._asdict() for c in consumidores_brutos]
+        unidades_brutas = db.execute(text(query), params).fetchall()
+        unidades = [u._asdict() for u in unidades_brutas]
 
         # Cálculos para os cards de estatísticas
-        total_consumidores_geral = db.execute(text("SELECT COUNT(id) FROM unidades_consumidoras")).fetchone()[0]
-        consumidores_com_leituras = len([c for c in consumidores if c['data_leitura_atual'] is not None])
+        total_unidades_geral = db.execute(text("SELECT COUNT(id) FROM unidades_consumidoras WHERE status = 'Ativo'")).fetchone()[0]
+        unidades_com_leituras_no_periodo = len([u for u in unidades if u['data_leitura_atual'] is not None])
 
         return render_template(
-            'relatorio_consumidores.html',
-            consumidores=consumidores,
-            mes_filtro=mes_filtro if mes_filtro else 'Todos',
+            'relatorio_unidades.html',
+            unidades=unidades,
+            mes_filtro=mes_filtro if mes_filtro else 'todos',
             ano_filtro=ano_filtro,
             ano_atual=ano_atual,
-            total_consumidores=total_consumidores_geral,
-            consumidores_com_leituras=consumidores_com_leituras
+            total_unidades=total_unidades_geral,
+            unidades_com_leituras=unidades_com_leituras_no_periodo,
+            # AJUSTE: Passando as variáveis do S3 para o template
+            S3_BUCKET_NAME=os.environ.get('S3_BUCKET_NAME'),
+            AWS_REGION=os.environ.get('AWS_REGION')
         )
 
     except Exception as e:
-        app.logger.error(f"Erro no relatório de consumidores: {str(e)}", exc_info=True)
-        flash("Ocorreu um erro ao gerar o relatório de consumidores.", "danger")
-        return redirect(url_for('dashboard'))
-    
+        app.logger.error(f"Erro no relatório de unidades: {str(e)}", exc_info=True)
+        flash("Ocorreu um erro ao gerar o relatório de unidades.", "danger")
+        return redirect(url_for('dashboard'))    
 #----------------------Lançamentos de Leituras em Planilha (VERSÃO REESTRUTURADA)---------------
 @app.route('/lancamento_leituras', methods=['GET', 'POST'])
 @login_required
