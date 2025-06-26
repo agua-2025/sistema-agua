@@ -369,8 +369,10 @@ def dashboard():
         # As outras consultas não são afetadas pela mudança, então permanecem iguais.
         total_usuarios = db.execute(text('SELECT COUNT(id) FROM usuarios_admin')).fetchone()[0]
         
+        # --- CORREÇÃO PONTUAL AQUI: Conta o número de transações de pagamento do dia ---
         hoje = date.today().strftime('%Y-%m-%d')
-        pagamentos_hoje = db.execute(text('SELECT COUNT(id) FROM pagamentos WHERE data_pagamento = :data'), {'data': hoje}).fetchone()[0]
+        # Agora busca a CONTAGEM de pagamentos (COALESCE para garantir 0 se não houver pagamentos)
+        valor_pagamentos_hoje = db.execute(text('SELECT COALESCE(COUNT(id), 0) FROM pagamentos WHERE data_pagamento = :data'), {'data': hoje}).fetchone()[0]
         
         faturas_pendentes = db.execute(text('''
             WITH PagamentosAgregados AS (
@@ -395,7 +397,8 @@ def dashboard():
             # para não precisarmos mexer no arquivo HTML do dashboard.
             total_consumidores=total_unidades_ativas,
             total_usuarios=total_usuarios,
-            pagamentos_hoje=pagamentos_hoje,
+            # Passando o novo valor somado aqui, mantendo o nome da variável para compatibilidade com o template
+            pagamentos_hoje=valor_pagamentos_hoje, 
             faturas_pendentes=faturas_pendentes
         )
     except Exception as e:
@@ -403,6 +406,7 @@ def dashboard():
         flash("Ocorreu um erro ao carregar os dados do painel. Tente novamente.", "danger")
         # Se der erro, redireciona para o login para evitar um loop de erros no dashboard.
         return redirect(url_for('login'))
+
 
 #---------Configurações----------
 @app.route('/configuracoes', methods=['GET', 'POST'])
@@ -935,19 +939,15 @@ def cadastrar_leitura():
                                today_date=date.today().isoformat())
     
 # --- Registrar Pagamento (AGORA COM A LÓGICA WHATSAPP EMBUTIDA) ---
-# --- Registrar Pagamento (VERSÃO FINAL COM TODAS AS REGRAS DE NEGÓCIO) ---
 @app.route('/registrar-pagamento', methods=['GET', 'POST'])
 @login_required
 def registrar_pagamento():
     db = get_db()
-    
     if request.method == 'POST':
         try:
-            # A transação agora envolve toda a lógica de cálculo e salvamento
             with db.begin():
-                # Coleta de dados do formulário
                 leitura_id = int(request.form['leitura_id'])
-                unidade_id = int(request.form['unidade_id']) # Recebemos o ID da unidade
+                unidade_id = int(request.form['unidade_id'])
                 data_pagamento_str = request.form.get('data_pagamento') or date.today().strftime('%Y-%m-%d')
                 forma_pagamento = request.form['forma_pagamento']
                 valor_pago = parse_number_from_br_form(request.form.get('valor_pago', '0'))
@@ -955,76 +955,43 @@ def registrar_pagamento():
                 if valor_pago <= 0:
                     raise ValueError('O valor do pagamento deve ser maior que R$ 0,00.')
                 
-                # Busca dados da fatura e da unidade para obter o cliente_id
                 leitura = db.execute(text('SELECT valor_original, vencimento FROM leituras WHERE id = :id'), {'id': leitura_id}).fetchone()
                 unidade = db.execute(text('SELECT cliente_id FROM unidades_consumidoras WHERE id = :id'), {'id': unidade_id}).fetchone()
 
                 if not leitura or not unidade:
                     raise ValueError("Fatura ou Unidade selecionada é inválida.")
 
-                # --- SUA LÓGICA ORIGINAL DE CÁLCULO DE JUROS, MULTAS, ETC. RESTAURADA ---
                 config = get_current_config()
                 valor_original_fatura = safe_float(leitura.valor_original)
                 data_vencimento = leitura.vencimento
-
                 total_pago_acumulado_antes = db.execute(text("SELECT COALESCE(SUM(valor_pago), 0) FROM pagamentos WHERE leitura_id = :id"), {'id': leitura_id}).fetchone()[0]
                 total_multa_acumulada_antes = db.execute(text("SELECT COALESCE(SUM(valor_multa), 0) FROM pagamentos WHERE leitura_id = :id"), {'id': leitura_id}).fetchone()[0]
                 total_juros_acumulados_antes = db.execute(text("SELECT COALESCE(SUM(valor_juros), 0) FROM pagamentos WHERE leitura_id = :id"), {'id': leitura_id}).fetchone()[0]
-                
                 valor_base_antes = max(valor_original_fatura + total_multa_acumulada_antes + total_juros_acumulados_antes - total_pago_acumulado_antes, 0)
-
-                multa_devida, juros_devido, dias_atraso = calcular_penalidades(
-                    valor_original_fatura, valor_base_antes, data_vencimento,
-                    data_pagamento_str, config['multa_percentual'], config['juros_diario_percentual']
-                )
-
+                multa_devida, juros_devido, dias_atraso = calcular_penalidades(valor_original_fatura, valor_base_antes, data_vencimento, data_pagamento_str, config['multa_percentual'], config['juros_diario_percentual'])
                 multa_a_ser_paga = 0.0
                 if dias_atraso > 0 and total_multa_acumulada_antes == 0:
                     multa_a_ser_paga = multa_devida
-
                 total_corrigido = round(valor_base_antes + multa_a_ser_paga + juros_devido, 2)
                 saldo_devedor = max(0, total_corrigido - valor_pago)
                 saldo_credor = max(0, valor_pago - total_corrigido)
-                # --- FIM DA LÓGICA DE CÁLCULO ---
 
-                # INSERT na tabela pagamentos com todos os campos calculados
                 db.execute(text('''
-                    INSERT INTO pagamentos (
-                        leitura_id, cliente_id, data_pagamento, forma_pagamento, valor_pago, 
-                        dias_atraso, valor_multa, valor_juros, total_corrigido, saldo_devedor, saldo_credor
-                    ) VALUES (
-                        :leitura_id, :cliente_id, :data_pagamento, :forma_pagamento, :valor_pago, 
-                        :dias_atraso, :valor_multa, :valor_juros, :total_corrigido, :saldo_devedor, :saldo_credor
-                    )
+                    INSERT INTO pagamentos (leitura_id, cliente_id, data_pagamento, forma_pagamento, valor_pago, dias_atraso, valor_multa, valor_juros, total_corrigido, saldo_devedor, saldo_credor)
+                    VALUES (:leitura_id, :cliente_id, :data_pagamento, :forma_pagamento, :valor_pago, :dias_atraso, :valor_multa, :valor_juros, :total_corrigido, :saldo_devedor, :saldo_credor)
                 '''), {
-                    'leitura_id': leitura_id, 
-                    'cliente_id': unidade.cliente_id, # Salva o ID do cliente correto
-                    'data_pagamento': data_pagamento_str, 
-                    'forma_pagamento': forma_pagamento, 
-                    'valor_pago': valor_pago,
-                    'dias_atraso': dias_atraso,
-                    'valor_multa': multa_a_ser_paga,
-                    'valor_juros': juros_devido,
-                    'total_corrigido': total_corrigido,
-                    'saldo_devedor': saldo_devedor,
-                    'saldo_credor': saldo_credor
+                    'leitura_id': leitura_id, 'cliente_id': unidade.cliente_id, 'data_pagamento': data_pagamento_str, 'forma_pagamento': forma_pagamento, 'valor_pago': valor_pago,
+                    'dias_atraso': dias_atraso, 'valor_multa': multa_a_ser_paga, 'valor_juros': juros_devido, 'total_corrigido': total_corrigido, 'saldo_devedor': saldo_devedor, 'saldo_credor': saldo_credor
                 })
-            
             flash('Pagamento registrado com sucesso!', 'success')
             return redirect(url_for('listar_pagamentos'))
-
         except ValueError as e:
             flash(str(e), 'warning')
-            return redirect(url_for('registrar_pagamento'))
-        except IntegrityError:
-            flash("Erro de integridade. Verifique se a fatura já foi paga.", "danger")
             return redirect(url_for('registrar_pagamento'))
         except Exception as e:
             app.logger.error(f"Erro ao registrar pagamento: {e}", exc_info=True)
             flash(f'Erro inesperado ao registrar pagamento: {str(e)}', 'danger')
             return redirect(url_for('registrar_pagamento'))
-
-    # Lógica GET: Apenas busca a lista de clientes
     else:
         clientes = db.execute(text('SELECT id, nome FROM clientes ORDER BY nome')).fetchall()
         return render_template('registrar_pagamento.html', clientes=clientes, today_date=date.today().isoformat())
@@ -1263,30 +1230,97 @@ def api_unidades(cliente_id):
     unidades = [u._asdict() for u in unidades_brutas]
     return jsonify(unidades)
 
-#------------------Retorna Unidade Consumidoras ao Cliente específico--------------
+
+
+#-------------Leituras.-------------------------------------------
 @app.route('/api/leituras/<int:unidade_id>')
 @login_required
 def api_leituras(unidade_id):
-    """Retorna as faturas PENDENTES de uma UNIDADE específica para o dropdown."""
+    """Retorna as faturas PENDENTES de uma UNIDADE específica, com o saldo devedor real."""
     db = get_db()
     try:
+        # Esta query busca todas as leituras da unidade e os totais de seus pagamentos.
+        # Mantido como está, pois já agrega os pagamentos de forma eficiente.
         leituras_brutas = db.execute(text('''
             SELECT
-                l.id, l.data_leitura_atual, l.vencimento, l.valor_original
+                l.id,
+                l.data_leitura_atual,
+                l.vencimento,
+                l.valor_original,
+                COALESCE((SELECT SUM(p.valor_pago) FROM pagamentos p WHERE p.leitura_id = l.id), 0) AS total_pago,
+                COALESCE((SELECT SUM(p.valor_multa) FROM pagamentos p WHERE p.leitura_id = l.id), 0) AS total_multa_paga,
+                COALESCE((SELECT SUM(p.valor_juros) FROM pagamentos p WHERE p.leitura_id = l.id), 0) AS total_juros_pago
             FROM leituras l
             WHERE 
                 l.unidade_id = :uid AND 
-                l.valor_original IS NOT NULL AND
-                l.valor_original > (SELECT COALESCE(SUM(p.valor_pago), 0) FROM pagamentos p WHERE p.leitura_id = l.id)
+                l.valor_original IS NOT NULL
             ORDER BY l.data_leitura_atual DESC
         '''), {'uid': unidade_id}).fetchall()
-        leituras_pendentes = [l._asdict() for l in leituras_brutas]
+
+        leituras_pendentes = []
+        config = get_current_config() # Obtém as configurações uma vez
+        hoje_str = date.today().isoformat() # Data de referência para cálculo de atraso (formato AAAA-MM-DD)
+        
+        for l_bruto in leituras_brutas:
+            l = l_bruto._asdict()
+            
+            # Converte valores para float de forma segura
+            valor_original_fatura = safe_float(l['valor_original'])
+            total_pago_acumulado = safe_float(l['total_pago'])
+            total_multa_acumulada_paga = safe_float(l['total_multa_paga'])
+            total_juros_acumulados_pago = safe_float(l['total_juros_pago'])
+            data_vencimento = l['vencimento'] # Já é um objeto date/datetime aqui
+            
+            # Calcula o saldo devedor base (considerando o que já foi pago de tudo)
+            valor_base_para_penalidades = max(
+                valor_original_fatura + total_multa_acumulada_paga + total_juros_acumulados_pago - total_pago_acumulado, 0
+            )
+            
+            # Se a fatura já está quitada, não a inclui na lista de pendentes
+            if valor_base_para_penalidades <= 0.01:
+                continue
+
+            # Calcula multa e juros aplicáveis à data de hoje para o dropdown
+            # A função calcular_penalidades precisa do valor original para multa e
+            # o saldo devedor atual (base para juros).
+            multa_calc, juros_calc, dias_atraso = calcular_penalidades(
+                valor_original_fatura, # Base para cálculo da multa
+                valor_base_para_penalidades, # Base para cálculo dos juros (saldo devedor atual)
+                data_vencimento,
+                hoje_str, # Data de referência para o cálculo (hoje)
+                config['multa_percentual'],
+                config['juros_diario_percentual']
+            )
+
+            multa_a_cobrar_hoje = 0.0
+            # Aplica a multa apenas se houver atraso e se ela ainda não foi paga anteriormente
+            if dias_atraso > 0 and total_multa_acumulada_paga == 0:
+                multa_a_cobrar_hoje = multa_calc
+
+            # Calcula o saldo final a pagar, incluindo juros e multa atualizados
+            saldo_a_pagar_com_penalidades = round(valor_base_para_penalidades + multa_a_cobrar_hoje + juros_calc, 2)
+            
+            leitura_info = {
+                "id": l['id'],
+                "vencimento": l['vencimento'], # Será formatado abaixo
+                "saldo_a_pagar": saldo_a_pagar_com_penalidades # Envia o saldo real para o frontend
+            }
+
+            # Garante que 'vencimento' seja uma string no formato AAAA-MM-DD
+            # que o JavaScript espera.
+            if isinstance(leitura_info['vencimento'], date):
+                leitura_info['vencimento'] = leitura_info['vencimento'].isoformat()
+            elif leitura_info['vencimento'] is None:
+                leitura_info['vencimento'] = None 
+            
+            leituras_pendentes.append(leitura_info)
+        
         return jsonify(leituras_pendentes)
+
     except Exception as e:
         app.logger.error(f"Erro na API de leituras para unidade {unidade_id}: {e}", exc_info=True)
         return jsonify({'erro': 'Erro interno no servidor'}), 500
     
-
 # --- ROTA PRINCIPAL DE DETALHES (CORRIGIDA) ---
 @app.route('/detalhes-pagamento')
 @login_required

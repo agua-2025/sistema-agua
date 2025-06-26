@@ -12,6 +12,7 @@ block head %} {{ super() }}
   button:disabled {
     background-color: #e9ecef;
     cursor: not-allowed;
+    opacity: 0.7;
   }
   #debtDetails {
     background-color: #f8f9fa;
@@ -59,18 +60,17 @@ block head %} {{ super() }}
       </div>
       <div class="card-body p-4">
         {% include '_flash_messages.html' %}
-
         <form
           method="POST"
           id="paymentForm"
           action="{{ url_for('registrar_pagamento') }}"
         >
-          <h5 class="fs-6 fw-bold">1. Seleção da Fatura</h5>
-          <div class="p-3 border rounded bg-light mb-4">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label for="cliente_id" class="form-label">Cliente</label
-                ><select id="cliente_id" class="form-select" required>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <h5 class="fs-6 fw-bold mb-3">1. Seleção da Fatura</h5>
+              <div class="mb-3">
+                <label for="cliente_id" class="form-label">Cliente</label>
+                <select id="cliente_id" class="form-select" required>
                   <option value="" disabled selected>
                     -- Escolha um cliente --
                   </option>
@@ -79,10 +79,11 @@ block head %} {{ super() }}
                   {% endfor %}
                 </select>
               </div>
-              <div class="col-md-6">
+              <div class="mb-3">
                 <label for="unidade_id" class="form-label"
                   >Unidade Consumidora</label
-                ><select
+                >
+                <select
                   id="unidade_id"
                   name="unidade_id"
                   class="form-select"
@@ -94,10 +95,11 @@ block head %} {{ super() }}
                   </option>
                 </select>
               </div>
-              <div class="col-12">
+              <div>
                 <label for="leitura_id" class="form-label"
                   >Fatura Pendente</label
-                ><select
+                >
+                <select
                   id="leitura_id"
                   name="leitura_id"
                   class="form-select"
@@ -108,83 +110,79 @@ block head %} {{ super() }}
                 </select>
               </div>
             </div>
-          </div>
-
-          <h5 class="fs-6 fw-bold">2. Detalhes e Confirmação</h5>
-          <div class="row g-4">
-            <div class="col-md-6">
-              <div id="debtDetails" class="p-3 h-100">
-                <div class="debt-item">
-                  <span class="label">Valor Original</span
-                  ><span class="value text-muted">--</span>
-                </div>
-                <div class="debt-item">
-                  <span class="label">Dias em Atraso</span
-                  ><span class="value text-muted">--</span>
-                </div>
-                <div class="debt-item">
-                  <span class="label">Multa</span
-                  ><span class="value text-muted">--</span>
-                </div>
-                <div class="debt-item">
-                  <span class="label">Juros</span
-                  ><span class="value text-muted">--</span>
-                </div>
-                <div class="debt-item total-row">
-                  <span class="label">Total Corrigido</span
-                  ><span class="value text-primary">--</span>
-                </div>
-              </div>
-            </div>
 
             <div class="col-md-6">
+              <h5 class="fs-6 fw-bold mb-3">2. Detalhes e Confirmação</h5>
               <fieldset id="paymentFields" disabled>
-                <div class="mb-3">
-                  <label for="valor_pago" class="form-label"
-                    >Valor a Pagar</label
-                  >
-                  <div class="input-group">
-                    <span class="input-group-text">R$</span
-                    ><input
-                      type="text"
-                      class="form-control"
-                      id="valor_pago"
-                      name="valor_pago"
-                      required
-                    />
+                <div id="debtDetails" class="p-3 mb-3">
+                  <div class="debt-item">
+                    <span class="label">Valor Original</span
+                    ><span class="value text-muted">--</span>
+                  </div>
+                  <div class="debt-item">
+                    <span class="label">Dias em Atraso</span
+                    ><span class="value text-muted">--</span>
+                  </div>
+                  <div class="debt-item">
+                    <span class="label">Multa</span
+                    ><span class="value text-muted">--</span>
+                  </div>
+                  <div class="debt-item">
+                    <span class="label">Juros</span
+                    ><span class="value text-muted">--</span>
+                  </div>
+                  <div class="debt-item total-row">
+                    <span class="label">Total Corrigido</span
+                    ><span class="value text-primary">--</span>
                   </div>
                 </div>
-                <div class="mb-3">
-                  <label for="forma_pagamento" class="form-label"
-                    >Forma de Pagamento</label
-                  ><select
-                    id="forma_pagamento"
-                    name="forma_pagamento"
-                    class="form-select"
-                    required
-                  >
-                    <option>Dinheiro</option>
-                    <option>PIX</option>
-                    <option>Cartão de Débito</option>
-                    <option>Cartão de Crédito</option>
-                    <option>Transferência</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="data_pagamento" class="form-label"
-                    >Data do Pagamento</label
-                  ><input
-                    type="date"
-                    class="form-control"
-                    id="data_pagamento"
-                    name="data_pagamento"
-                    value="{{ today_date }}"
-                  />
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label for="valor_pago" class="form-label"
+                      >Valor a Pagar</label
+                    >
+                    <div class="input-group">
+                      <span class="input-group-text">R$</span
+                      ><input
+                        type="text"
+                        class="form-control"
+                        id="valor_pago"
+                        name="valor_pago"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <label for="forma_pagamento" class="form-label"
+                      >Forma de Pagamento</label
+                    ><select
+                      id="forma_pagamento"
+                      name="forma_pagamento"
+                      class="form-select"
+                      required
+                    >
+                      <option>Dinheiro</option>
+                      <option>PIX</option>
+                      <option>Cartão de Débito</option>
+                      <option>Cartão de Crédito</option>
+                      <option>Transferência</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label for="data_pagamento" class="form-label"
+                      >Data do Pagamento</label
+                    ><input
+                      type="date"
+                      class="form-control"
+                      id="data_pagamento"
+                      name="data_pagamento"
+                      value="{{ today_date }}"
+                    />
+                  </div>
                 </div>
               </fieldset>
             </div>
           </div>
-
           <div class="d-grid mt-4">
             <button
               type="submit"
@@ -211,13 +209,22 @@ block head %} {{ super() }}
     const debtDetailsDiv = document.getElementById("debtDetails");
     const valorPagoInput = document.getElementById("valor_pago");
     const submitButton = document.getElementById("submitButton");
+    const dataPagamentoInput = document.getElementById("data_pagamento"); // Obtém o elemento do input da data de pagamento
 
+    // =======================================================
+    // FUNÇÃO DE FORMATAR DATA - VERSÃO ROBUSTA
+    // =======================================================
     function formatDate(dateString) {
+      // Se a string for nula ou não for uma string, retorna "N/A"
       if (!dateString || typeof dateString !== "string") return "N/A";
-      const parts = dateString.split("-");
-      if (parts.length !== 3) return "Data Inválida";
-      const date = new Date(parts[0], parts[1] - 1, parts[2]);
+
+      // Tenta criar um objeto Date. Adiciona "T00:00:00" para garantir que seja interpretado como UTC e evite problemas de fuso horário.
+      const date = new Date(dateString + "T00:00:00");
+
+      // Se a data for inválida (ex: new Date('string_invalida') resulta em Invalid Date)
       if (isNaN(date.getTime())) return "Data Inválida";
+
+      // Formata a data para o padrão local brasileiro (DD/MM/AAAA)
       return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
     }
 
@@ -238,6 +245,55 @@ block head %} {{ super() }}
             <div class="debt-item"><span class="label">Juros</span><span class="value text-muted">--</span></div>
             <div class="debt-item total-row"><span class="label">Total Corrigido</span><span class="value text-primary">--</span></div>
         `;
+    }
+
+    // Função para buscar e atualizar os detalhes da dívida
+    function updateDebtDetails() {
+      const leituraId = leituraSelect.value;
+      const dataPagamento = dataPagamentoInput.value; // Pega a data do campo de input
+
+      if (!leituraId || !dataPagamento) {
+        resetPaymentSection();
+        return;
+      }
+
+      debtDetailsDiv.innerHTML =
+        '<div class="text-center text-muted p-5"><div class="spinner-border spinner-border-sm" role="status"></div> Calculando...</div>';
+
+      fetch(
+        `/get-leitura-details/${leituraId}?data_pagamento_ref=${dataPagamento}` // Usa a data do input aqui
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          debtDetailsDiv.innerHTML = `
+                    <div class="debt-item"><span class="label">Valor Original</span><span class="value">R$ ${formatCurrency(
+                      data.valor_original_fatura
+                    )}</span></div>
+                    <div class="debt-item"><span class="label">Dias em Atraso</span><span class="value">${
+                      data.dias_atraso
+                    }</span></div>
+                    <div class="debt-item"><span class="label">Multa</span><span class="value text-danger">R$ ${formatCurrency(
+                      data.multa
+                    )}</span></div>
+                    <div class="debt-item"><span class="label">Juros</span><span class="value text-danger">R$ ${formatCurrency(
+                      data.juros
+                    )}</span></div>
+                    <div class="debt-item total-row"><span class="label">Total Corrigido</span><span class="value text-primary">R$ ${formatCurrency(
+                      data.total_corrigido
+                    )}</span></div>
+                `;
+          valorPagoInput.value = formatCurrency(data.total_corrigido);
+          paymentFields.disabled = false;
+          submitButton.disabled = false;
+        })
+        .catch((error) => {
+          console.error("Erro ao buscar detalhes da dívida:", error);
+          debtDetailsDiv.innerHTML =
+            '<p class="text-center text-danger">Não foi possível carregar os detalhes.</p>';
+        });
     }
 
     clienteSelect.addEventListener("change", function () {
@@ -278,9 +334,11 @@ block head %} {{ super() }}
             '<option value="" disabled selected>-- Escolha uma fatura --</option>';
           if (data.length > 0) {
             data.forEach((l) => {
-              const valorFmt = formatCurrency(l.valor_original);
+              // Usa l.saldo_a_pagar que agora virá do backend
+              const valorFmt = formatCurrency(l.saldo_a_pagar);
+              // Usa a função formatDate robusta para o vencimento
               const vencFmt = formatDate(l.vencimento);
-              leituraSelect.innerHTML += `<option value="${l.id}">Ref. #${l.id} | Venc: ${vencFmt} | Valor: R$ ${valorFmt}</option>`;
+              leituraSelect.innerHTML += `<option value="${l.id}">Ref. #${l.id} | Venc: ${vencFmt} | Saldo Devedor: R$ ${valorFmt}</option>`;
             });
             leituraSelect.disabled = false;
           } else {
@@ -290,46 +348,20 @@ block head %} {{ super() }}
         });
     });
 
-    leituraSelect.addEventListener("change", function () {
-      const leituraId = this.value;
-      resetPaymentSection();
-      if (!leituraId) return;
+    // Chama a função de atualização quando a fatura é selecionada
+    leituraSelect.addEventListener("change", updateDebtDetails);
 
-      debtDetailsDiv.innerHTML =
-        '<p class="text-center text-muted">Calculando...</p>';
+    // Adiciona um listener para o campo de data de pagamento
+    // para recalcular os juros/multa se a data for alterada.
+    dataPagamentoInput.addEventListener("change", updateDebtDetails);
 
-      fetch(
-        `/get-leitura-details/${leituraId}?data_pagamento_ref={{ today_date }}`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          debtDetailsDiv.innerHTML = `
-                    <div class="debt-item"><span class="label">Valor Original</span><span class="value">R$ ${formatCurrency(
-                      data.valor_original_fatura
-                    )}</span></div>
-                    <div class="debt-item"><span class="label">Dias em Atraso</span><span class="value">${
-                      data.dias_atraso
-                    }</span></div>
-                    <div class="debt-item"><span class="label">Multa</span><span class="value text-danger">R$ ${formatCurrency(
-                      data.multa
-                    )}</span></div>
-                    <div class="debt-item"><span class="label">Juros</span><span class="value text-danger">R$ ${formatCurrency(
-                      data.juros
-                    )}</span></div>
-                    <div class="debt-item total-row"><span class="label">Total Corrigido</span><span class="value text-primary">R$ ${formatCurrency(
-                      data.total_corrigido
-                    )}</span></div>
-                `;
-          valorPagoInput.value = formatCurrency(data.total_corrigido);
-          paymentFields.disabled = false;
-          submitButton.disabled = false;
-        })
-        .catch((error) => {
-          console.error("Erro ao buscar detalhes da dívida:", error);
-          debtDetailsDiv.innerHTML =
-            '<p class="text-center text-danger">Não foi possível carregar os detalhes.</p>';
-        });
-    });
+    // No carregamento inicial, se já houver uma fatura selecionada
+    // (por exemplo, se você recarregar a página com o formulário pré-preenchido),
+    // tente carregar os detalhes.
+    // Garante que o input da data de pagamento tenha um valor para o cálculo inicial
+    if (leituraSelect.value && dataPagamentoInput.value) {
+      updateDebtDetails();
+    }
   });
 </script>
 {% endblock %}
