@@ -683,8 +683,8 @@ def detalhes_cliente(cliente_id):
         flash("Ocorreu um erro ao carregar os detalhes do cliente.", "danger")
         return redirect(url_for('listar_clientes'))
 
-# --- Listar Pagamentos (VERSÃO FINAL E CORRIGIDA) ---
-@app.route('/listar-pagamentos')
+# --- Listar Pagamentos (VERSÃO REESTRUTURADA) ---
+@app.route('/pagamentos')
 @login_required
 def listar_pagamentos():
     try:
@@ -697,11 +697,13 @@ def listar_pagamentos():
         PER_PAGE = 20
         offset = (page - 1) * PER_PAGE
         
-        base_query = "FROM pagamentos p JOIN consumidores c ON p.consumidor_id = c.id"
+        # --- AJUSTE CIRÚRGICO AQUI ---
+        # Trocamos 'consumidores' por 'clientes' e 'consumidor_id' por 'cliente_id'
+        base_query = "FROM pagamentos p JOIN clientes c ON p.cliente_id = c.id"
+        
         conditions = []
         params = {}
         
-        # CORREÇÃO: Usando TO_CHAR para ser compatível com PostgreSQL
         if mes_filtro:
             conditions.append("TO_CHAR(p.data_pagamento, 'MM') = :mes")
             params['mes'] = mes_filtro.zfill(2)
@@ -713,39 +715,26 @@ def listar_pagamentos():
         if conditions:
             where_clause = " WHERE " + " AND ".join(conditions)
         
-        # Busca o total de itens para a paginação
         summary_query = f"SELECT COUNT(p.id), COALESCE(SUM(p.valor_pago), 0) {base_query} {where_clause}"
-        params_summary = {k: v for k, v in params.items() if k not in ['limit', 'offset']}
+        params_summary = params.copy()
         total_pagamentos_periodo, valor_arrecadado_periodo = db.execute(text(summary_query), params_summary).fetchone()
 
-        # Busca os dados da página atual
-        data_query = f"SELECT p.*, c.nome {base_query} {where_clause} ORDER BY p.data_pagamento DESC, p.id DESC LIMIT :limit OFFSET :offset"
+        data_query = f"SELECT p.*, c.nome as cliente_nome {base_query} {where_clause} ORDER BY p.data_pagamento DESC, p.id DESC LIMIT :limit OFFSET :offset"
         params['limit'] = PER_PAGE
         params['offset'] = offset
         pagamentos_brutos = db.execute(text(data_query), params).fetchall()
 
-        # --- CORREÇÃO IMPORTANTE AQUI ---
-        # Converte os resultados para uma lista de dicionários
-        # e garante que a data seja uma string para o template não quebrar
-        pagamentos_formatados = []
-        for p_bruto in pagamentos_brutos:
-            p_dict = p_bruto._asdict()
-            # Converte o objeto de data em texto no formato 'AAAA-MM-DD'
-            if isinstance(p_dict.get('data_pagamento'), date):
-                p_dict['data_pagamento'] = p_dict['data_pagamento'].strftime('%Y-%m-%d')
-            pagamentos_formatados.append(p_dict)
+        pagamentos_formatados = [p._asdict() for p in pagamentos_brutos]
 
-        # Configura a paginação
         total_pages = math.ceil(total_pagamentos_periodo / PER_PAGE) if total_pagamentos_periodo > 0 else 1
         pagination = {
             "page": page, "total_pages": total_pages,
             "has_prev": page > 1, "has_next": page < total_pages
         }
 
-        # Envia os dados corrigidos para a página
         return render_template(
             'listar_pagamentos.html', 
-            pagamentos=pagamentos_formatados, # Passando a lista formatada
+            pagamentos=pagamentos_formatados,
             pagination=pagination,
             mes_filtro=mes_filtro,
             ano_filtro=ano_filtro,
@@ -760,9 +749,6 @@ def listar_pagamentos():
 
 
 #---------função listar_clientes--------------
-# Em app.py
-
-# Substitua sua função listar_clientes por esta versão completa
 @app.route('/clientes')
 @login_required
 def listar_clientes():

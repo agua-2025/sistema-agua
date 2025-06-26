@@ -6,99 +6,140 @@
     <title>Leituras Registradas | Águas de Santa Maria</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-      /* Estilos para um visual mais limpo e profissional */
-      body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
-      .main-card { background-color: #ffffff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08); }
-      .table { font-size: 0.85rem; }
-      .table th { font-weight: 600; }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; color: #343a40; font-size: 0.9rem; }
+        .main-card { background-color: #ffffff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08); }
+        .table { font-size: 0.85rem; }
+        /* Estilo para todos os cabeçalhos TH dentro de table thead */
+        .table thead th { 
+            background-color: #007bff; 
+            color: white; 
+            text-align: center; 
+            vertical-align: middle; 
+            font-weight: 600; /* Aplica negrito a todos os THs do cabeçalho */
+        }
+        .table td { vertical-align: middle; text-align: center; }
+        .text-numeric { font-family: 'Roboto Mono', monospace; text-align: right !important; }
+        @media (max-width: 767.98px) {
+            .table thead { display: none; }
+            .table tr { display: block; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 1rem; padding: 0.5rem; }
+            .table td { display: block; text-align: right; padding: 0.5rem; border-bottom: 1px solid #f1f1f1; position: relative; }
+            .table td:last-child { border-bottom: none; }
+            .table td::before { content: attr(data-label); position: absolute; left: 0.5rem; font-weight: 600; text-align: left; }
+            .table td[data-label="Ações:"] { text-align: center; padding-top: 1rem; }
+            .table td[data-label="Ações:"]::before { display: none; }
+        }
+
+        /* Novos estilos para os botões de ação */
+        .btn-action-custom {
+            border-radius: 0.375rem; /* Mantém o padrão do Bootstrap */
+            transition: all 0.2s ease-in-out; /* Transição suave para hover */
+        }
+        .btn-action-custom:hover {
+            transform: translateY(-1px); /* Leve elevação no hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Aumenta a sombra no hover */
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid">
-        <div class="main-card">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3><i class="bi bi-speedometer2 me-2"></i>Leituras Registradas</h3>
-                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Voltar</a>
+        <div class="row justify-content-center"> <!-- Adicionado para centralizar o conteúdo -->
+            <div class="col-lg-10"> <!-- Adicionado para limitar a largura do conteúdo principal -->
+                <div class="main-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-primary"><i class="bi bi-speedometer2 me-2"></i>Leituras Registradas</h3>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Voltar</a>
+                    </div>
+
+                    {% include '_flash_messages.html' %}
+                    
+                    <div class="bg-light border p-3 mb-4 rounded">
+                        <form method="get" class="row g-3 align-items-end">
+                            <div class="col-md-5"><label for="mes" class="form-label fw-bold">Filtrar por Mês</label><select name="mes" id="mes" class="form-select"><option value="">Todos os meses</option>{% for m in range(1,13) %}<option value="{{ '%02d'|format(m) }}" {% if mes_filtro == ('%02d'|format(m)) %}selected{% endif %}>{{ ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m-1] }}</option>{% endfor %}</select></div>
+                            <div class="col-md-4"><label for="ano" class="form-label fw-bold">Ano</label><input type="number" name="ano" id="ano" class="form-control" value="{{ ano_filtro or ano_atual }}" min="2020" max="{{ ano_atual + 5 }}" step="1"></div>
+                            <div class="col-md-3 d-flex"><button type="submit" class="btn btn-primary w-100 me-2"><i class="bi bi-filter"></i> Aplicar</button><a href="{{ url_for('listar_leituras') }}" class="btn btn-outline-secondary" title="Limpar Filtros"><i class="bi bi-x-lg"></i></a></div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="text-start">Cliente / Unidade</th>
+                                    <th>Data Leitura</th>
+                                    <th>Leitura Ant.</th>
+                                    <th>Leitura Atual</th>
+                                    <th>Consumo (m³)</th>
+                                    <th>Valor (R$)</th>
+                                    <th>Vencimento</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for l in leituras %}
+                                <tr>
+                                    <td data-label="Cliente:" class="text-start">
+                                        <div class="fw-bold">{{ l.cliente_nome }}</div>
+                                        <div class="small text-muted">{{ l.endereco }}</div>
+                                    </td>
+                                    <td data-label="Data Leitura:">{{ l.data_leitura_atual | date_format if l.data_leitura_atual else 'N/A' }}</td>
+                                    <td data-label="Leitura Ant.:" class="text-numeric">{{ "%g"|format(l.leitura_anterior|float) }}</td>
+                                    <td data-label="Leitura Atual:" class="text-numeric">{{ "%g"|format(l.leitura_atual|float) }}</td>
+                                    <td data-label="Consumo (m³):" class="text-numeric fw-bold text-primary">{{ "%g"|format(l.consumo_m3|float) }}</td>
+                                    <td data-label="Valor (R$):" class="text-numeric">{{ "%.2f"|format(l.valor_original|float) | replace('.', ',') if l.valor_original is not none else 'Informativa' }}</td>
+                                    
+                                    {# --- CORREÇÃO PONTUAL AQUI --- #}
+                                    <td data-label="Vencimento:">{{ l.vencimento | date_format }}</td> 
+                                    
+                                    <td data-label="Ações:" class="text-center">
+                                        <div class="d-inline-flex gap-1">
+                                            {# Botão de Comprovante #}
+                                            <a href="{{ url_for('comprovante_leitura', leitura_id=l.id) }}" class="btn btn-sm btn-info btn-action-custom shadow-sm" title="Ver Comprovante"><i class="bi bi-receipt"></i></a>
+                                            
+                                            {% if l.num_pagamentos == 0 %}
+                                                {# Botão de Editar #}
+                                                <a href="{{ url_for('editar_leitura', id=l.id) }}" class="btn btn-sm btn-warning btn-action-custom shadow-sm" title="Editar Leitura"><i class="bi bi-pencil-fill"></i></a>
+                                                
+                                                {# Botão de Excluir #}
+                                                <form action="{{ url_for('excluir_leitura', id=l.id) }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta leitura? Esta ação é irreversível.');" style="display: inline;">
+                                                    <button type="submit" class="btn btn-sm btn-danger btn-action-custom shadow-sm" title="Excluir Leitura"><i class="bi bi-trash-fill"></i></button>
+                                                </form>
+                                            {% else %}
+                                                {# Botão Bloqueado #}
+                                                <span class="btn btn-sm btn-secondary disabled btn-action-custom shadow-sm" title="Bloqueado pois já possui pagamentos"><i class="bi bi-lock-fill"></i></span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center p-5 text-muted">
+                                        <i class="bi bi-folder-x fs-3"></i>
+                                        <p class="mt-2">Nenhuma leitura encontrada para os filtros selecionados.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if pagination and pagination.total_pages > 1 %}
+                    <nav class="d-flex justify-content-center mt-4">
+                        <ul class="pagination">
+                            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('listar_leituras', page=pagination.page - 1, mes=mes_filtro, ano=ano_filtro) }}">Anterior</a></li>
+                            {% for page_num in pagination.iter_pages %}
+                                <li class="page-item {% if page_num == pagination.page %}active{% endif %}"><a class="page-link" href="{{ url_for('listar_leituras', page=page_num, mes=mes_filtro, ano=ano_filtro) }}">{{ page_num }}</a></li>
+                            {% endfor %}
+                            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('listar_leituras', page=pagination.page + 1, mes=mes_filtro, ano=ano_filtro) }}">Próxima</a></li>
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
             </div>
-
-            {% include '_flash_messages.html' %}
-
-            <div class="bg-light border p-3 mb-4 rounded">
-                <form method="get" class="row g-3 align-items-end">
-                    <div class="col-md-5"><label for="mes" class="form-label fw-bold">Filtrar por Mês</label><select name="mes" id="mes" class="form-select"><option value="">Todos os meses</option>{% for m in range(1,13) %}<option value="{{ '%02d'|format(m) }}" {% if mes_filtro == ('%02d'|format(m)) %}selected{% endif %}>{{ ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m-1] }}</option>{% endfor %}</select></div>
-                    <div class="col-md-4"><label for="ano" class="form-label fw-bold">Ano</label><input type="number" name="ano" id="ano" class="form-control" value="{{ ano_filtro or ano_atual }}" min="2020" max="{{ ano_atual + 5 }}" step="1"></div>
-                    <div class="col-md-3 d-flex"><button type="submit" class="btn btn-primary w-100 me-2"><i class="bi bi-filter"></i> Aplicar</button><a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary" title="Limpar Filtros"><i class="bi bi-x-lg"></i></a></div>
-                </form>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-striped table-hover align-middle">
-                    <thead class="table-light">
-                        <tr class="text-center">
-                            <th class="text-start">Cliente / Unidade</th>
-                            <th>Data Leitura</th>
-                            <th>Leitura Ant.</th>
-                            <th>Leitura Atual</th>
-                            <th class="text-primary">Consumo (m³)</th>
-                            <th>Valor (R$)</th>
-                            <th>Vencimento</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for l in leituras %}
-                        <tr>
-                            <td class="text-start">
-                                <div class="fw-bold">{{ l.cliente_nome }}</div>
-                                <div class="small text-muted">{{ l.endereco }}</div>
-                            </td>
-                            <td class="text-center">{{ l.data_leitura_atual | date_format if l.data_leitura_atual else 'N/A' }}</td>
-                            <td class="text-center">{{ "%g"|format(l.leitura_anterior|float) }}</td>
-                            <td class="text-center">{{ "%g"|format(l.leitura_atual|float) }}</td>
-                            <td class="text-center fw-bold text-primary">{{ "%g"|format(l.consumo_m3|float) }}</td>
-                            <td class="text-center">{{ "%.2f"|format(l.valor_original|float) | replace('.', ',') if l.valor_original is not none else 'Informativa' }}</td>
-                            <td class="text-center">{{ l.vencimento | date_format if l.vencimento else 'N/A' }}</td>
-                            <td class="text-center">
-                                <div class="d-inline-flex gap-1">
-                                    <a href="{{ url_for('comprovante_leitura', leitura_id=l.id) }}" class="btn btn-sm btn-outline-info" title="Ver Comprovante"><i class="bi bi-receipt"></i></a>
-                                    {% if l.num_pagamentos == 0 %}
-                                        <a href="{{ url_for('editar_leitura', id=l.id) }}" class="btn btn-sm btn-outline-warning" title="Editar Leitura"><i class="bi bi-pencil-fill"></i></a>
-                                        <form action="{{ url_for('excluir_leitura', id=l.id) }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta leitura? Esta ação é irreversível.');" style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir Leitura"><i class="bi bi-trash-fill"></i></button>
-                                        </form>
-                                    {% else %}
-                                        <span class="btn btn-sm btn-outline-secondary disabled" title="Bloqueado pois já possui pagamentos"><i class="bi bi-lock-fill"></i></span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center p-5 text-muted">
-                                <i class="bi bi-folder-x fs-3"></i>
-                                <p class="mt-2">Nenhuma leitura encontrada para os filtros selecionados.</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            {% if pagination and pagination.total_pages > 1 %}
-            <nav class="d-flex justify-content-center mt-4">
-                <ul class="pagination">
-                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('listar_leituras', page=pagination.page - 1, mes=mes_filtro, ano=ano_filtro) }}">Anterior</a></li>
-                    {% for p in range(1, pagination.total_pages + 1) %}
-                        <li class="page-item {% if p == pagination.page %}active{% endif %}"><a class="page-link" href="{{ url_for('listar_leituras', page=p, mes=mes_filtro, ano=ano_filtro) }}">{{ p }}</a></li>
-                    {% endfor %}
-                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('listar_leituras', page=pagination.page + 1, mes=mes_filtro, ano=ano_filtro) }}">Próxima</a></li>
-                </ul>
-            </nav>
-            {% endif %}
         </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
