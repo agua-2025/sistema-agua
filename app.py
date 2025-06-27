@@ -1065,17 +1065,78 @@ def editar_leitura(id):
     if request.method == 'POST':
         try:
             with db.begin():
-                # Validações iniciais
+                # Validações iniciais: verifica se há pagamentos existentes para esta leitura
                 pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
                 if pagamento_existente:
                     raise ValueError("Não é possível editar esta leitura, pois já existem pagamentos registrados para ela.")
 
-                leitura_atual_db = db.execute(text("SELECT * FROM leituras WHERE id = :id"), {'id': id}).fetchone()
+                # Busca todos os dados da leitura atual do banco de dados antes de processar o formulário
+                # É crucial ter todos os campos para comparar e recalcular corretamente
+                leitura_atual_db = db.execute(text("""
+                    SELECT 
+                        l.id, l.leitura_atual, l.data_leitura_atual, l.valor_original, l.consumo_m3, l.leitura_anterior, 
+                        l.taxa_minima_valor_usada, l.taxa_minima_franquia_usada, l.valor_m3_usado, l.foto_hidrometro
+                    FROM leituras l WHERE id = :id
+                """), {'id': id}).fetchone()
+
                 if not leitura_atual_db:
                     raise ValueError("Leitura não encontrada para edição.")
 
-                # Lógica de Upload de Foto (mantida)
-                foto_salva_nome = leitura_atual_db.foto_hidrometro
+                # Captura os valores enviados pelo formulário
+                nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
+                nova_data_leitura_str = request.form['data_leitura_atual']
+                nova_data_leitura_obj = datetime.strptime(nova_data_leitura_str, '%Y-%m-%d').date()
+
+                # Lógica de validação: nova leitura não pode ser menor que a anterior
+                if nova_leitura_atual < float(leitura_atual_db.leitura_anterior):
+                    raise ValueError('A leitura atual não pode ser menor que a leitura anterior.')
+
+                # --- Lógica de Recálculo Corrigida para Leituras Informativas e Faturáveis ---
+                # Pega o consumo e valor originais da leitura do DB como valores padrão
+                consumo_m3_final = leitura_atual_db.consumo_m3
+                valor_original_final = leitura_atual_db.valor_original # Pode ser None
+
+                # Flag para verificar se os dados essenciais da leitura (número/data) foram alterados
+                leitura_numeros_ou_data_mudou = (nova_leitura_atual != leitura_atual_db.leitura_atual) or \
+                                                 (nova_data_leitura_obj != leitura_atual_db.data_leitura_atual)
+
+                # Condição para recalcular consumo e valor:
+                # 1. Se os números da leitura ou a data mudaram (indicando uma nova leitura)
+                # OU
+                # 2. Se a leitura já era faturável (valor_original IS NOT NULL)
+                if leitura_numeros_ou_data_mudou or (leitura_atual_db.valor_original is not None):
+                    
+                    consumo_m3_calculado = nova_leitura_atual - float(leitura_atual_db.leitura_anterior)
+                    
+                    # Recalcula o valor original
+                    # Esta parte só é alcançada se a leitura for "real" ou se tornou "real"
+                    config = get_current_config() # Obtém as configurações atuais
+                    # Usa as taxas da leitura se existirem, senão as configurações globais
+                    taxa_minima_valor = float(leitura_atual_db.taxa_minima_valor_usada or config.get('taxa_minima_consumo', 15.0))
+                    taxa_minima_franquia = float(leitura_atual_db.taxa_minima_franquia_usada or config.get('taxa_minima_franquia_m3', 10.0))
+                    valor_m3_usado = float(leitura_atual_db.valor_m3_usado or config.get('valor_m3', 0.0))
+                    
+                    # Define o consumo final para a lógica de update
+                    consumo_m3_final = consumo_m3_calculado
+
+                    if consumo_m3_final < 0: # Evitar valores negativos de consumo
+                        flash("Consumo negativo detectado. Por favor, verifique a leitura anterior.", "warning")
+                        # Em caso de consumo negativo, pode-se optar por manter a leitura informativa ou levantar um erro mais grave
+                        valor_original_final = None # Torna informativa
+                        consumo_m3_final = 0 # Define consumo como 0
+                    elif consumo_m3_final <= taxa_minima_franquia:
+                        valor_original_final = taxa_minima_valor
+                    else:
+                        consumo_excedente = consumo_m3_final - taxa_minima_franquia
+                        valor_excedente = consumo_excedente * valor_m3_usado
+                        valor_original_final = taxa_minima_valor + valor_excedente
+                else:
+                    # Se não houve mudança nos números/data E era informativa, mantém como informativa
+                    valor_original_final = None # Explicitamente mantém None
+                    consumo_m3_final = 0 # Explicitamente mantém 0
+
+                # Lógica de Upload de Foto (mantida como estava)
+                foto_salva_nome = leitura_atual_db.foto_hidrometro # Default para a foto atual
                 if 'foto_hidrometro' in request.files:
                     foto = request.files['foto_hidrometro']
                     if foto and foto.filename != '':
@@ -1086,40 +1147,16 @@ def editar_leitura(id):
                         S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
                         s3.upload_fileobj(foto, S3_BUCKET, novo_nome, ExtraArgs={'ContentType': foto.content_type})
                         foto_salva_nome = novo_nome
+                        app.logger.info(f"Upload para S3 na edição bem-sucedido: {novo_nome}")
 
-                # Lógica de Recálculo Corrigida
-                nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
-                nova_data_leitura = request.form['data_leitura_atual']
-                leitura_anterior_valor = float(leitura_atual_db.leitura_anterior)
-
-                if nova_leitura_atual < leitura_anterior_valor:
-                    raise ValueError('A leitura atual não pode ser menor que a leitura anterior.')
-
-                consumo_m3 = nova_leitura_atual - leitura_anterior_valor
-                
-                # --- CORREÇÃO PRINCIPAL AQUI ---
-                # Inicializa o valor a ser salvo com o valor que já existia no banco
-                valor_final_para_salvar = leitura_atual_db.valor_original
-
-                # SÓ RECALCULA se a fatura JÁ TINHA um valor (não era informativa)
-                if leitura_atual_db.valor_original is not None:
-                    config = get_current_config()
-                    taxa_minima_valor = float(leitura_atual_db.taxa_minima_valor_usada or config.get('taxa_minima_consumo', 15.0))
-                    taxa_minima_franquia = float(leitura_atual_db.taxa_minima_franquia_usada or config.get('taxa_minima_franquia_m3', 10.0))
-                    valor_m3_usado = float(leitura_atual_db.valor_m3_usado or config.get('valor_m3', 0.0))
-                    
-                    if consumo_m3 <= taxa_minima_franquia:
-                        valor_final_para_salvar = taxa_minima_valor
-                    else:
-                        consumo_excedente = consumo_m3 - taxa_minima_franquia
-                        valor_excedente = consumo_excedente * valor_m3_usado
-                        valor_final_para_salvar = taxa_minima_valor + valor_excedente
-                # --- FIM DA CORREÇÃO ---
-
+                # Executa o UPDATE no banco de dados com os valores finais
                 params = {
-                    'l_atu': nova_leitura_atual, 'd_atu': nova_data_leitura,
-                    'consumo': consumo_m3, 'val_orig': valor_final_para_salvar, 
-                    'foto': foto_salva_nome, 'id': id
+                    'l_atu': nova_leitura_atual, 
+                    'd_atu': nova_data_leitura_obj, 
+                    'consumo': consumo_m3_final, 
+                    'val_orig': valor_original_final, # Salva o valor final (None ou número)
+                    'foto': foto_salva_nome, 
+                    'id': id
                 }
                 db.execute(text("""
                     UPDATE leituras SET 
@@ -1140,10 +1177,11 @@ def editar_leitura(id):
         
         return redirect(url_for('editar_leitura', id=id))
 
-    # --- Lógica GET (sem alterações) ---
+    # --- Lógica para GET (Carregar a página) ---
     else:
+        # ATUALIZADO: A consulta agora junta as 3 tabelas para buscar todos os dados necessários
         resultado_bruto = db.execute(text("""
-            SELECT l.*, c.nome as cliente_nome, u.endereco
+            SELECT l.*, c.nome as cliente_nome, u.endereco, u.hidrometro_num
             FROM leituras l
             JOIN unidades_consumidoras u ON l.unidade_id = u.id
             JOIN clientes c ON u.cliente_id = c.id
@@ -1155,6 +1193,13 @@ def editar_leitura(id):
             return redirect(url_for('listar_leituras'))
 
         leitura = resultado_bruto._asdict()
+        # Garante que as datas sejam objetos date para compatibilidade
+        if isinstance(leitura.get('data_leitura_atual'), datetime):
+            leitura['data_leitura_atual'] = leitura['data_leitura_atual'].date()
+        if isinstance(leitura.get('vencimento'), datetime):
+            leitura['vencimento'] = leitura['vencimento'].date()
+
+
         foto_url_s3 = None
         if leitura.get('foto_hidrometro'):
             S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
