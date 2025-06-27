@@ -149,7 +149,10 @@ block head %} {{ super() }}
             style="border-radius: 0.375rem 0.375rem 0 0"
           >
             <!-- Reutilizando section-title, ajustando border-radius -->
-            <h5 class="mb-0" style="color: white">Unidades Consumidoras</h5>
+            <h5>
+              <i class="bi bi-house-door-fill me-2 text-primary"></i>Unidades
+              Consumidoras
+            </h5>
             <!-- Cor do texto explicitamente branca -->
             <a
               href="{{ url_for('adicionar_unidade', cliente_id=cliente.id) }}"

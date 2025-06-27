@@ -493,7 +493,7 @@ def api_configuracoes_leitura():
     })
 
 
-#-----Cadastrar Cliente (VERSÃO FINAL COM CANCELAR INTELIGENTE)---------------------
+#-----Cadastrar Cliente---------------------
 @app.route('/cadastrar-cliente', methods=['GET', 'POST'])
 @login_required
 def cadastrar_cliente():
@@ -501,7 +501,11 @@ def cadastrar_cliente():
         try:
             # Coleta os dados pessoais (para a tabela 'clientes')
             nome = request.form.get('nome', '').strip()
-            cpf = request.form.get('cpf', '').strip()
+            cpf_raw = request.form.get('cpf', '').strip() # Coleta o CPF como veio do form (com máscara)
+            # --- CORREÇÃO PONTUAL AQUI: Limpa o CPF antes de usar/salvar ---
+            cpf = ''.join(filter(str.isdigit, cpf_raw)) # Remove pontos e hífens
+            # --- FIM DA CORREÇÃO ---
+
             rg = request.form.get('rg', '').strip()
             telefone = request.form.get('telefone', '').strip()
 
@@ -518,6 +522,7 @@ def cadastrar_cliente():
                 flash("Todos os campos marcados com * são obrigatórios.", "danger")
                 return redirect(url_for('cadastrar_cliente'))
 
+            # Validação do CPF já opera no CPF limpo
             if not is_cpf_valido(cpf):
                 flash("O CPF informado não é válido. Por favor, verifique.", 'danger')
                 return redirect(url_for('cadastrar_cliente'))
@@ -527,6 +532,7 @@ def cadastrar_cliente():
             db = get_db()
             with db.begin():
                 # 1. Insere na tabela 'clientes' e pega o ID do novo cliente
+                # --- CPF é salvo sem máscara ---
                 resultado_cliente = db.execute(text("""
                     INSERT INTO clientes (nome, cpf, rg, telefone)
                     VALUES (:nome, :cpf, :rg, :telefone)
@@ -568,6 +574,7 @@ def cadastrar_cliente():
             return redirect(url_for('listar_clientes'))
 
         except IntegrityError:
+            # Em caso de IntegrityError (provavelmente CPF ou hidrômetro duplicado)
             flash("CPF ou número do hidrômetro já cadastrado. Verifique os dados.", 'danger')
         except Exception as e:
             app.logger.error(f"Erro ao cadastrar cliente: {e}", exc_info=True)
@@ -575,15 +582,15 @@ def cadastrar_cliente():
             
         return redirect(url_for('cadastrar_cliente'))
 
-    # --- LÓGICA GET ATUALIZADA PARA O BOTÃO "CANCELAR" INTELIGENTE ---
+    # --- LÓGICA GET ---
     else:
-        # Pega o parâmetro 'next' da URL, com um padrão seguro caso ele não exista.
         next_url = request.args.get('next', url_for('listar_clientes')) 
         return render_template(
             'cadastrar_cliente.html', 
             today_date=date.today().isoformat(),
-            next_url=next_url # Envia a URL de retorno para o template
+            next_url=next_url
         )
+  
 
 #------Adicionar Nova Unidade Consumidora----------------------
 @app.route('/cliente/<int:cliente_id>/adicionar-unidade', methods=['GET', 'POST'])
@@ -746,6 +753,38 @@ def listar_pagamentos():
         app.logger.error(f"Erro ao listar pagamentos: {e}", exc_info=True)
         flash("Ocorreu um erro ao carregar o relatório de pagamentos.", "danger")
         return redirect(url_for('dashboard'))
+    
+   
+#-----------Verifica se o CPF já existe antes de cadastar novo cliente------------
+@app.route('/api/check-cpf/<string:cpf>')
+@login_required 
+def check_cpf(cpf):
+    """Verifica se um CPF já existe no banco de dados."""
+    db = get_db()
+    cpf_limpo = ''.join(filter(str.isdigit, str(cpf)))
+    
+    # --- LINHAS DE DEBUG ADICIONADAS AQUI ---
+    app.logger.debug(f"API check_cpf: Recebido CPF original: '{cpf}'")
+    app.logger.debug(f"API check_cpf: CPF limpo para busca: '{cpf_limpo}'")
+    # --- FIM DAS LINHAS DE DEBUG ---
+
+    cliente = db.execute(text("SELECT id, nome FROM clientes WHERE cpf = :cpf"), {'cpf': cpf_limpo}).fetchone()
+    
+    # --- LINHAS DE DEBUG ADICIONADAS AQUI ---
+    if cliente:
+        app.logger.debug(f"API check_cpf: Cliente encontrado: ID={cliente.id}, Nome='{cliente.nome}'")
+    else:
+        app.logger.debug("API check_cpf: Nenhum cliente encontrado para este CPF.")
+    # --- FIM DAS LINHAS DE DEBUG ---
+
+    if cliente:
+        return jsonify({
+            'exists': True,
+            'message': f'CPF já cadastrado para: {cliente.nome}.',
+            'details_url': url_for('detalhes_cliente', cliente_id=cliente.id)
+        })
+    else:
+        return jsonify({'exists': False})
 
 
 #---------função listar_clientes--------------
@@ -754,7 +793,7 @@ def listar_pagamentos():
 def listar_clientes():
     db = get_db()
     try:
-        # A nova consulta busca os dados das duas tabelas, juntando-as e incluindo o RG.
+        # A CONSULTA AGORA USA LEFT JOIN PARA MOSTRAR TODOS OS CLIENTES
         unidades_brutas = db.execute(text("""
             SELECT 
                 u.id as unidade_id,
@@ -765,15 +804,18 @@ def listar_clientes():
                 c.cpf,
                 c.rg,
                 c.telefone
-            FROM unidades_consumidoras u
-            JOIN clientes c ON u.cliente_id = c.id
+            FROM clientes c
+            LEFT JOIN unidades_consumidoras u ON c.id = u.cliente_id
             ORDER BY c.nome, u.endereco
         """)).fetchall()
+
         unidades = [unidade._asdict() for unidade in unidades_brutas]
+
     except Exception as e:
         app.logger.error(f"Erro ao listar clientes e unidades: {e}", exc_info=True)
         flash("Ocorreu um erro ao buscar a lista de clientes.", "danger")
         unidades = []
+
     return render_template('clientes.html', unidades=unidades)
 
 
@@ -1564,9 +1606,6 @@ def cadastrar_usuario():
     return render_template('cadastrar_usuario.html')
 
 #----------Editar Consumidor (VERSÃO FINAL COM VALIDAÇÕES)---------------------
-# Em app.py, substitua a função antiga por esta.
-
-# RENOMEADO: A rota e a função agora usam 'cliente'
 @app.route('/cliente/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_cliente(id):
@@ -1576,7 +1615,11 @@ def editar_cliente(id):
         try:
             # Coleta e valida os dados do formulário
             nome = request.form.get('nome', '').strip()
-            cpf = request.form.get('cpf', '').strip()
+            cpf_raw = request.form.get('cpf', '').strip() # Coleta o CPF como veio do form (com máscara)
+            # --- CORREÇÃO PONTUAL AQUI: Limpa o CPF antes de usar/salvar ---
+            cpf = ''.join(filter(str.isdigit, cpf_raw)) # Remove pontos e hífens
+            # --- FIM DA CORREÇÃO ---
+
             rg = request.form.get('rg', '').strip()
             telefone = request.form.get('telefone', '').strip()
 
@@ -1584,11 +1627,12 @@ def editar_cliente(id):
                 flash("Os campos Nome, CPF e Telefone são obrigatórios.", "danger")
                 return redirect(url_for('editar_cliente', id=id))
 
+            # Validação do CPF já opera no CPF limpo
             if not is_cpf_valido(cpf):
                 flash("O CPF informado não é válido. Por favor, verifique.", 'danger')
                 return redirect(url_for('editar_cliente', id=id))
 
-            # ATUALIZADO: O UPDATE agora é na tabela 'clientes'
+            # ATUALIZADO: O UPDATE agora é na tabela 'clientes' e o CPF é salvo sem máscara
             with db.begin():
                 db.execute(text("""
                     UPDATE clientes 
@@ -1609,22 +1653,19 @@ def editar_cliente(id):
             flash(f"Erro ao editar o cliente: {str(e)}", "danger")
             return redirect(url_for('editar_cliente', id=id))
 
-    # ATUALIZADO: A lógica GET agora busca na tabela 'clientes'
+    # --- Lógica GET ---
     else:
-    # Busca os dados do cliente
         cliente_bruto = db.execute(text("SELECT * FROM clientes WHERE id = :id"), {'id': id}).fetchone()
     
-    if not cliente_bruto:
-        flash("Cliente não encontrado.", "error")
-        return redirect(url_for('listar_clientes'))
-    
-    cliente = cliente_bruto._asdict()
-    
-    # LÓGICA DO REDIRECIONAMENTO INTELIGENTE
-    # Pega o parâmetro 'next' da URL. Se não existir, o padrão é voltar para a página de detalhes.
-    next_url = request.args.get('next', url_for('detalhes_cliente', cliente_id=id))
-    
-    return render_template('editar_cliente.html', cliente=cliente, next_url=next_url)
+        if not cliente_bruto:
+            flash("Cliente não encontrado.", "error")
+            return redirect(url_for('listar_clientes'))
+        
+        cliente = cliente_bruto._asdict()
+        
+        next_url = request.args.get('next', url_for('detalhes_cliente', cliente_id=id))
+        
+        return render_template('editar_cliente.html', cliente=cliente, next_url=next_url)
 
 
 # --- Excluir Consumidor (VERSÃO CORRIGIDA) ---
