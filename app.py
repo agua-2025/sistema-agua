@@ -1061,86 +1061,89 @@ def get_leitura_details(leitura_id):
 @login_required
 def editar_leitura(id):
     db = get_db()
-
-    # --- Lógica POST: Para salvar as alterações ---
+    
     if request.method == 'POST':
         try:
-            # Esta parte do código (lógica de salvar) já estava correta e foi mantida.
             with db.begin():
+                # Validações iniciais (pagamento existente)
                 pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
                 if pagamento_existente:
                     raise ValueError("Não é possível editar esta leitura, pois já existem pagamentos registrados para ela.")
 
-                foto_salva_nome = None
+                # Busca a leitura original ANTES de qualquer cálculo
+                leitura_atual_db = db.execute(text("SELECT * FROM leituras WHERE id = :id"), {'id': id}).fetchone()
+                if not leitura_atual_db:
+                    raise ValueError("Leitura não encontrada para edição.")
+
+                # --- LÓGICA DE UPLOAD DE FOTO (Mantida) ---
+                foto_salva_nome = leitura_atual_db.foto_hidrometro # Mantém a foto antiga por padrão
                 if 'foto_hidrometro' in request.files:
                     foto = request.files['foto_hidrometro']
                     if foto and foto.filename != '':
                         if not allowed_file(foto.filename): raise ValueError('Tipo de arquivo de foto inválido.')
-                        
                         filename = secure_filename(foto.filename)
                         novo_nome = f"{int(datetime.now().timestamp())}_{filename}"
-                        
                         s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'), region_name=os.environ.get('AWS_REGION'))
                         S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
                         s3.upload_fileobj(foto, S3_BUCKET, novo_nome, ExtraArgs={'ContentType': foto.content_type})
                         foto_salva_nome = novo_nome
-                        app.logger.info(f"Upload para S3 na edição bem-sucedido: {novo_nome}")
 
+                # --- LÓGICA DE RECÁLCULO CORRIGIDA ---
                 nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
                 nova_data_leitura = request.form['data_leitura_atual']
-                
-                leitura_atual_db = db.execute(text("SELECT * FROM leituras WHERE id = :id"), {'id': id}).fetchone()
                 leitura_anterior_valor = float(leitura_atual_db.leitura_anterior)
 
                 if nova_leitura_atual < leitura_anterior_valor:
                     raise ValueError('A leitura atual não pode ser menor que a leitura anterior.')
 
                 consumo_m3 = nova_leitura_atual - leitura_anterior_valor
-                config = get_current_config()
                 
-                valor_original_recalculado = float(leitura_atual_db.valor_original) if leitura_atual_db.valor_original is not None else 0.0
+                # Inicializa o valor a ser salvo com o valor que já existia no banco
+                valor_final_para_salvar = leitura_atual_db.valor_original
 
+                # SÓ RECALCULA se a fatura JÁ TINHA um valor (não era informativa)
                 if leitura_atual_db.valor_original is not None:
+                    config = get_current_config()
                     taxa_minima_valor = float(leitura_atual_db.taxa_minima_valor_usada or config.get('taxa_minima_consumo', 15.0))
                     taxa_minima_franquia = float(leitura_atual_db.taxa_minima_franquia_usada or config.get('taxa_minima_franquia_m3', 10.0))
                     valor_m3_usado = float(leitura_atual_db.valor_m3_usado or config.get('valor_m3', 0.0))
                     
                     if consumo_m3 <= taxa_minima_franquia:
-                        valor_original_recalculado = taxa_minima_valor
+                        valor_final_para_salvar = taxa_minima_valor
                     else:
                         consumo_excedente = consumo_m3 - taxa_minima_franquia
                         valor_excedente = consumo_excedente * valor_m3_usado
-                        valor_original_recalculado = taxa_minima_valor + valor_excedente
-                
+                        valor_final_para_salvar = taxa_minima_valor + valor_excedente
+
+                # Monta e executa o UPDATE
                 params = {
                     'l_atu': nova_leitura_atual, 'd_atu': nova_data_leitura,
-                    'consumo': consumo_m3, 'val_orig': valor_original_recalculado, 'id': id
+                    'consumo': consumo_m3, 'val_orig': valor_final_para_salvar, 
+                    'foto': foto_salva_nome, 'id': id
                 }
-                query_update_str = "UPDATE leituras SET leitura_atual = :l_atu, data_leitura_atual = :d_atu, consumo_m3 = :consumo, valor_original = :val_orig"
-                
-                if foto_salva_nome:
-                    query_update_str += ", foto_hidrometro = :foto"
-                    params['foto'] = foto_salva_nome
-                
-                query_update_str += " WHERE id = :id"
-                db.execute(text(query_update_str), params)
+                db.execute(text("""
+                    UPDATE leituras SET 
+                        leitura_atual = :l_atu, data_leitura_atual = :d_atu, 
+                        consumo_m3 = :consumo, valor_original = :val_orig,
+                        foto_hidrometro = :foto
+                    WHERE id = :id
+                """), params)
 
             flash('Leitura atualizada com sucesso!', 'success')
             return redirect(url_for('listar_leituras'))
 
         except ValueError as e:
             flash(f'Erro de Validação: {str(e)}', 'danger')
-            return redirect(url_for('editar_leitura', id=id))
         except Exception as e:
             flash('Ocorreu um erro inesperado ao atualizar a leitura.', 'danger')
             app.logger.error(f"Erro ao editar leitura ID {id}: {e}", exc_info=True)
-            return redirect(url_for('editar_leitura', id=id))
+        
+        return redirect(url_for('editar_leitura', id=id))
 
-    # --- Lógica para GET (Carregar a página) ---
+    # --- Lógica GET (sem alterações) ---
     else:
-        # ATUALIZADO: A consulta agora junta as 3 tabelas para buscar todos os dados necessários
         resultado_bruto = db.execute(text("""
-            SELECT l.*, c.nome as cliente_nome, u.endereco, u.hidrometro_num
+            SELECT l.*, c.nome as cliente_nome, u.endereco
             FROM leituras l
             JOIN unidades_consumidoras u ON l.unidade_id = u.id
             JOIN clientes c ON u.cliente_id = c.id
