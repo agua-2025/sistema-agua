@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Unidade Consumidora{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0 fs-5"><i class="bi bi-pencil-fill me-2"></i>Editar Unidade Consumidora</h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-secondary">
+                    Editando unidade do cliente: <strong>{{ unidade.cliente_nome }}</strong>
+                </div>
+
+                {% include '_flash_messages.html' %}
+
+                <form method="POST">
+                    <fieldset {% if is_bloqueado %}disabled{% endif %}>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="endereco" class="form-label">Endereço Completo</label>
+                                <input type="text" class="form-control" id="endereco" name="endereco" value="{{ unidade.endereco }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="hidrometro_num" class="form-label">Número do Hidrômetro</label>
+                                <input type="text" class="form-control" id="hidrometro_num" name="hidrometro_num" value="{{ unidade.hidrometro_num }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="data_ativacao" class="form-label">Data de Ativação</label>
+                                <input type="date" class="form-control" id="data_ativacao" name="data_ativacao" value="{{ unidade.data_ativacao.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Status da Unidade</label>
+                            <select id="status" name="status" class="form-select">
+                                <option value="Ativo" {% if unidade.status == 'Ativo' %}selected{% endif %}>Ativo</option>
+                                <option value="Inativo" {% if unidade.status == 'Inativo' %}selected{% endif %}>Inativo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{{ url_for('detalhes_cliente', cliente_id=unidade.cliente_id) }}" class="btn btn-light border">Cancelar</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill me-1"></i> Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

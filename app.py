@@ -30,7 +30,7 @@ from datetime import date, datetime
 import boto3
 from botocore.exceptions import NoCredentialsError
 import requests
-
+import re
 # --- NOVO: O "Tradutor" de JSON Definitivo ---
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -795,14 +795,18 @@ def excluir_unidade(id):
     return redirect(url_for('listar_clientes'))
 
 
-#-----------------Cadastrar Leitura (VERSÃO COM UPLOAD S3 CORRIGIDO)----------------:
-@app.route('/cadastrar-leitura', methods=['GET', 'POST'])
+# Em app.py, adicione estas duas novas funções
+@app.route('/lancar-leitura-individual', methods=['GET', 'POST'])
 @login_required
-def cadastrar_leitura():
+def lancar_leitura_individual():
+    """
+    Página para lançar uma leitura individual para uma unidade específica,
+    com suporte a upload de foto para o S3.
+    """
     db = get_db()
     if request.method == 'POST':
         try:
-            consumidor_id = int(request.form.get('consumidor_id'))
+            unidade_id = int(request.form.get('unidade_id'))
             leitura_atual = int(parse_number_from_br_form(request.form.get('leitura_atual')))
             data_leitura_obj = datetime.strptime(request.form.get('data_leitura_atual'), '%Y-%m-%d').date()
             
@@ -813,117 +817,91 @@ def cadastrar_leitura():
                     filename = secure_filename(foto.filename)
                     novo_nome = f"{int(datetime.now().timestamp())}_{filename}"
                     
-                    s3 = boto3.client(
-                        's3',
-                        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-                        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
-                        region_name=os.environ.get('AWS_REGION')
-                    )
+                    s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'), region_name=os.environ.get('AWS_REGION'))
                     S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
-                    try:
-                        # --- CORREÇÃO CIRÚRGICA APLICADA AQUI ---
-                        # Removemos a linha 'ACL': 'public-read' para ser compatível
-                        # com as configurações modernas do S3.
-                        s3.upload_fileobj(
-                            foto,
-                            S3_BUCKET,
-                            novo_nome,
-                            ExtraArgs={
-                                'ContentType': foto.content_type
-                            }
-                        )
-                        # --- FIM DA CORREÇÃO ---
-                        
-                        foto_salva_nome = novo_nome
-                        app.logger.info(f"Upload para S3 bem-sucedido: {novo_nome}")
-                    except NoCredentialsError:
-                        app.logger.error("Credenciais da AWS não encontradas nas variáveis de ambiente.")
-                        flash("Erro de configuração do servidor: credenciais de upload não encontradas.", "danger")
-                        return redirect(url_for('cadastrar_leitura'))
-                    except Exception as e:
-                        app.logger.error(f"Erro no upload para o S3: {e}")
-                        flash("Erro ao enviar a foto para o armazenamento.", "danger")
-                        return redirect(url_for('cadastrar_leitura'))
+                    s3.upload_fileobj(foto, S3_BUCKET, novo_nome, ExtraArgs={'ContentType': foto.content_type})
+                    foto_salva_nome = novo_nome
             
             with db.begin():
-                # Bloco de cálculo da fatura (mantido como estava)
-                leitura_anterior_db = db.execute(text("SELECT id, leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'cid': consumidor_id}).fetchone()
+                # Busca a última leitura da unidade para os cálculos
+                leitura_anterior_db = db.execute(text("SELECT leitura_atual, data_leitura_atual FROM leituras WHERE unidade_id = :uid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'uid': unidade_id}).fetchone()
+                
+                leitura_anterior_valor = int(leitura_anterior_db.leitura_atual) if leitura_anterior_db else 0
+                data_leitura_anterior_obj = leitura_anterior_db.data_leitura_atual if leitura_anterior_db else None
+
+                if leitura_atual < leitura_anterior_valor:
+                    raise ValueError('Leitura atual não pode ser menor que a anterior.')
+
+                consumo_m3 = leitura_atual - leitura_anterior_valor
+                
                 config = get_current_config()
-                consumo_m3 = 0
-                valor_original = None
-                data_vencimento = None
-                leitura_anterior_valor = 0
-                data_leitura_anterior_obj = None
+                taxa_minima_valor = float(config.get('taxa_minima_consumo', 15.0))
+                taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
+                valor_m3_configurado = float(config.get('valor_m3', 0.0))
+                valor_original = 0.0
 
-                if leitura_anterior_db:
-                    leitura_anterior_valor = int(leitura_anterior_db.leitura_atual)
-                    data_leitura_anterior_obj = leitura_anterior_db.data_leitura_atual
-                    if leitura_atual < leitura_anterior_valor:
-                        raise ValueError('Leitura atual não pode ser menor que a anterior.')
-                    consumo_m3 = leitura_atual - leitura_anterior_valor
-                    
-                    valor_original = 0.0
-                    taxa_minima_valor = float(config.get('taxa_minima_consumo', 15.0))
-                    taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
-                    valor_m3_configurado = float(config.get('valor_m3', 0.0))
-                    
-                    if leitura_anterior_valor > 0:
-                        valor_original = taxa_minima_valor
-                        if consumo_m3 > taxa_minima_franquia:
-                            consumo_excedente = consumo_m3 - taxa_minima_franquia
-                            valor_excedente = consumo_excedente * valor_m3_configurado
-                            valor_original = taxa_minima_valor + valor_excedente
-                    
-                    dias_para_vencimento = int(config.get('dias_uteis_para_vencimento', 5))
-                    data_vencimento = adicionar_dias_uteis(data_leitura_obj, dias_para_vencimento)
+                if leitura_anterior_valor > 0:
+                    valor_original = taxa_minima_valor
+                    if consumo_m3 > taxa_minima_franquia:
+                        consumo_excedente = consumo_m3 - taxa_minima_franquia
+                        valor_excedente = consumo_excedente * valor_m3_configurado
+                        valor_original = taxa_minima_valor + valor_excedente
+                
+                dias_para_vencimento = int(config.get('dias_uteis_para_vencimento', 5))
+                data_vencimento = adicionar_dias_uteis(data_leitura_obj, dias_para_vencimento) if valor_original > 0 else None
 
-                # INSERT no banco de dados
+                # Salva a nova leitura no banco
                 resultado = db.execute(text('''
-                    INSERT INTO leituras (
-                        consumidor_id, leitura_anterior, data_leitura_anterior,
-                        leitura_atual, data_leitura_atual, consumo_m3, valor_original, vencimento, foto_hidrometro,
-                        valor_m3_usado, taxa_minima_valor_usada, taxa_minima_franquia_usada
-                    ) VALUES (:cid, :l_ant, :d_ant, :l_atu, :d_atu, :consumo, :val_orig, :venc, :foto, :v_m3, :t_min_val, :t_min_fran)
+                    INSERT INTO leituras (unidade_id, leitura_anterior, data_leitura_anterior, leitura_atual, data_leitura_atual, consumo_m3, valor_original, vencimento, foto_hidrometro, valor_m3_usado, taxa_minima_valor_usada, taxa_minima_franquia_usada, mes_competencia, ano_competencia)
+                    VALUES (:uid, :l_ant, :d_ant, :l_atu, :d_atu, :consumo, :val_orig, :venc, :foto, :v_m3, :t_min_val, :t_min_fran, :mes, :ano)
                     RETURNING id
                 '''), {
-                    'cid': consumidor_id, 'l_ant': leitura_anterior_valor, 'd_ant': data_leitura_anterior_obj,
+                    'uid': unidade_id, 'l_ant': leitura_anterior_valor, 'd_ant': data_leitura_anterior_obj,
                     'l_atu': leitura_atual, 'd_atu': data_leitura_obj, 'consumo': consumo_m3,
                     'val_orig': valor_original, 'venc': data_vencimento, 'foto': foto_salva_nome,
-                    'v_m3': config.get('valor_m3'), 't_min_val': config.get('taxa_minima_consumo'), 
-                    't_min_fran': config.get('taxa_minima_franquia_m3')
+                    'v_m3': valor_m3_configurado, 't_min_val': taxa_minima_valor, 't_min_fran': taxa_minima_franquia,
+                    'mes': data_leitura_obj.month, 'ano': data_leitura_obj.year
                 }).fetchone()
                 nova_leitura_id = resultado[0]
 
-            flash('Leitura cadastrada com sucesso!', 'success')
+            flash('Leitura individual cadastrada com sucesso!', 'success')
             return redirect(url_for('comprovante_leitura', leitura_id=nova_leitura_id))
-
         except Exception as e:
-            app.logger.error(f'Erro ao salvar leitura: {e}', exc_info=True)
+            app.logger.error(f'Erro ao salvar leitura individual: {e}', exc_info=True)
             flash(f'Ocorreu um erro inesperado: {str(e)}', 'danger')
-            return redirect(url_for('cadastrar_leitura'))
+            return redirect(url_for('lancar_leitura_individual'))
     
-    else: # Lógica GET (não muda)
-        consumidores = db.execute(text('SELECT id, nome FROM consumidores ORDER BY nome')).fetchall()
-        consumidor_selecionado = request.args.get('consumidor_id', type=int)
-        leitura_anterior_valor = '0'
-        data_leitura_anterior_str = 'N/A'
-        data_leitura_anterior_iso = None
-
-        if consumidor_selecionado:
-            ultima_leitura = db.execute(text("SELECT leitura_atual, data_leitura_atual FROM leituras WHERE consumidor_id = :cid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1"), {'cid': consumidor_selecionado}).fetchone()
-            if ultima_leitura:
-                leitura_anterior_valor = str(int(ultima_leitura.leitura_atual))
-                data_leitura_anterior_str = ultima_leitura.data_leitura_atual.strftime('%d/%m/%Y')
-                data_leitura_anterior_iso = ultima_leitura.data_leitura_atual.isoformat()
-
-        return render_template('cadastrar_leitura.html', 
-                               consumidores=consumidores, 
-                               consumidor_selecionado=consumidor_selecionado,
-                               leitura_anterior=leitura_anterior_valor,
-                               data_leitura_anterior=data_leitura_anterior_str,
-                               data_leitura_anterior_iso=data_leitura_anterior_iso,
+    else: # Lógica GET
+        clientes = db.execute(text('SELECT id, nome FROM clientes ORDER BY nome')).fetchall()
+        return render_template('lancar_leitura_individual.html', 
+                               clientes=clientes,
                                today_date=date.today().isoformat())
     
+#-------------------Leitura anterior Individual----------------    
+@app.route('/api/unidade-leitura-anterior/<int:unidade_id>')
+@login_required
+def api_unidade_leitura_anterior(unidade_id):
+    """Retorna os dados da última leitura de uma unidade específica."""
+    db = get_db()
+    ultima_leitura = db.execute(text("""
+        SELECT leitura_atual, data_leitura_atual FROM leituras 
+        WHERE unidade_id = :uid ORDER BY data_leitura_atual DESC, id DESC LIMIT 1
+    """), {'uid': unidade_id}).fetchone()
+
+    if ultima_leitura:
+        return jsonify({
+            'leitura_anterior': ultima_leitura.leitura_atual,
+            'data_leitura_anterior': ultima_leitura.data_leitura_atual.strftime('%d/%m/%Y'),
+            'data_leitura_anterior_iso': ultima_leitura.data_leitura_atual.isoformat()
+        })
+    else:
+        # Se for a primeira leitura da unidade
+        return jsonify({
+            'leitura_anterior': 0,
+            'data_leitura_anterior': 'N/A',
+            'data_leitura_anterior_iso': None
+        })
+  
 # --- Registrar Pagamento (AGORA COM A LÓGICA WHATSAPP EMBUTIDA) ---
 @app.route('/registrar-pagamento', methods=['GET', 'POST'])
 @login_required
@@ -1147,6 +1125,86 @@ def editar_leitura(id):
                                leitura=leitura, 
                                bloqueado=bool(pagamento_existente),
                                foto_url_s3=foto_url_s3)
+    
+
+#-----------------Editar Unidade Consumidora----------------
+@app.route('/unidade/editar/<int:unidade_id>', methods=['GET', 'POST'])
+@login_required
+def editar_unidade(unidade_id):
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            # Coleta os dados do formulário
+            endereco = request.form.get('endereco', '').strip()
+            hidrometro_num = request.form.get('hidrometro_num', '').strip()
+            data_ativacao_str = request.form.get('data_ativacao', '').strip()
+            status = request.form.get('status', 'Ativo')
+
+            if not all([endereco, hidrometro_num, data_ativacao_str]):
+                flash("Todos os campos, exceto Status, são obrigatórios.", "danger")
+                return redirect(url_for('editar_unidade', unidade_id=unidade_id))
+
+            data_ativacao_obj = datetime.strptime(data_ativacao_str, '%Y-%m-%d').date()
+
+            with db.begin():
+                # Atualiza os dados da unidade no banco
+                db.execute(text("""
+                    UPDATE unidades_consumidoras
+                    SET endereco = :endereco, hidrometro_num = :hidrometro, 
+                        data_ativacao = :data_ativacao, status = :status
+                    WHERE id = :id
+                """), {
+                    'endereco': endereco, 'hidrometro': hidrometro_num,
+                    'data_ativacao': data_ativacao_obj, 'status': status,
+                    'id': unidade_id
+                })
+            
+            # Busca o cliente_id para o redirecionamento correto
+            unidade = db.execute(text("SELECT cliente_id FROM unidades_consumidoras WHERE id = :id"), {'id': unidade_id}).fetchone()
+            flash("Dados da unidade atualizados com sucesso!", "success")
+            return redirect(url_for('detalhes_cliente', cliente_id=unidade.cliente_id))
+
+        except IntegrityError:
+            flash("O número do hidrômetro informado já está em uso por outra unidade.", "danger")
+            return redirect(url_for('editar_unidade', unidade_id=unidade_id))
+        except Exception as e:
+            app.logger.error(f"Erro ao editar unidade ID {unidade_id}: {e}", exc_info=True)
+            flash("Ocorreu um erro ao atualizar os dados da unidade.", "danger")
+            return redirect(url_for('editar_unidade', unidade_id=unidade_id))
+            
+    # --- Lógica GET (Carregar a página) ---
+    else:
+        # Busca os dados da unidade e do cliente associado
+        unidade_bruto = db.execute(text("""
+            SELECT u.*, c.nome as cliente_nome
+            FROM unidades_consumidoras u
+            JOIN clientes c ON u.cliente_id = c.id
+            WHERE u.id = :id
+        """), {'id': unidade_id}).fetchone()
+
+        if not unidade_bruto:
+            flash("Unidade consumidora não encontrada.", "danger")
+            return redirect(url_for('listar_clientes'))
+        
+        unidade = unidade_bruto._asdict()
+
+        # --- LÓGICA DE BLOQUEIO ---
+        # Conta quantas leituras (faturas) a unidade possui.
+        contagem_leituras = db.execute(text("SELECT COUNT(id) FROM leituras WHERE unidade_id = :id"), {'id': unidade_id}).fetchone()[0]
+        
+        # A unidade só pode ser editada se tiver apenas 1 leitura (a inicial).
+        # Você pode ajustar essa regra se quiser (ex: 'contagem_leituras > 0')
+        is_bloqueado = contagem_leituras > 1
+        
+        if is_bloqueado:
+            flash("Esta unidade não pode ter seus dados principais editados pois já possui faturas geradas.", "warning")
+
+        return render_template(
+            'editar_unidade.html', 
+            unidade=unidade, 
+            is_bloqueado=is_bloqueado
+        )
         
     
 #------------------------Excluir Leitura----------------------Ajustando o x do Vercel    
@@ -1307,23 +1365,30 @@ def api_leituras(unidade_id):
         app.logger.error(f"Erro na API de leituras para unidade {unidade_id}: {e}", exc_info=True)
         return jsonify({'erro': 'Erro interno no servidor'}), 500
     
-# --- ROTA PRINCIPAL DE DETALHES (CORRIGIDA) ---
-@app.route('/detalhes-pagamento')
+#-----------------------Detalhes Pagamento com whtasapp
+@app.route('/detalhes-pagamento/<int:leitura_id>')
 @login_required
-def detalhes_pagamento():
-    leitura_id = request.args.get('leitura_id')
-    if not leitura_id:
-        flash('Nenhum pagamento selecionado', 'error')
-        return redirect(url_for('listar_pagamentos'))
-
-    # Reutiliza a função auxiliar que já busca e calcula tudo
-    contexto = _get_fatura_contexto(int(leitura_id))
-
-    if contexto is None:
+def detalhes_pagamento(leitura_id):
+    contexto = _get_fatura_contexto(leitura_id)
+    if not contexto:
         flash('Fatura não encontrada.', 'danger')
         return redirect(url_for('listar_pagamentos'))
+
+    # REPETIMOS a mesma lógica do WhatsApp aqui
+    cliente_telefone = contexto['leitura'].get('cliente_telefone')
+    whatsapp_phone_number = ''
+    if cliente_telefone:
+        numeros_telefone = re.sub(r'\D', '', str(cliente_telefone))
+        if len(numeros_telefone) >= 10:
+            whatsapp_phone_number = f"55{numeros_telefone}" if not numeros_telefone.startswith('55') else numeros_telefone
+
+    pdf_url = url_for('download_comprovante_pdf', leitura_id=leitura_id, _external=True)
+    texto_mensagem = f"Olá! Segue o extrato da sua fatura Águas de Santa Maria (Ref. #{leitura_id}).\n\nPara visualizar ou baixar o PDF, acesse o link:\n{pdf_url}"
+    whatsapp_message_encoded = quote(texto_mensagem)
+
+    contexto['whatsapp_phone_number'] = whatsapp_phone_number
+    contexto['whatsapp_message'] = whatsapp_message_encoded
     
-    # Renderiza o template com os dados já processados
     return render_template('detalhes_pagamento.html', **contexto)
 
 # --- Recuperação de Senha ---
@@ -1780,50 +1845,60 @@ def download_comprovante_pdf(leitura_id):
         return redirect(url_for('detalhes_pagamento', leitura_id=leitura_id))
 
 #---------------Comprovante de Leiutura PDF----------------
+# Rota para o comprovante imediato após a leitura
 @app.route('/comprovante_leitura/<int:leitura_id>')
 @login_required
 def comprovante_leitura(leitura_id):
-    """
-    Rota para o COMPROVANTE IMEDIATO após a leitura.
-    Agora, ela reutiliza a função _get_fatura_contexto e prepara os dados para o WhatsApp.
-    """
-    # Esta parte do seu código foi mantida
     contexto = _get_fatura_contexto(leitura_id)
-    
     if not contexto:
         flash('Leitura não encontrada.', 'danger')
         return redirect(url_for('listar_leituras'))
-        
-    # ======================================================================
-    # INÍCIO DO BLOCO AJUSTADO - LÓGICA DO WHATSAPP
-    # ======================================================================
-    whatsapp_phone = contexto['leitura'].get('telefone')
-    whatsapp_phone_cleaned = ''
-    if whatsapp_phone:
-        # Remove caracteres não numéricos do telefone (ex: '()', '-', ' ')
-        whatsapp_phone_cleaned = ''.join(filter(str.isdigit, str(whatsapp_phone)))
-        # Adiciona o código do Brasil (55) se não tiver
-        if len(whatsapp_phone_cleaned) >= 10 and not whatsapp_phone_cleaned.startswith('55'):
-            whatsapp_phone_cleaned = f"55{whatsapp_phone_cleaned}"
-
-    # 1. Gera a URL completa e externa para o PDF
-    pdf_url = url_for('download_leitura_pdf', leitura_id=leitura_id, _external=True)
-
-    # 2. Mensagem personalizada agora inclui o link do PDF
-    texto_mensagem = (f"Olá! Segue o comprovante de leitura da Águas de Santa Maria (Referência: #{leitura_id}).\n\n"
-                      f"Para visualizar ou baixar o PDF, acesse o link:\n{pdf_url}")
     
-    # O resto do bloco continua exatamente como estava
+    # A lógica do WhatsApp agora é centralizada aqui
+    cliente_telefone = contexto['leitura'].get('cliente_telefone')
+    whatsapp_phone_number = ''
+    if cliente_telefone:
+        numeros_telefone = re.sub(r'\D', '', str(cliente_telefone))
+        if len(numeros_telefone) >= 10:
+            whatsapp_phone_number = f"55{numeros_telefone}" if not numeros_telefone.startswith('55') else numeros_telefone
+
+    pdf_url = url_for('download_leitura_pdf', leitura_id=leitura_id, _external=True)
+    texto_mensagem = (f"Olá! Segue o comprovante de leitura da Águas de Santa Maria (Ref. #{leitura_id}).\n\nPara visualizar ou baixar o PDF, acesse o link:\n{pdf_url}")
     whatsapp_message_encoded = quote(texto_mensagem)
 
-    contexto['whatsapp_phone_number'] = whatsapp_phone_cleaned
+    contexto['whatsapp_phone_number'] = whatsapp_phone_number
     contexto['whatsapp_message'] = whatsapp_message_encoded
-    # ======================================================================
-    # FIM DO BLOCO AJUSTADO
-    # ======================================================================
-        
-    # Esta parte do seu código também foi mantida
+    
     return render_template('comprovante_leitura.html', **contexto)
+
+#-----------------Funçao para mostrar imagem do hidrometro PDF whatsapp
+def get_image_base64_string(foto_filename):
+    """
+    Busca uma imagem do S3, a baixa em memória e a converte para base64.
+    """
+    if not foto_filename:
+        return None
+
+    S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
+    AWS_REGION = os.environ.get('AWS_REGION')
+    
+    # Constrói a URL pública do objeto no S3
+    url = f"https://{S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{foto_filename}"
+
+    try:
+        # Faz o download da imagem a partir da URL
+        response = requests.get(url, stream=True)
+        response.raise_for_status() # Lança um erro se a imagem não for encontrada
+
+        # Codifica a imagem para base64
+        encoded_string = base64.b64encode(response.content).decode('utf-8')
+        mime_type = response.headers.get('Content-Type', 'image/jpeg')
+        
+        return f"data:{mime_type};base64,{encoded_string}"
+
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Erro ao baixar a imagem do S3 pela URL {url}: {e}")
+        return None
 
 #-----------------Funçao para mostrar imagem do hidrometro PDF whatsapp
 def get_image_base64_string(foto_filename):

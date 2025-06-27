@@ -138,33 +138,103 @@
         .buttons {
           display: none !important;
         }
-        .receipt-container { max-width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
-        .receipt-header { padding: 0.5rem; gap: 10px; }
-        .comprovante-logo { max-height: 10mm !important; }
-        .receipt-header h2 { font-size: 13pt; }
-        .receipt-header p { font-size: 9pt; }
-        .receipt-body { padding: 0; }
-        .section-block { border: 1px solid #eee !important; box-shadow: none !important; padding: 1rem !important; margin-bottom: 0.75rem !important; page-break-inside: avoid; }
-        .section-title { font-size: 10pt; font-weight: bold; margin-bottom: 0.75rem; padding-bottom: 0.25rem; }
-        .info-item .label { font-size: 7.5pt; }
-        .info-item .value { font-size: 9pt; }
-        hr { margin: 1rem 0 !important; }
-        .foto-hidrometro-container { height: 190px !important; margin-top: 0.5rem !important; }
-        .table { font-size: 9pt; margin-bottom: 0.5rem !important; }
-        .table tfoot td { font-size: 10pt !important; }
-        .due-date-box { padding: 0.5rem !important; }
-        .alert { padding: 0.5rem !important; font-size: 8pt !important; margin-top: 1rem !important; }
+        .receipt-container {
+          max-width: 100%;
+          margin: 0;
+          padding: 0;
+          box-shadow: none;
+          border: none;
+        }
+        .receipt-header {
+          padding: 0.5rem;
+          gap: 10px;
+        }
+        .comprovante-logo {
+          max-height: 10mm !important;
+        }
+        .receipt-header h2 {
+          font-size: 13pt;
+        }
+        .receipt-header p {
+          font-size: 9pt;
+        }
+        .receipt-body {
+          padding: 0;
+        }
+        .section-block {
+          border: 1px solid #eee !important;
+          box-shadow: none !important;
+          padding: 1rem !important;
+          margin-bottom: 0.75rem !important;
+          page-break-inside: avoid;
+        }
+        .section-title {
+          font-size: 10pt;
+          font-weight: bold;
+          margin-bottom: 0.75rem;
+          padding-bottom: 0.25rem;
+        }
+        .info-item .label {
+          font-size: 7.5pt;
+        }
+        .info-item .value {
+          font-size: 9pt;
+        }
+        hr {
+          margin: 1rem 0 !important;
+        }
+        .foto-hidrometro-container {
+          height: 190px !important;
+          margin-top: 0.5rem !important;
+        }
+        .table {
+          font-size: 9pt;
+          margin-bottom: 0.5rem !important;
+        }
+        .table tfoot td {
+          font-size: 10pt !important;
+        }
+        .due-date-box {
+          padding: 0.5rem !important;
+        }
+        .alert {
+          padding: 0.5rem !important;
+          font-size: 8pt !important;
+          margin-top: 1rem !important;
+        }
       }
     </style>
   </head>
   <body>
     <div class="receipt-container">
       <header class="receipt-header">
-        <svg class="comprovante-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80">
+        <svg
+          class="comprovante-logo"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 120 80"
+        >
           <g>
-            <path d="M10 50 Q 35 10, 60 50 T 110 50" stroke="#FFFFFF" stroke-width="12" fill="none" stroke-linecap="round" />
-            <path d="M10 70 Q 35 30, 60 70 T 110 70" stroke="#A9C2FD" stroke-width="12" fill="none" stroke-linecap="round" />
-            <path d="M10 30 Q 35 -10, 60 30 T 110 30" stroke="#87A7FF" stroke-width="12" fill="none" stroke-linecap="round" />
+            <path
+              d="M10 50 Q 35 10, 60 50 T 110 50"
+              stroke="#FFFFFF"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <path
+              d="M10 70 Q 35 30, 60 70 T 110 70"
+              stroke="#A9C2FD"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <path
+              d="M10 30 Q 35 -10, 60 30 T 110 30"
+              stroke="#87A7FF"
+              stroke-width="12"
+              fill="none"
+              stroke-linecap="round"
+            />
           </g>
         </svg>
         <div class="header-text">
@@ -199,21 +269,30 @@
                 <div class="col-6">
                   <div class="info-item mb-2">
                     <span class="label">LEITURA ATUAL</span>
-                    <span class="value">{{ "%g"|format(leitura.leitura_atual|int) }} m³</span>
+                    <span class="value"
+                      >{{ "%g"|format(leitura.leitura_atual|int) }} m³</span
+                    >
                   </div>
                   <div class="info-item">
                     <span class="label">LEITURA ANTERIOR</span>
-                    <span class="value">{{ "%g"|format(leitura.leitura_anterior|int) }} m³</span>
+                    <span class="value"
+                      >{{ "%g"|format(leitura.leitura_anterior|int) }} m³</span
+                    >
                   </div>
                 </div>
                 <div class="col-6">
                   <div class="info-item mb-2">
                     <span class="label">DATA ATUAL</span>
-                    <span class="value">{{ data_leitura_atual_formatada }}</span>
+                    <span class="value"
+                      >{{ data_leitura_atual_formatada }}</span
+                    >
                   </div>
                   <div class="info-item">
                     <span class="label">DATA ANTERIOR</span>
-                    <span class="value">{{ leitura.data_leitura_anterior.strftime('%d/%m/%Y') if leitura.data_leitura_anterior else 'N/A' }}</span>
+                    <span class="value"
+                      >{{ leitura.data_leitura_anterior.strftime('%d/%m/%Y') if
+                      leitura.data_leitura_anterior else 'N/A' }}</span
+                    >
                   </div>
                 </div>
               </div>
@@ -234,7 +313,10 @@
                 <div class="col-sm-4">
                   <div class="info-item">
                     <span class="label">MÉDIA DIÁRIA</span>
-                    <span class="value">{{ "%.3f"|format(media_diaria_consumo|float) | replace('.',',') }} m³</span>
+                    <span class="value"
+                      >{{ "%.3f"|format(media_diaria_consumo|float) |
+                      replace('.',',') }} m³</span
+                    >
                   </div>
                 </div>
               </div>
@@ -245,7 +327,10 @@
               <h3 class="section-title">Foto do Hidrômetro</h3>
               <div class="foto-hidrometro-container">
                 {% if leitura.foto_hidrometro_base64 or foto_url_s3 %}
-                <img src="{{ foto_url_s3 or leitura.foto_hidrometro_base64 }}" alt="Foto do Hidrômetro" />
+                <img
+                  src="{{ foto_url_s3 or leitura.foto_hidrometro_base64 }}"
+                  alt="Foto do Hidrômetro"
+                />
                 {% else %}
                 <div class="no-photo-text">
                   <i class="fas fa-camera fa-2x text-muted mb-2"></i>
@@ -263,12 +348,16 @@
             <tbody>
               <tr>
                 <td class="text-muted">Consumo no Período:</td>
-                <td class="text-end fw-bold">{{ "%g"|format(consumo_m3|int) }} m³</td>
+                <td class="text-end fw-bold">
+                  {{ "%g"|format(consumo_m3|int) }} m³
+                </td>
               </tr>
               {% for item in detalhamento_fatura %}
               <tr>
                 <td>{{ item.descricao }}</td>
-                <td class="text-end">R$ {{ "%.2f"|format(item.valor|float) | replace('.', ',') }}</td>
+                <td class="text-end">
+                  R$ {{ "%.2f"|format(item.valor|float) | replace('.', ',') }}
+                </td>
               </tr>
               {% else %}
               <tr>
@@ -282,19 +371,26 @@
             <tfoot class="border-top">
               <tr class="fw-bold">
                 <td class="fs-6">TOTAL DA FATURA</td>
-                <td class="text-end fs-6 text-primary">R$ {{ "%.2f"|format(leitura.valor_original|float) | replace('.', ',') }}</td>
+                <td class="text-end fs-6 text-primary">
+                  R$ {{ "%.2f"|format(leitura.valor_original|float) |
+                  replace('.', ',') }}
+                </td>
               </tr>
             </tfoot>
             {% endif %}
           </table>
 
           <div class="text-center bg-light p-2 rounded">
-            <span class="text-muted text-uppercase small">Data de Vencimento</span>
+            <span class="text-muted text-uppercase small"
+              >Data de Vencimento</span
+            >
             <div class="fs-6 fw-bold">{{ vencimento_formatado }}</div>
           </div>
 
           <div class="alert alert-light border p-3 mt-3 small" role="alert">
-            <h6 class="alert-heading" style="font-size: 0.9rem"><i class="fas fa-exclamation-circle me-2"></i>Aviso Importante</h6>
+            <h6 class="alert-heading" style="font-size: 0.9rem">
+              <i class="fas fa-exclamation-circle me-2"></i>Aviso Importante
+            </h6>
             <hr class="my-2" />
             <p class="mb-1">
               O valor desta fatura é válido para pagamento realizado
@@ -311,10 +407,19 @@
       </div>
 
       <div class="buttons no-print">
-        <a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
-        <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print"></i> Gerar PDF</button>
-        {% if whatsapp_phone_number and whatsapp_phone_number|length > 10 %}
-        <a href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}" target="_blank" class="btn btn-success">
+        <a href="{{ url_for('listar_leituras') }}" class="btn btn-secondary"
+          ><i class="fas fa-arrow-left"></i> Voltar</a
+        >
+        <button onclick="window.print()" class="btn btn-primary">
+          <i class="fas fa-print"></i> Gerar PDF
+        </button>
+
+        {% if whatsapp_phone_number %}
+        <a
+          href="https://wa.me/{{ whatsapp_phone_number }}?text={{ whatsapp_message }}"
+          target="_blank"
+          class="btn btn-success"
+        >
           <i class="fab fa-whatsapp"></i> Enviar WhatsApp
         </a>
         {% endif %}

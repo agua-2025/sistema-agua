@@ -1,0 +1,193 @@
+{% extends "base.html" %} {% block title %}Lançar Leitura Individual{% endblock
+%} {% block content %}
+<div class="container my-4">
+  <div class="col-lg-8 mx-auto">
+    <div class="card shadow-sm">
+      <div
+        class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2"
+      >
+        <h4 class="mb-0 fs-5">
+          <i class="bi bi-upc-scan me-2"></i>Lançamento de Leitura Individual
+        </h4>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-sm"
+          ><i class="bi bi-arrow-left"></i> Voltar</a
+        >
+      </div>
+      <div class="card-body p-4">
+        {% include '_flash_messages.html' %}
+        <form method="POST" enctype="multipart/form-data">
+          <fieldset class="border p-3 rounded mb-4">
+            <legend class="float-none w-auto px-2 fs-6 fw-bold">
+              1. Seleção da Unidade
+            </legend>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="cliente_id" class="form-label">Cliente</label>
+                <select id="cliente_id" class="form-select" required>
+                  <option value="" disabled selected>
+                    -- Escolha um cliente --
+                  </option>
+                  {% for cliente in clientes %}
+                  <option value="{{ cliente.id }}">{{ cliente.nome }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="unidade_id" class="form-label"
+                  >Unidade Consumidora</label
+                >
+                <select
+                  id="unidade_id"
+                  name="unidade_id"
+                  class="form-select"
+                  required
+                  disabled
+                >
+                  <option value="" disabled selected>
+                    -- Primeiro escolha um cliente --
+                  </option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset id="readingFields" disabled>
+            <legend class="float-none w-auto px-2 fs-6 fw-bold">
+              2. Detalhes da Leitura
+            </legend>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Leitura Anterior (m³)</label
+                ><input
+                  type="text"
+                  class="form-control"
+                  id="leitura_anterior"
+                  readonly
+                />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Data da Leitura Anterior</label
+                ><input
+                  type="text"
+                  class="form-control"
+                  id="data_leitura_anterior"
+                  readonly
+                />
+              </div>
+              <div class="col-md-6">
+                <label for="leitura_atual" class="form-label"
+                  >Nova Leitura (m³) <span class="text-danger">*</span></label
+                ><input
+                  type="number"
+                  step="any"
+                  class="form-control"
+                  id="leitura_atual"
+                  name="leitura_atual"
+                  required
+                />
+              </div>
+              <div class="col-md-6">
+                <label for="data_leitura_atual" class="form-label"
+                  >Data da Nova Leitura
+                  <span class="text-danger">*</span></label
+                ><input
+                  type="date"
+                  class="form-control"
+                  id="data_leitura_atual"
+                  name="data_leitura_atual"
+                  value="{{ today_date }}"
+                  required
+                />
+              </div>
+              <div class="col-12">
+                <label for="foto_hidrometro" class="form-label"
+                  >Foto do Hidrômetro (Opcional)</label
+                ><input
+                  class="form-control"
+                  type="file"
+                  id="foto_hidrometro"
+                  name="foto_hidrometro"
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="d-grid mt-4">
+            <button
+              type="submit"
+              id="submitButton"
+              class="btn btn-primary btn-lg"
+              disabled
+            >
+              <i class="bi bi-save-fill me-1"></i>Salvar Leitura
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const clienteSelect = document.getElementById("cliente_id");
+    const unidadeSelect = document.getElementById("unidade_id");
+    const readingFields = document.getElementById("readingFields");
+    const submitButton = document.getElementById("submitButton");
+    const leituraAnteriorInput = document.getElementById("leitura_anterior");
+    const dataAnteriorInput = document.getElementById("data_leitura_anterior");
+    const leituraAtualInput = document.getElementById("leitura_atual");
+    const dataLeituraAtualInput = document.getElementById("data_leitura_atual");
+
+    clienteSelect.addEventListener("change", function () {
+      const clienteId = this.value;
+      unidadeSelect.innerHTML =
+        '<option value="" disabled selected>-- Carregando... --</option>';
+      unidadeSelect.disabled = true;
+      readingFields.disabled = true;
+      submitButton.disabled = true;
+      leituraAnteriorInput.value = "";
+      dataAnteriorInput.value = "";
+
+      if (!clienteId) return;
+
+      fetch(`/api/unidades/${clienteId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          unidadeSelect.innerHTML =
+            '<option value="" disabled selected>-- Escolha uma unidade --</option>';
+          data.forEach((u) => {
+            unidadeSelect.innerHTML += `<option value="${u.id}">${u.endereco} (Hidr. ${u.hidrometro_num})</option>`;
+          });
+          unidadeSelect.disabled = false;
+        });
+    });
+
+    unidadeSelect.addEventListener("change", function () {
+      const unidadeId = this.value;
+      readingFields.disabled = true;
+      submitButton.disabled = true;
+      leituraAnteriorInput.value = "Carregando...";
+      dataAnteriorInput.value = "Carregando...";
+
+      if (!unidadeId) return;
+
+      fetch(`/api/unidade-leitura-anterior/${unidadeId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          leituraAnteriorInput.value = data.leitura_anterior;
+          dataAnteriorInput.value = data.data_leitura_anterior;
+          leituraAtualInput.min = data.leitura_anterior;
+          if (data.data_leitura_anterior_iso) {
+            // Adiciona um dia à data mínima para a nova leitura
+            let minDate = new Date(data.data_leitura_anterior_iso);
+            minDate.setDate(minDate.getDate() + 1);
+            dataLeituraAtualInput.min = minDate.toISOString().split("T")[0];
+          }
+          readingFields.disabled = false;
+          submitButton.disabled = false;
+        });
+    });
+  });
+</script>
+{% endblock %}

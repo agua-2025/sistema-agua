@@ -1,9 +1,5 @@
-{% extends "base.html" %} 
-
-{% block title %}Detalhes do Cliente{% endblock %} 
-
-{% block head %}
-{{ super() }}
+{% extends "base.html" %} {% block title %}Detalhes do Cliente{% endblock %} {%
+block head %} {{ super() }}
 <style>
   body {
     font-family: "Inter", sans-serif;
@@ -29,10 +25,11 @@
     justify-content: space-between;
     align-items: center;
   }
-  .section-title h3, .section-title h5 {
+  .section-title h3,
+  .section-title h5 {
     margin-bottom: 0;
   }
-  
+
   /* Estilos para os botões de ação (comprovante, editar, excluir, adicionar) */
   .btn-action-custom {
     border-radius: 0.375rem;
@@ -99,12 +96,11 @@
     }
   }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="container my-4">
   <div class="row justify-content-center">
-    <div class="col-lg-10"> <!-- Ajustado para 10 colunas para um bom equilíbrio de largura -->
+    <div class="col-lg-10">
+      <!-- Ajustado para 10 colunas para um bom equilíbrio de largura -->
       <div class="main-card">
         <!-- Cabeçalho principal da página -->
         <div class="section-title mb-4">
@@ -112,7 +108,10 @@
             <i class="bi bi-person-bounding-box me-2"></i>
             Painel do Cliente
           </h3>
-          <a href="{{ url_for('listar_clientes') }}" class="btn btn-secondary btn-sm btn-action-custom shadow-sm">
+          <a
+            href="{{ url_for('listar_clientes') }}"
+            class="btn btn-secondary btn-sm btn-action-custom shadow-sm"
+          >
             <i class="bi bi-arrow-left me-1"></i> Voltar para a Lista
           </a>
         </div>
@@ -121,28 +120,41 @@
 
         <!-- Seção de Dados Pessoais (com layout mais limpo) -->
         <div class="section-title">
-            <h5 class="mb-0">Dados Pessoais: {{ cliente.nome }}</h5>
-            <a href="{{ url_for('editar_cliente', id=cliente.id, next=request.path) }}" 
-               class="btn btn-warning btn-sm btn-action-custom shadow-sm">
-              <i class="bi bi-pencil-fill me-1"></i> Editar Dados
-            </a>
+          <h5 class="mb-0">Dados Pessoais: {{ cliente.nome }}</h5>
+          <a
+            href="{{ url_for('editar_cliente', id=cliente.id, next=request.path) }}"
+            class="btn btn-warning btn-sm btn-action-custom shadow-sm"
+          >
+            <i class="bi bi-pencil-fill me-1"></i> Editar Dados
+          </a>
         </div>
-        <div class="row g-3 mb-4 p-3 border rounded" style="background-color: #f8f9fa;"> <!-- Usando g-3 para espaçamento de colunas -->
-            <div class="col-md-4"><strong>CPF:</strong> {{ cliente.cpf }}</div>
-            <div class="col-md-4">
-              <strong>RG:</strong> {{ cliente.rg or 'Não informado' }}
-            </div>
-            <div class="col-md-4">
-              <strong>Telefone:</strong> {{ cliente.telefone or 'Não informado' }}
-            </div>
+        <div
+          class="row g-3 mb-4 p-3 border rounded"
+          style="background-color: #f8f9fa"
+        >
+          <!-- Usando g-3 para espaçamento de colunas -->
+          <div class="col-md-4"><strong>CPF:</strong> {{ cliente.cpf }}</div>
+          <div class="col-md-4">
+            <strong>RG:</strong> {{ cliente.rg or 'Não informado' }}
+          </div>
+          <div class="col-md-4">
+            <strong>Telefone:</strong> {{ cliente.telefone or 'Não informado' }}
+          </div>
         </div>
 
         <!-- Card de Unidades Consumidoras (mantido como card, com header padronizado) -->
         <div class="card shadow-sm">
-          <div class="card-header section-title" style="border-radius: 0.375rem 0.375rem 0 0;"> <!-- Reutilizando section-title, ajustando border-radius -->
-            <h5 class="mb-0" style="color: white;">Unidades Consumidoras</h5> <!-- Cor do texto explicitamente branca -->
-            <a href="{{ url_for('adicionar_unidade', cliente_id=cliente.id) }}" 
-               class="btn btn-light btn-sm btn-action-custom shadow-sm">
+          <div
+            class="card-header section-title"
+            style="border-radius: 0.375rem 0.375rem 0 0"
+          >
+            <!-- Reutilizando section-title, ajustando border-radius -->
+            <h5 class="mb-0" style="color: white">Unidades Consumidoras</h5>
+            <!-- Cor do texto explicitamente branca -->
+            <a
+              href="{{ url_for('adicionar_unidade', cliente_id=cliente.id) }}"
+              class="btn btn-light btn-sm btn-action-custom shadow-sm"
+            >
               <i class="bi bi-plus-circle me-1"></i> Adicionar Nova Unidade
             </a>
           </div>
@@ -162,8 +174,12 @@
                 <tbody>
                   {% for unidade in unidades %}
                   <tr>
-                    <td data-label="Endereço:" class="text-start-desktop">{{ unidade.endereco }}</td>
-                    <td data-label="Nº Hidrômetro:">{{ unidade.hidrometro_num }}</td>
+                    <td data-label="Endereço:" class="text-start-desktop">
+                      {{ unidade.endereco }}
+                    </td>
+                    <td data-label="Nº Hidrômetro:">
+                      {{ unidade.hidrometro_num }}
+                    </td>
                     <td data-label="Data de Ativação:">
                       {{ unidade.data_ativacao | date_format }}
                     </td>
@@ -172,14 +188,24 @@
                     </td>
                     <td data-label="Ações:">
                       <div class="d-inline-flex gap-1">
-                        <a href="#" class="btn btn-sm btn-secondary btn-action-custom shadow-sm disabled" 
-                           aria-disabled="true" title="Editar Unidade (em breve)">
-                          <i class="bi bi-pencil-fill"></i>
+                        <a
+                          href="{{ url_for('editar_unidade', unidade_id=unidade.id) }}"
+                          class="btn btn-outline-warning btn-sm"
+                          title="Editar Unidade"
+                        >
+                          <i class="bi bi-pencil"></i>
                         </a>
-                        <form action="{{ url_for('excluir_unidade', id=unidade.id) }}" method="post" 
-                              onsubmit="return confirm('Tem certeza que deseja excluir esta unidade? Isso também removerá todas as leituras e pagamentos associados.');" 
-                              style="display: inline;">
-                          <button type="submit" class="btn btn-sm btn-danger btn-action-custom shadow-sm" title="Excluir Unidade">
+                        <form
+                          action="{{ url_for('excluir_unidade', id=unidade.id) }}"
+                          method="post"
+                          onsubmit="return confirm('Tem certeza que deseja excluir esta unidade? Isso também removerá todas as leituras e pagamentos associados.');"
+                          style="display: inline"
+                        >
+                          <button
+                            type="submit"
+                            class="btn btn-sm btn-danger btn-action-custom shadow-sm"
+                            title="Excluir Unidade"
+                          >
                             <i class="bi bi-trash-fill"></i>
                           </button>
                         </form>

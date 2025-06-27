@@ -37,7 +37,6 @@
         border: 1px solid #e9ecef;
         border-radius: 12px;
         padding: 1.5rem;
-        margin-bottom: 1.5rem;
         height: 100%;
       }
       .section-title {
@@ -155,7 +154,14 @@
                 class="action-link"
               >
                 <i class="bi bi-card-checklist"></i>
-                <span>Lançar Leituras do Mês</span>
+                <span>Lançar Leituras (em Massa)</span>
+              </a>
+              <a
+                href="{{ url_for('lancar_leitura_individual') }}"
+                class="action-link"
+              >
+                <i class="bi bi-upc-scan"></i>
+                <span>Lançar Leitura Individual (com foto)</span>
               </a>
               <a
                 href="{{ url_for('registrar_pagamento') }}"
@@ -164,10 +170,6 @@
                 <i class="bi bi-cash-coin"></i>
                 <span>Registrar um Pagamento</span>
               </a>
-              <a href="{{ url_for('cadastrar_despesa') }}" class="action-link">
-                <i class="bi bi-file-earmark-plus-fill"></i>
-                <span>Cadastrar Despesa</span>
-              </a>
             </div>
           </div>
         </div>
@@ -175,19 +177,17 @@
         <div class="col-lg-6">
           <div class="section-card">
             <h5 class="section-title">
-              <i class="bi bi-collection-fill me-2"></i>Consultas e
-              Configurações
+              <i class="bi bi-collection-fill me-2"></i>Gerenciamento e
+              Relatórios
             </h5>
             <div class="vstack gap-3">
-              {% if session.papel == 'admin' %}
-              <a href="{{ url_for('cadastrar_usuario') }}" class="action-link">
-                <i class="bi bi-person-fill-add"></i>
-                <span>Cadastrar Usuário do Sistema</span>
-              </a>
-              {% endif %}
               <a href="{{ url_for('listar_clientes') }}" class="action-link">
                 <i class="bi bi-person-lines-fill"></i>
                 <span>Gerenciar Clientes e Unidades</span>
+              </a>
+              <a href="{{ url_for('listar_despesas') }}" class="action-link">
+                <i class="bi bi-card-list"></i>
+                <span>Gerenciar Despesas</span>
               </a>
               <a href="{{ url_for('relatorios') }}" class="action-link">
                 <i class="bi bi-file-earmark-bar-graph-fill"></i>
@@ -197,6 +197,10 @@
               <a href="{{ url_for('configuracoes') }}" class="action-link">
                 <i class="bi bi-gear-fill"></i>
                 <span>Configurações do Sistema</span>
+              </a>
+              <a href="{{ url_for('cadastrar_usuario') }}" class="action-link">
+                <i class="bi bi-person-fill-add"></i>
+                <span>Gerenciar Usuários</span>
               </a>
               {% endif %}
             </div>
