@@ -1065,18 +1065,17 @@ def editar_leitura(id):
     if request.method == 'POST':
         try:
             with db.begin():
-                # Validações iniciais (pagamento existente)
+                # Validações iniciais
                 pagamento_existente = db.execute(text("SELECT id FROM pagamentos WHERE leitura_id = :id LIMIT 1"), {'id': id}).fetchone()
                 if pagamento_existente:
                     raise ValueError("Não é possível editar esta leitura, pois já existem pagamentos registrados para ela.")
 
-                # Busca a leitura original ANTES de qualquer cálculo
                 leitura_atual_db = db.execute(text("SELECT * FROM leituras WHERE id = :id"), {'id': id}).fetchone()
                 if not leitura_atual_db:
                     raise ValueError("Leitura não encontrada para edição.")
 
-                # --- LÓGICA DE UPLOAD DE FOTO (Mantida) ---
-                foto_salva_nome = leitura_atual_db.foto_hidrometro # Mantém a foto antiga por padrão
+                # Lógica de Upload de Foto (mantida)
+                foto_salva_nome = leitura_atual_db.foto_hidrometro
                 if 'foto_hidrometro' in request.files:
                     foto = request.files['foto_hidrometro']
                     if foto and foto.filename != '':
@@ -1088,7 +1087,7 @@ def editar_leitura(id):
                         s3.upload_fileobj(foto, S3_BUCKET, novo_nome, ExtraArgs={'ContentType': foto.content_type})
                         foto_salva_nome = novo_nome
 
-                # --- LÓGICA DE RECÁLCULO CORRIGIDA ---
+                # Lógica de Recálculo Corrigida
                 nova_leitura_atual = parse_number_from_br_form(request.form['leitura_atual'])
                 nova_data_leitura = request.form['data_leitura_atual']
                 leitura_anterior_valor = float(leitura_atual_db.leitura_anterior)
@@ -1098,6 +1097,7 @@ def editar_leitura(id):
 
                 consumo_m3 = nova_leitura_atual - leitura_anterior_valor
                 
+                # --- CORREÇÃO PRINCIPAL AQUI ---
                 # Inicializa o valor a ser salvo com o valor que já existia no banco
                 valor_final_para_salvar = leitura_atual_db.valor_original
 
@@ -1114,8 +1114,8 @@ def editar_leitura(id):
                         consumo_excedente = consumo_m3 - taxa_minima_franquia
                         valor_excedente = consumo_excedente * valor_m3_usado
                         valor_final_para_salvar = taxa_minima_valor + valor_excedente
+                # --- FIM DA CORREÇÃO ---
 
-                # Monta e executa o UPDATE
                 params = {
                     'l_atu': nova_leitura_atual, 'd_atu': nova_data_leitura,
                     'consumo': consumo_m3, 'val_orig': valor_final_para_salvar, 
