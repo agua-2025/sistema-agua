@@ -1999,27 +1999,44 @@ def get_image_base64_string(foto_filename):
         app.logger.error(f"Erro ao baixar a imagem '{foto_filename}' diretamente do S3: {e}")
         return None
 
-#-------Visualizar e Baixar PDF da Leitura----------------------------
+#-------Visualizar e Baixar PDF da Leitura (VERSÃO COM NOME DE ARQUIVO DINÂMICO)-------
+# Em app.py, substitua a função inteira por esta
 @app.route('/download-leitura-pdf/<int:leitura_id>')
-# @login_required  <-- REMOVIDO para que o link funcione para o cliente
 def download_leitura_pdf(leitura_id):
+    """
+    Gera e força o download de um PDF para uma leitura específica,
+    com um nome de arquivo dinâmico e profissional.
+    """
+    # 1. Busca todos os dados necessários usando a função que já funciona
     contexto = _get_fatura_contexto(leitura_id)
     if not contexto:
         return "Leitura não encontrada.", 404
 
-    contexto['leitura']['foto_hidrometro_base64'] = get_image_base64_string(contexto['leitura'].get('foto_hidrometro'))
-    
-    html_string = render_template('comprovante_leitura.html', **contexto)
-    
+    # 2. Prepara o nome do arquivo a partir dos dados do contexto
     try:
-        pdf = HTML(string=html_string).write_pdf()
-        response = make_response(pdf)
+        leitura_info = contexto['leitura']
+        nome_cliente = re.sub(r'[^\w\s-]', '', leitura_info.get('cliente_nome', 'Cliente')).strip().replace(' ', '_')
+        data_leitura = leitura_info.get('data_leitura_atual').strftime('%d-%m-%Y')
+        nome_arquivo = f"Comprovante-{nome_cliente}-{data_leitura}.pdf"
+    except Exception as e:
+        app.logger.error(f"Erro ao criar nome de arquivo dinâmico: {e}")
+        nome_arquivo = f"comprovante_{leitura_id}.pdf"
+
+    # 3. Renderiza o HTML do comprovante
+    html_string = render_template('comprovante_leitura.html', is_pdf=True, **contexto)
+
+    # 4. Gera o PDF e o envia com o nome de arquivo correto
+    try:
+        pdf_bytes = HTML(string=html_string).write_pdf()
+        response = make_response(pdf_bytes)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'inline; filename=comprovante_leitura_{leitura_id}.pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
         return response
     except Exception as e:
-        app.logger.error(f"Erro ao gerar PDF do comprovante de leitura {leitura_id}: {e}", exc_info=True)
-        return "Erro ao gerar PDF.", 500
+        app.logger.error(f"Erro ao gerar PDF para leitura {leitura_id}: {e}", exc_info=True)
+        flash("Ocorreu um erro ao tentar gerar o PDF do comprovante.", "danger")
+        return redirect(url_for('comprovante_leitura', leitura_id=leitura_id))
+    
 
 # --- Relatório de Unidades (VERSÃO FINAL REESTRUTURADA) ---
 @app.route('/relatorio-unidades') # URL ATUALIZADA
