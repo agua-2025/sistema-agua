@@ -2000,43 +2000,35 @@ def get_image_base64_string(foto_filename):
         return None
 
 #-------Visualizar e Baixar PDF da Leitura (VERSÃO COM NOME DE ARQUIVO DINÂMICO)-------
-# Em app.py, substitua a função inteira por esta
+# Em app.py, substitua a função de download de PDF por esta versão final
+
 @app.route('/download-leitura-pdf/<int:leitura_id>')
 def download_leitura_pdf(leitura_id):
-    """
-    Gera e força o download de um PDF para uma leitura específica,
-    com um nome de arquivo dinâmico e profissional.
-    """
-    # 1. Busca todos os dados necessários usando a função que já funciona
     contexto = _get_fatura_contexto(leitura_id)
     if not contexto:
         return "Leitura não encontrada.", 404
 
-    # 2. Prepara o nome do arquivo a partir dos dados do contexto
     try:
-        leitura_info = contexto['leitura']
-        nome_cliente = re.sub(r'[^\w\s-]', '', leitura_info.get('cliente_nome', 'Cliente')).strip().replace(' ', '_')
-        data_leitura = leitura_info.get('data_leitura_atual').strftime('%d-%m-%Y')
-        nome_arquivo = f"Comprovante-{nome_cliente}-{data_leitura}.pdf"
-    except Exception as e:
-        app.logger.error(f"Erro ao criar nome de arquivo dinâmico: {e}")
-        nome_arquivo = f"comprovante_{leitura_id}.pdf"
+        leitura = contexto['leitura']
+        nome_cliente_formatado = re.sub(r'[\s/]+', '_', leitura.get('cliente_nome', 'Cliente')).strip()
+        data_formatada = leitura.get('data_leitura_atual').strftime('%d-%m-%Y')
+        nome_arquivo_dinamico = f"Comprovante-{nome_cliente_formatado}-{data_formatada}.pdf"
+    except Exception:
+        nome_arquivo_dinamico = f"comprovante_leitura_{leitura_id}.pdf"
 
-    # 3. Renderiza o HTML do comprovante
-    html_string = render_template('comprovante_leitura.html', is_pdf=True, **contexto)
-
-    # 4. Gera o PDF e o envia com o nome de arquivo correto
+    # --- ALTERAÇÃO PRINCIPAL AQUI ---
+    # Renderiza o novo template, feito especialmente para o PDF
+    html_string = render_template('comprovante_pdf.html', **contexto)
+    
     try:
-        pdf_bytes = HTML(string=html_string).write_pdf()
-        response = make_response(pdf_bytes)
+        pdf = HTML(string=html_string).write_pdf()
+        response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
+        response.headers['Content-Disposition'] = f'attachment; filename="{nome_arquivo_dinamico}"'
         return response
     except Exception as e:
         app.logger.error(f"Erro ao gerar PDF para leitura {leitura_id}: {e}", exc_info=True)
-        flash("Ocorreu um erro ao tentar gerar o PDF do comprovante.", "danger")
-        return redirect(url_for('comprovante_leitura', leitura_id=leitura_id))
-    
+        return "Erro ao gerar PDF.", 500    
 
 # --- Relatório de Unidades (VERSÃO FINAL REESTRUTURADA) ---
 @app.route('/relatorio-unidades') # URL ATUALIZADA
