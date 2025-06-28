@@ -29,7 +29,7 @@
         font-size: 11pt;
       }
       .section {
-        margin-bottom: 20px;
+        margin-bottom: 15px; /* Espaçamento reduzido */
         page-break-inside: avoid;
       }
       .section-title {
@@ -45,7 +45,7 @@
         border-collapse: collapse;
       }
       td {
-        padding: 6px;
+        padding: 5px; /* Padding reduzido */
       }
       .info-table td {
         width: 50%;
@@ -68,12 +68,20 @@
       }
       .photo-container {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 15px;
       }
       .photo-container img {
         max-width: 100%;
-        max-height: 250px; /* Limite seguro para a altura da foto */
+        max-height: 220px; /* Altura da foto ajustada */
         border: 1px solid #ccc;
+      }
+      .footer-alert {
+        margin-top: 20px;
+        border: 1px solid #ffc107;
+        background-color: #fff3cd;
+        padding: 10px;
+        font-size: 9pt;
+        text-align: justify;
       }
     </style>
   </head>
@@ -139,9 +147,19 @@
               R$ {{ "%.2f"|format(item.valor|float) | replace('.', ',') }}
             </td>
           </tr>
+          {% else %}
+          <tr>
+            <td
+              colspan="2"
+              style="text-align: center; font-style: italic; padding: 15px"
+            >
+              Esta é uma leitura informativa, sem valores a faturar.
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
-        {% if leitura.valor_original is not none %}
+        {% if leitura.valor_original is not none and leitura.valor_original > 0
+        %}
         <tfoot>
           <tr>
             <td><strong>TOTAL DA FATURA</strong></td>
@@ -166,5 +184,12 @@
       />
     </div>
     {% endif %}
+
+    <div class="footer-alert">
+      <strong>Aviso Importante:</strong> O valor desta fatura é válido para
+      pagamento realizado estritamente até a data de vencimento ({{
+      vencimento_formatado }}). Para pagamentos após o vencimento, o valor será
+      recalculado com juros e multa.
+    </div>
   </body>
 </html>
