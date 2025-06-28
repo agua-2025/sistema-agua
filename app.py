@@ -31,6 +31,9 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 import requests
 import re
+from io import BytesIO
+from mimetypes import guess_type
+
 # --- NOVO: O "Tradutor" de JSON Definitivo ---
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -1459,19 +1462,20 @@ def api_leituras(unidade_id):
 @app.route('/detalhes-pagamento/<int:leitura_id>')
 @login_required
 def detalhes_pagamento(leitura_id):
+    """ Exibe o extrato completo de uma fatura, com opção de WhatsApp. """
     contexto = _get_fatura_contexto(leitura_id)
     if not contexto:
         flash('Fatura não encontrada.', 'danger')
         return redirect(url_for('listar_pagamentos'))
 
-    # REPETIMOS a mesma lógica do WhatsApp aqui
+    # Prepara os dados para o WhatsApp
     cliente_telefone = contexto['leitura'].get('cliente_telefone')
     whatsapp_phone_number = ''
     if cliente_telefone:
         numeros_telefone = re.sub(r'\D', '', str(cliente_telefone))
         if len(numeros_telefone) >= 10:
             whatsapp_phone_number = f"55{numeros_telefone}" if not numeros_telefone.startswith('55') else numeros_telefone
-
+            
     pdf_url = url_for('download_comprovante_pdf', leitura_id=leitura_id, _external=True)
     texto_mensagem = f"Olá! Segue o extrato da sua fatura Águas de Santa Maria (Ref. #{leitura_id}).\n\nPara visualizar ou baixar o PDF, acesse o link:\n{pdf_url}"
     whatsapp_message_encoded = quote(texto_mensagem)
@@ -1934,16 +1938,16 @@ def download_comprovante_pdf(leitura_id):
         return redirect(url_for('detalhes_pagamento', leitura_id=leitura_id))
 
 #---------------Comprovante de Leiutura PDF----------------
-# Rota para o comprovante imediato após a leitura
 @app.route('/comprovante_leitura/<int:leitura_id>')
 @login_required
 def comprovante_leitura(leitura_id):
+    """ Exibe o comprovante de uma leitura, preparando os dados para o template. """
     contexto = _get_fatura_contexto(leitura_id)
     if not contexto:
         flash('Leitura não encontrada.', 'danger')
         return redirect(url_for('listar_leituras'))
     
-    # A lógica do WhatsApp agora é centralizada aqui
+    # Prepara os dados para o WhatsApp
     cliente_telefone = contexto['leitura'].get('cliente_telefone')
     whatsapp_phone_number = ''
     if cliente_telefone:
@@ -1952,7 +1956,8 @@ def comprovante_leitura(leitura_id):
             whatsapp_phone_number = f"55{numeros_telefone}" if not numeros_telefone.startswith('55') else numeros_telefone
 
     pdf_url = url_for('download_leitura_pdf', leitura_id=leitura_id, _external=True)
-    texto_mensagem = (f"Olá! Segue o comprovante de leitura da Águas de Santa Maria (Ref. #{leitura_id}).\n\nPara visualizar ou baixar o PDF, acesse o link:\n{pdf_url}")
+    texto_mensagem = (f"Olá! Segue o comprovante de leitura da Águas de Santa Maria (Referência: #{leitura_id}).\n\n"
+                      f"Para visualizar ou baixar o PDF, acesse o link:\n{pdf_url}")
     whatsapp_message_encoded = quote(texto_mensagem)
 
     contexto['whatsapp_phone_number'] = whatsapp_phone_number
@@ -1963,59 +1968,35 @@ def comprovante_leitura(leitura_id):
 #-----------------Funçao para mostrar imagem do hidrometro PDF whatsapp
 def get_image_base64_string(foto_filename):
     """
-    Busca uma imagem do S3, a baixa em memória e a converte para base64.
+    Busca um objeto diretamente do S3 usando boto3, baixa em memória e converte para base64.
+    Esta é uma abordagem mais robusta e rápida.
     """
     if not foto_filename:
         return None
 
-    S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
-    AWS_REGION = os.environ.get('AWS_REGION')
-    
-    # Constrói a URL pública do objeto no S3
-    url = f"https://{S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{foto_filename}"
-
     try:
-        # Faz o download da imagem a partir da URL
-        response = requests.get(url, stream=True)
-        response.raise_for_status() # Lança um erro se a imagem não for encontrada
-
-        # Codifica a imagem para base64
-        encoded_string = base64.b64encode(response.content).decode('utf-8')
-        mime_type = response.headers.get('Content-Type', 'image/jpeg')
+        s3_client = boto3.client('s3',
+                                aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                                aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+                                region_name=os.environ.get('AWS_REGION'))
         
+        S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
+        
+        file_obj = BytesIO()
+        s3_client.download_fileobj(S3_BUCKET, foto_filename, file_obj)
+        
+        file_obj.seek(0)
+        
+        encoded_string = base64.b64encode(file_obj.read()).decode('utf-8')
+        
+        mime_type, _ = guess_type(foto_filename)
+        if not mime_type:
+            mime_type = 'application/octet-stream'
+            
         return f"data:{mime_type};base64,{encoded_string}"
 
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"Erro ao baixar a imagem do S3 pela URL {url}: {e}")
-        return None
-
-#-----------------Funçao para mostrar imagem do hidrometro PDF whatsapp
-def get_image_base64_string(foto_filename):
-    """
-    Busca uma imagem do S3, a baixa em memória e a converte para base64.
-    """
-    if not foto_filename:
-        return None
-
-    S3_BUCKET = os.environ.get('S3_BUCKET_NAME')
-    AWS_REGION = os.environ.get('AWS_REGION')
-    
-    # Constrói a URL pública do objeto no S3
-    url = f"https://{S3_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{foto_filename}"
-
-    try:
-        # Faz o download da imagem a partir da URL
-        response = requests.get(url, stream=True)
-        response.raise_for_status() # Lança um erro se a imagem não for encontrada
-
-        # Codifica a imagem para base64
-        encoded_string = base64.b64encode(response.content).decode('utf-8')
-        mime_type = response.headers.get('Content-Type', 'image/jpeg')
-        
-        return f"data:{mime_type};base64,{encoded_string}"
-
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"Erro ao baixar a imagem do S3 pela URL {url}: {e}")
+    except Exception as e:
+        app.logger.error(f"Erro ao baixar a imagem '{foto_filename}' diretamente do S3: {e}")
         return None
 
 #-------Visualizar e Baixar PDF da Leitura----------------------------
