@@ -29,7 +29,7 @@
         font-size: 11pt;
       }
       .section {
-        margin-bottom: 15px; /* Espaçamento reduzido */
+        margin-bottom: 15px;
         page-break-inside: avoid;
       }
       .section-title {
@@ -45,7 +45,7 @@
         border-collapse: collapse;
       }
       td {
-        padding: 5px; /* Padding reduzido */
+        padding: 6px;
       }
       .info-table td {
         width: 50%;
@@ -72,7 +72,7 @@
       }
       .photo-container img {
         max-width: 100%;
-        max-height: 220px; /* Altura da foto ajustada */
+        max-height: 220px;
         border: 1px solid #ccc;
       }
       .footer-alert {
@@ -82,6 +82,24 @@
         padding: 10px;
         font-size: 9pt;
         text-align: justify;
+      }
+      /* Novo estilo para a caixa de vencimento */
+      .due-date-box {
+        text-align: right;
+        margin-top: 10px;
+        padding: 8px;
+        border: 2px solid #333;
+        background-color: #f2f2f2;
+        width: 40%;
+        margin-left: auto; /* Alinha a caixa à direita */
+      }
+      .due-date-box .label {
+        font-size: 9pt;
+        color: #555;
+      }
+      .due-date-box .value {
+        font-size: 12pt;
+        font-weight: bold;
       }
     </style>
   </head>
@@ -153,7 +171,7 @@
               colspan="2"
               style="text-align: center; font-style: italic; padding: 15px"
             >
-              Esta é uma leitura informativa, sem valores a faturar.
+              Leitura informativa, sem valores a faturar.
             </td>
           </tr>
           {% endfor %}
@@ -173,6 +191,13 @@
         </tfoot>
         {% endif %}
       </table>
+
+      {% if vencimento_formatado != 'N/A' %}
+      <div class="due-date-box">
+        <div class="label">VENCIMENTO</div>
+        <div class="value">{{ vencimento_formatado }}</div>
+      </div>
+      {% endif %}
     </div>
 
     {% if leitura.foto_hidrometro_base64 %}
@@ -187,9 +212,8 @@
 
     <div class="footer-alert">
       <strong>Aviso Importante:</strong> O valor desta fatura é válido para
-      pagamento realizado estritamente até a data de vencimento ({{
-      vencimento_formatado }}). Para pagamentos após o vencimento, o valor será
-      recalculado com juros e multa.
+      pagamento realizado estritamente até a data de vencimento. Para pagamentos
+      após o vencimento, o valor será recalculado com juros e multa.
     </div>
   </body>
 </html>
