@@ -5,12 +5,12 @@
 {% block head %}
 {{ super() }}
 <style>
-    /* AJUSTE: Fonte da tabela ainda mais compacta */
+    /* Seus estilos CSS, que já estão bons, foram mantidos */
     .table-compact {
         font-size: 0.8rem; 
     }
     .table-compact th, .table-compact td {
-        padding: 0.4rem; /* Padding reduzido para compactar */
+        padding: 0.4rem;
     }
     .output-cell {
         font-weight: 500;
@@ -61,7 +61,7 @@
                             <th style="width: 15%;">Leitura Atual (m³)</th>
                             <th style="width: 15%;">Data da Leitura</th>
                             <th style="width: 8%;">Consumo</th>
-                            <th style="width: 10%;">Valor</th>
+                            <th style="width: 8%;">Valor</th>
                             <th style="width: 10%;">Vencimento</th>
                         </tr>
                     </thead>
@@ -78,23 +78,24 @@
                             </td>
                             <td class="text-center" id="leitura_ant_{{ item.unidade_info.id }}">{{ '%g'|format(item.leitura_anterior|float) }}</td>
                             <td class="text-center" id="data_ant_{{ item.unidade_info.id }}">{{ item.data_leitura_anterior }}</td>
+                            
                             <td>
                                 {% if item.leitura_do_mes %}
                                     <input type="text" class="form-control form-control-sm text-center" value="{{ '%g'|format(item.leitura_do_mes.leitura_atual|int) }}" readonly>
                                 {% else %}
-                                    <input type="number" name="leitura_atual_{{ item.unidade_info.id }}" id="leitura_atual_{{ item.unidade_info.id }}" class="form-control form-control-sm text-center calc-trigger" data-id="{{ item.unidade_info.id }}" step="any" min="0">
+                                    <input type="number" name="leitura_atual_{{ item.unidade_info.id }}" id="leitura_atual_{{ item.unidade_info.id }}" class="form-control form-control-sm text-center calc-trigger" data-id="{{ item.unidade_info.id }}" step="any" min="{{ item.leitura_anterior }}">
                                 {% endif %}
                             </td>
                             <td>
                                 {% if item.leitura_do_mes %}
-                                    <input type="text" class="form-control form-control-sm text-center" value="{{ item.leitura_do_mes.data_leitura_atual.strftime('%d/%m/%Y') if item.leitura_do_mes.data_leitura_atual else '' }}" readonly>
+                                    <input type="text" class="form-control form-control-sm text-center" value="{{ item.leitura_do_mes.data_leitura_atual | date_format if item.leitura_do_mes.data_leitura_atual else '' }}" readonly>
                                 {% else %}
                                     <input type="date" name="data_leitura_{{ item.unidade_info.id }}" id="data_leitura_{{ item.unidade_info.id }}" class="form-control form-control-sm text-center calc-trigger" data-id="{{ item.unidade_info.id }}" {% if item.ultima_leitura_data_iso %}min="{{ item.ultima_leitura_data_iso }}"{% endif %} max="{{ today_date }}">
                                 {% endif %}
                             </td>
                             <td class="output-cell fw-bold" id="consumo_out_{{ item.unidade_info.id }}">{% if item.leitura_do_mes %}{{ '%g'|format(item.leitura_do_mes.consumo_m3|int) }} m³{% else %}--{% endif %}</td>
                             <td class="output-cell fw-bold text-success" id="valor_out_{{ item.unidade_info.id }}">{% if item.leitura_do_mes and item.leitura_do_mes.valor_original is not none %}R$ {{ "%.2f"|format(item.leitura_do_mes.valor_original|float) | replace('.', ',') }}{% elif item.leitura_do_mes and item.leitura_do_mes.valor_original is none %}R$ 0,00{% else %}--{% endif %}</td>
-                            <td class="output-cell" id="vencimento_out_{{ item.unidade_info.id }}">{% if item.leitura_do_mes and item.leitura_do_mes.vencimento %}{{ item.leitura_do_mes.vencimento.strftime('%d/%m/%Y') }}{% else %}--{% endif %}</td>
+                            <td class="output-cell" id="vencimento_out_{{ item.unidade_info.id }}">{% if item.leitura_do_mes and item.leitura_do_mes.vencimento %}{{ item.leitura_do_mes.vencimento | date_format }}{% else %}--{% endif %}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -110,90 +111,91 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    let config = {};
-    fetch('/api/configuracoes-leitura')
-        .then(response => {
-            if (!response.ok) { throw new Error(`Erro de rede: Status ${response.status}`); }
-            return response.json();
-        })
-        .then(data => { config = data; })
-        .catch(error => {
-            console.error("Falha CRÍTICA ao buscar configurações:", error);
-            alert("Não foi possível carregar as configurações de cálculo. Os cálculos automáticos não funcionarão.");
-        });
-
-    function calcularLinha(unidadeId) {
-        if (!config || isNaN(parseFloat(config.taxa_minima_valor))) { return; }
-
-        const leituraAntElem = document.getElementById(`leitura_ant_${unidadeId}`);
-        const leituraAtualInput = document.getElementById(`leitura_atual_${unidadeId}`);
-        const dataAtualInput = document.getElementById(`data_leitura_${unidadeId}`);
-        const consumoOut = document.getElementById(`consumo_out_${unidadeId}`);
-        const valorOut = document.getElementById(`valor_out_${unidadeId}`);
-        const vencimentoOut = document.getElementById(`vencimento_out_${unidadeId}`);
-
-        if (!leituraAntElem || !leituraAtualInput || !dataAtualInput || !consumoOut || !valorOut || !vencimentoOut) { return; }
-
-        const leituraAntVal = parseFloat(leituraAntElem.textContent) || 0;
-        const leituraAtualVal = parseFloat(leituraAtualInput.value) || 0;
-        
-        document.getElementById('saveButton').disabled = false;
-        leituraAtualInput.classList.remove('is-invalid');
-        
-        if (leituraAtualVal > 0 && leituraAtualVal < leituraAntVal) {
-            leituraAtualInput.classList.add('is-invalid');
-            document.getElementById('saveButton').disabled = true;
-            return;
-        }
-
-        if (!leituraAtualInput.value || leituraAtualVal <= leituraAntVal) {
-            consumoOut.textContent = '--';
-            valorOut.textContent = '--';
-            vencimentoOut.textContent = '--';
-            return;
-        }
-        
-        const consumo = leituraAtualVal - leituraAntVal;
-        consumoOut.textContent = `${consumo.toLocaleString('pt-BR')} m³`;
-
-        let valorFinal = 0.0;
-        if (leituraAntVal > 0) {
-            valorFinal = parseFloat(config.taxa_minima_valor);
-            if (consumo > parseFloat(config.taxa_minima_franquia_m3)) {
-                const consumoExcedente = consumo - parseFloat(config.taxa_minima_franquia_m3);
-                const valorExcedente = consumoExcedente * parseFloat(config.valor_m3);
-                valorFinal = parseFloat(config.taxa_minima_valor) + valorExcedente;
+    // Seu script de cálculo está aqui, intocado e funcional.
+    document.addEventListener('DOMContentLoaded', function () {
+        let config = {};
+        fetch('/api/configuracoes-leitura')
+            .then(response => {
+                if (!response.ok) { throw new Error(`Erro de rede: Status ${response.status}`); }
+                return response.json();
+            })
+            .then(data => { config = data; })
+            .catch(error => {
+                console.error("Falha CRÍTICA ao buscar configurações:", error);
+                alert("Não foi possível carregar as configurações de cálculo. Os cálculos automáticos não funcionarão.");
+            });
+    
+        function calcularLinha(unidadeId) {
+            if (!config || isNaN(parseFloat(config.taxa_minima_valor))) { return; }
+    
+            const leituraAntElem = document.getElementById(`leitura_ant_${unidadeId}`);
+            const leituraAtualInput = document.getElementById(`leitura_atual_${unidadeId}`);
+            const dataAtualInput = document.getElementById(`data_leitura_${unidadeId}`);
+            const consumoOut = document.getElementById(`consumo_out_${unidadeId}`);
+            const valorOut = document.getElementById(`valor_out_${unidadeId}`);
+            const vencimentoOut = document.getElementById(`vencimento_out_${unidadeId}`);
+    
+            if (!leituraAntElem || !leituraAtualInput || !dataAtualInput || !consumoOut || !valorOut || !vencimentoOut) { return; }
+    
+            const leituraAntVal = parseFloat(leituraAntElem.textContent) || 0;
+            const leituraAtualVal = parseFloat(leituraAtualInput.value) || 0;
+            
+            document.getElementById('saveButton').disabled = false;
+            leituraAtualInput.classList.remove('is-invalid');
+            
+            if (leituraAtualVal > 0 && leituraAtualVal < leituraAntVal) {
+                leituraAtualInput.classList.add('is-invalid');
+                document.getElementById('saveButton').disabled = true;
+                return;
             }
-        }
-        valorOut.textContent = 'R$ ' + valorFinal.toFixed(2).replace('.', ',');
-        
-        const dataAtualVal = dataAtualInput.value;
-        if (dataAtualVal) {
-            if (leituraAntVal === 0) {
-                vencimentoOut.textContent = 'Informativa';
-            } else {
-                let dataVenc = new Date(dataAtualVal + 'T12:00:00');
-                if (!isNaN(dataVenc)) {
-                    let diasUteis = parseInt(config.dias_uteis, 10) || 5;
-                    let diasAdicionados = 0;
-                    while (diasAdicionados < diasUteis) {
-                        dataVenc.setDate(dataVenc.getDate() + 1);
-                        if (dataVenc.getDay() !== 0 && dataVenc.getDay() !== 6) { diasAdicionados++; }
+    
+            if (!leituraAtualInput.value || leituraAtualVal <= leituraAntVal) {
+                consumoOut.textContent = '--';
+                valorOut.textContent = '--';
+                vencimentoOut.textContent = '--';
+                return;
+            }
+            
+            const consumo = leituraAtualVal - leituraAntVal;
+            consumoOut.textContent = `${consumo.toLocaleString('pt-BR')} m³`;
+    
+            let valorFinal = 0.0;
+            if (leituraAntVal > 0) {
+                valorFinal = parseFloat(config.taxa_minima_valor);
+                if (consumo > parseFloat(config.taxa_minima_franquia_m3)) {
+                    const consumoExcedente = consumo - parseFloat(config.taxa_minima_franquia_m3);
+                    const valorExcedente = consumoExcedente * parseFloat(config.valor_m3);
+                    valorFinal = parseFloat(config.taxa_minima_valor) + valorExcedente;
+                }
+            }
+            valorOut.textContent = 'R$ ' + valorFinal.toFixed(2).replace('.', ',');
+            
+            const dataAtualVal = dataAtualInput.value;
+            if (dataAtualVal) {
+                if (leituraAntVal === 0) {
+                    vencimentoOut.textContent = 'Informativa';
+                } else {
+                    let dataVenc = new Date(dataAtualVal + 'T12:00:00');
+                    if (!isNaN(dataVenc)) {
+                        let diasUteis = parseInt(config.dias_uteis, 10) || 5;
+                        let diasAdicionados = 0;
+                        while (diasAdicionados < diasUteis) {
+                            dataVenc.setDate(dataVenc.getDate() + 1);
+                            if (dataVenc.getDay() !== 0 && dataVenc.getDay() !== 6) { diasAdicionados++; }
+                        }
+                        vencimentoOut.textContent = dataVenc.toLocaleDateString('pt-BR');
                     }
-                    vencimentoOut.textContent = dataVenc.toLocaleDateString('pt-BR');
                 }
             }
         }
-    }
-
-    document.querySelectorAll('.calc-trigger').forEach(input => {
-        const eventType = input.type === 'date' ? 'change' : 'input';
-        input.addEventListener(eventType, () => {
-            const unidadeId = input.dataset.id;
-            calcularLinha(unidadeId);
+    
+        document.querySelectorAll('.calc-trigger').forEach(input => {
+            const eventType = input.type === 'date' ? 'change' : 'input';
+            input.addEventListener(eventType, () => {
+                const unidadeId = input.dataset.id;
+                calcularLinha(unidadeId);
+            });
         });
     });
-});
 </script>
 {% endblock %}

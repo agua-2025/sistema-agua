@@ -851,9 +851,19 @@ def lancar_leitura_individual():
     db = get_db()
     if request.method == 'POST':
         try:
-            unidade_id = int(request.form.get('unidade_id'))
-            leitura_atual = int(parse_number_from_br_form(request.form.get('leitura_atual')))
-            data_leitura_obj = datetime.strptime(request.form.get('data_leitura_atual'), '%Y-%m-%d').date()
+            # <<< INÍCIO DA CORREÇÃO >>>
+            # Adicionada validação para garantir que os campos essenciais não são nulos
+            unidade_id_str = request.form.get('unidade_id')
+            leitura_atual_str = request.form.get('leitura_atual')
+            data_leitura_str = request.form.get('data_leitura_atual')
+
+            if not all([unidade_id_str, leitura_atual_str, data_leitura_str]):
+                raise ValueError("Dados incompletos. A unidade, a leitura atual e a data da leitura são obrigatórios.")
+
+            unidade_id = int(unidade_id_str)
+            leitura_atual = int(parse_number_from_br_form(leitura_atual_str))
+            data_leitura_obj = datetime.strptime(data_leitura_str, '%Y-%m-%d').date()
+            # <<< FIM DA CORREÇÃO >>>
             
             foto_salva_nome = None
             if 'foto_hidrometro' in request.files:
@@ -880,7 +890,8 @@ def lancar_leitura_individual():
                 consumo_m3 = leitura_atual - leitura_anterior_valor
                 
                 config = get_current_config()
-                taxa_minima_valor = float(config.get('taxa_minima_consumo', 15.0))
+                # CORREÇÃO SUTIL: Usei 'taxa_minima_valor' para manter a consistência com a outra rota
+                taxa_minima_valor = float(config.get('taxa_minima_valor', 15.0))
                 taxa_minima_franquia = float(config.get('taxa_minima_franquia_m3', 10.0))
                 valor_m3_configurado = float(config.get('valor_m3', 0.0))
                 valor_original = 0.0
@@ -921,6 +932,7 @@ def lancar_leitura_individual():
         return render_template('lancar_leitura_individual.html', 
                                clientes=clientes,
                                today_date=date.today().isoformat())
+
     
 #-------------------Leitura anterior Individual----------------    
 @app.route('/api/unidade-leitura-anterior/<int:unidade_id>')
@@ -2115,6 +2127,7 @@ def relatorio_unidades():
         app.logger.error(f"Erro no relatório de unidades: {str(e)}", exc_info=True)
         flash("Ocorreu um erro ao gerar o relatório de unidades.", "danger")
         return redirect(url_for('dashboard'))    
+    
 #----------------------Lançamentos de Leituras em Planilha (VERSÃO REESTRUTURADA)---------------
 @app.route('/lancamento_leituras', methods=['GET', 'POST'])
 @login_required
@@ -2207,7 +2220,7 @@ def lancamento_leituras():
             flash("Ocorreu um erro inesperado ao tentar salvar as leituras. A operação foi cancelada.", "danger")
             return redirect(url_for('lancamento_leituras', mes=request.form.get('mes_competencia'), ano=request.form.get('ano_competencia')))
 
-    else: # Lógica GET
+    else:  # Lógica GET
         try:
             mes_competencia = request.args.get('mes', hoje.strftime('%m'))
             ano_competencia = request.args.get('ano', hoje.strftime('%Y'))
@@ -2234,30 +2247,50 @@ def lancamento_leituras():
             dados_para_planilha = []
             for unidade in todas_unidades:
                 unidade_id = unidade.id
+                
+                leitura_do_mes_corrente = leituras_feitas_map_mes_corrente.get(unidade_id)
                 ultima_leitura_geral = ultimas_leituras_map.get(unidade_id)
+
+                leitura_ant_valor = 0
+                data_ant_valor_str = 'N/A'
+                ultima_data_iso = None
+
+                if leitura_do_mes_corrente:
+                    leitura_ant_valor = leitura_do_mes_corrente.leitura_anterior
+                    if leitura_do_mes_corrente.data_leitura_anterior:
+                        data_ant_valor_str = leitura_do_mes_corrente.data_leitura_anterior.strftime('%d/%m/%Y')
+                        ultima_data_iso = leitura_do_mes_corrente.data_leitura_anterior.isoformat()
+
+                elif ultima_leitura_geral:
+                    leitura_ant_valor = ultima_leitura_geral.leitura_atual
+                    if ultima_leitura_geral.data_leitura_atual:
+                        data_ant_valor_str = ultima_leitura_geral.data_leitura_atual.strftime('%d/%m/%Y')
+                        ultima_data_iso = ultima_leitura_geral.data_leitura_atual.isoformat()
                 
                 dados_da_unidade = {
                     'unidade_info': unidade._asdict(),
-                    'leitura_anterior': ultima_leitura_geral.leitura_atual if ultima_leitura_geral else 0,
-                    'data_leitura_anterior': ultima_leitura_geral.data_leitura_atual.strftime('%d/%m/%Y') if ultima_leitura_geral and ultima_leitura_geral.data_leitura_atual else 'N/A',
-                    'ultima_leitura_data_iso': ultima_leitura_geral.data_leitura_atual.isoformat() if ultima_leitura_geral and ultima_leitura_geral.data_leitura_atual else None,
-                    'leitura_do_mes': leituras_feitas_map_mes_corrente.get(unidade_id)
+                    'leitura_anterior': leitura_ant_valor,
+                    'data_leitura_anterior': data_ant_valor_str,
+                    'ultima_leitura_data_iso': ultima_data_iso,
+                    'leitura_do_mes': leitura_do_mes_corrente 
                 }
+
                 dados_para_planilha.append(dados_da_unidade)
             
             return render_template('lancamento_leituras.html',
                 dados_planilha=dados_para_planilha, mes_selecionado=mes_competencia,
                 ano_selecionado=ano_competencia, ano_atual=hoje.year,
                 today_date=hoje.strftime('%Y-%m-%d'))
+                
         except Exception as e:
             app.logger.error(f"Erro ao carregar a página de lançamento de leituras: {e}", exc_info=True)
             flash("Ocorreu um erro ao carregar a planilha de leituras.", "danger")
             return redirect(url_for('dashboard'))
-        
-        
-# --- Listar Leituras (VERSÃO FINAL E CORRIGIDA PARA POSTGRESQL) ---
-# Em app.py, substitua a função listar_leituras por esta:
 
+
+        
+ 
+# Em app.py, substitua a função listar_leituras por esta:
 @app.route('/leituras')
 @login_required
 def listar_leituras():
@@ -2337,7 +2370,6 @@ def listar_leituras():
         return redirect(url_for('dashboard'))
 
 # --- Relatório Geral (VERSÃO FINAL E CORRIGIDA) ---
-# --- Relatório Geral (VERSÃO REESTRUTURADA FINAL) ---
 @app.route('/relatorio-geral')
 @login_required
 def relatorio_geral():
