@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Usuários{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0 text-primary"><i class="bi bi-people-fill me-2"></i>Gerenciar Usuários do Sistema</h3>
+                <div>
+                    <a href="{{ url_for('cadastrar_usuario') }}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus-fill me-1"></i> Novo Usuário</a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Voltar</a>
+                </div>
+            </div>
+
+            {% include '_flash_messages.html' %}
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr class="text-center">
+                            <th class="text-start">Nome de Usuário</th>
+                            <th class="text-start">E-mail</th>
+                            <th>Papel</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td class="text-start fw-bold">{{ usuario.username }}</td>
+                            <td class="text-start">{{ usuario.email }}</td>
+                            <td class="text-center">
+                                {% if usuario.papel == 'admin' %}
+                                    <span class="badge bg-danger">Administrador</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Normal</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{ url_for('editar_usuario', usuario_id=usuario.id) }}" class="btn btn-sm btn-outline-warning" title="Editar Usuário">
+                                        <i class="bi bi-pencil-fill"></i> Editar
+                                    </a>
+                                    
+                                    {% if usuario.id != session.user_id %}
+                                    <form action="{{ url_for('excluir_usuario', usuario_id=usuario.id) }}" method="post" 
+                                          onsubmit="return confirm('Tem certeza que deseja excluir o usuário \'{{ usuario.username }}\'? Esta ação é irreversível.');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir Usuário">
+                                            <i class="bi bi-trash-fill"></i> Excluir
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center p-5 text-muted">Nenhum usuário encontrado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

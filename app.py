@@ -1497,7 +1497,7 @@ def detalhes_pagamento(leitura_id):
     
     return render_template('detalhes_pagamento.html', **contexto)
 
-# --- Recuperação de Senha ---
+# --- Recuperação de Senha--------------
 @app.route('/recuperar-senha', methods=['POST'])
 def recuperar_senha():
     email = request.form.get('email', '').strip().lower()
@@ -1505,51 +1505,48 @@ def recuperar_senha():
 
     db = get_db()
     try:
-        user = db.execute(text('SELECT id FROM usuarios_admin WHERE email = ?'), (email,)).fetchone()
+        # A transação agora começa antes de qualquer operação no banco
+        with db.begin():
+            # A busca pelo usuário agora está DENTRO da transação
+            user_bruto = db.execute(text('SELECT * FROM usuarios_admin WHERE email = :email'), {'email': email}).fetchone()
 
-        if not user:
-            flash("E-mail não cadastrado.", "error")
-            return redirect(url_for('login'))
+            # Se o usuário não for encontrado, a função termina aqui.
+            # A transação será revertida automaticamente ao sair do bloco 'with'.
+            if not user_bruto:
+                flash("O e-mail informado não foi encontrado em nosso sistema.", "warning")
+                return redirect(url_for('login'))
 
-        token = secrets.token_urlsafe(50)
-        expires_at = datetime.now() + timedelta(hours=1)
-        expires_at_str = expires_at.strftime('%Y-%m-%d %H:%M:%S')
-
-        db.execute(text("""
-            UPDATE usuarios_admin 
-            SET reset_token = ?, reset_expira_em = ? 
-            WHERE id = ?
-        """), (token, expires_at_str, user['id']))
-        db.commit()
-        app.logger.info(f"Token de reset gerado para user_id {user['id']}")
-
+            # Se o usuário foi encontrado, o resto do processo continua...
+            user = user_bruto._asdict()
+            token = secrets.token_urlsafe(50)
+            expires_at = datetime.now() + timedelta(hours=1)
+            
+            # O UPDATE do token também está na mesma transação
+            db.execute(text("""
+                UPDATE usuarios_admin 
+                SET reset_token = :token, reset_expira_em = :expira 
+                WHERE id = :user_id
+            """), {'token': token, 'expira': expires_at, 'user_id': user['id']})
+        
+        # O envio de e-mail acontece DEPOIS que a transação foi salva com sucesso
         reset_link = url_for('redefinir_senha_form', token=token, _external=True)
         
         assunto = "Recuperação de Senha - Águas de Santa Maria"
-        corpo = f"""
-        Olá! Você solicitou a redefinição da sua senha.
-        
-        Clique no link abaixo para redefinir sua senha:
-        {reset_link}
-        
-        O link será válido por 1 hora.
-        
-        Se você não solicitou a alteração, ignore esta mensagem.
-        """
+        corpo = f"Olá, {user.get('username', 'Usuário')}! Para redefinir sua senha, clique no link a seguir: {reset_link}"
         sucesso = enviar_email(email, assunto, corpo)
 
         if sucesso:
-            flash("Um link foi enviado para o seu e-mail.", "info")
+            flash("Se o e-mail existir em nosso sistema, um link para redefinição de senha foi enviado.", "success")
         else:
-            flash("Erro ao enviar e-mail. Verifique suas configurações e tente novamente.", "error")
-
-        return redirect(url_for('login'))
+            flash("Erro ao enviar e-mail. Verifique as configurações do servidor.", "danger")
 
     except Exception as e:
         app.logger.error(f"Erro ao processar recuperação de senha: {str(e)}", exc_info=True)
-        flash("Ocorreu um erro ao processar sua solicitação.", "error")
-        return redirect(url_for('login'))
+        flash("Ocorreu um erro ao processar sua solicitação.", "danger")
 
+    return redirect(url_for('login'))    
+
+#-----------------Redefinir Senha--------------
 @app.route('/redefinir-senha')
 def redefinir_senha_form():
     token = request.args.get('token')
@@ -1558,53 +1555,78 @@ def redefinir_senha_form():
         return redirect(url_for('login'))
     
     db = get_db()
+    # CORREÇÃO 3: Trocado '?' por parâmetros nomeados
     user = db.execute(text("""
-    SELECT id FROM usuarios_admin 
-    WHERE reset_token = ? AND reset_expira_em > ?
-"""), (token, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))).fetchone()
+        SELECT id FROM usuarios_admin 
+        WHERE reset_token = :token AND reset_expira_em > :agora
+    """), {'token': token, 'agora': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}).fetchone()
     
     if not user:
         flash("Token inválido ou expirado.", "error")
         return redirect(url_for('login'))
+        
     return render_template('redefinir_senha.html', token=token)
 
+#--------Atualizar Senha-------------
 @app.route('/atualizar-senha', methods=['POST'])
 def atualizar_senha():
     token = request.form.get('token')
     nova_senha = request.form.get('nova_senha')
     confirmar_senha = request.form.get('confirmar_senha')
 
+    # Validação do formulário (mantida como estava)
     if not nova_senha or len(nova_senha) < 6:
         flash("A senha deve ter pelo menos 6 caracteres.", "error")
         return render_template('redefinir_senha.html', token=token)
-
     if nova_senha != confirmar_senha:
         flash("As senhas não coincidem.", "error")
         return render_template('redefinir_senha.html', token=token)
 
     db = get_db()
     try:
-        user = db.execute(text("""
-            SELECT id FROM usuarios_admin 
-            WHERE reset_token = ? AND reset_expira_em > ?
-"""), (token, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))).fetchone()
+        app.logger.info("--- INICIANDO DIAGNÓSTICO DE ATUALIZAÇÃO DE SENHA ---")
+        
+        # Inicia a transação
+        with db.begin():
+            agora_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            app.logger.info(f"Buscando usuário com token '{token[:10]}...' válido antes de {agora_str}")
+            
+            user = db.execute(text("""
+                SELECT id FROM usuarios_admin 
+                WHERE reset_token = :token AND reset_expira_em > :agora
+            """), {'token': token, 'agora': agora_str}).fetchone()
 
-        if user:
-            db.execute(text("""
-                UPDATE usuarios_admin 
-                SET senha_hash = ?, reset_token = NULL, reset_expira_em = NULL 
-                WHERE id = ?
-"""), (generate_password_hash(nova_senha), user['id']))
-            db.commit()
-            flash("Senha alterada com sucesso!", "success")
-            return redirect(url_for('login'))
-        else:
-            flash("Link inválido ou expirado.", "error")
-            return render_template('redefinir_senha.html', token=token)
+            if user:
+                app.logger.info(f"Token válido encontrado para user_id: {user.id}")
+                senha_hash_nova = generate_password_hash(nova_senha)
+                app.logger.info(f"Novo hash de senha gerado: {senha_hash_nova[:20]}...")
+                
+                app.logger.info("Executando o comando UPDATE no banco de dados...")
+                resultado = db.execute(text("""
+                    UPDATE usuarios_admin 
+                    SET senha_hash = :senha, reset_token = NULL, reset_expira_em = NULL 
+                    WHERE id = :user_id
+                """), {'senha': senha_hash_nova, 'user_id': user.id})
+                
+                # A propriedade rowcount nos diz quantas linhas foram afetadas pelo UPDATE.
+                # Se for 1, significa que o UPDATE funcionou. Se for 0, algo deu errado.
+                app.logger.info(f"Comando UPDATE executado. Linhas afetadas: {resultado.rowcount}")
+
+            else:
+                app.logger.warning(f"Nenhum usuário encontrado com o token '{token[:10]}...' ou o token expirou.")
+                flash("Link inválido ou expirado.", "error")
+                return render_template('redefinir_senha.html', token=token)
+        
+        # Se o bloco 'with db.begin()' terminar sem erros, o commit é automático.
+        app.logger.info("Transação concluída com sucesso (commit realizado).")
+        flash("Senha alterada com sucesso! Você já pode fazer o login.", "success")
+        return redirect(url_for('login'))
+            
     except Exception as e:
-        app.logger.error(f"Erro ao atualizar senha: {str(e)}", exc_info=True)
+        app.logger.error(f"ERRO CRÍTICO ao atualizar senha: {str(e)}", exc_info=True)
         flash("Ocorreu um erro. Tente novamente mais tarde.", "error")
         return render_template('redefinir_senha.html', token=token)
+    
 
 # --- Cadastrar Usuário (VERSÃO FINAL E CORRETA) ---
 @app.route('/cadastrar-usuario', methods=['GET', 'POST'])
@@ -1668,6 +1690,125 @@ def cadastrar_usuario():
             return redirect(url_for('cadastrar_usuario'))
 
     return render_template('cadastrar_usuario.html')
+
+#------------------------Exibir Lista de Usuário do Sitema-----------
+@app.route('/usuarios')
+@admin_required # Garante que apenas administradores possam aceder
+def listar_usuarios():
+    """Exibe a lista de todos os usuários do sistema para gerenciamento."""
+    db = get_db()
+    try:
+        usuarios_brutos = db.execute(text("SELECT id, username, email, papel FROM usuarios_admin ORDER BY username")).fetchall()
+        usuarios = [u._asdict() for u in usuarios_brutos]
+        return render_template('listar_usuarios.html', usuarios=usuarios)
+    except Exception as e:
+        app.logger.error(f"Erro ao listar usuários: {e}", exc_info=True)
+        flash("Ocorreu um erro ao carregar a lista de usuários.", "danger")
+        return redirect(url_for('dashboard'))
+    
+   
+#------------Editar Usuários do Sistema---------------------------
+@app.route('/usuario/editar/<int:usuario_id>', methods=['GET', 'POST'])
+@admin_required
+def editar_usuario(usuario_id):
+    db = get_db()
+    
+    if request.method == 'POST':
+        try:
+            # Coleta os dados do formulário
+            username = request.form.get('username').strip()
+            email = request.form.get('email').strip().lower()
+            papel = request.form.get('papel')
+            nova_senha = request.form.get('nova_senha')
+
+            if not all([username, email, papel]):
+                flash("Os campos Nome de Usuário, E-mail e Papel são obrigatórios.", "danger")
+                return redirect(url_for('editar_usuario', usuario_id=usuario_id))
+
+            # --- CORREÇÃO APLICADA AQUI ---
+            # A transação agora começa antes de qualquer operação no banco
+            with db.begin():
+                # A verificação de usuário existente agora está DENTRO da transação
+                usuario_existente = db.execute(text("""
+                    SELECT id FROM usuarios_admin 
+                    WHERE (username = :username OR email = :email) AND id != :id
+                """), {'username': username, 'email': email, 'id': usuario_id}).fetchone()
+
+                if usuario_existente:
+                    # Usamos um 'raise' para interromper a transação e mostrar o erro
+                    raise ValueError("O nome de usuário ou e-mail informado já está em uso por outra conta.")
+
+                # Se uma nova senha foi fornecida, atualiza o hash
+                if nova_senha:
+                    if len(nova_senha) < 6:
+                         raise ValueError("A nova senha deve ter pelo menos 6 caracteres.")
+                    senha_hash = generate_password_hash(nova_senha)
+                    db.execute(text("""
+                        UPDATE usuarios_admin 
+                        SET username = :username, email = :email, papel = :papel, senha_hash = :senha 
+                        WHERE id = :id
+                    """), {'username': username, 'email': email, 'papel': papel, 'senha': senha_hash, 'id': usuario_id})
+                else:
+                    # Se não, atualiza apenas os outros dados
+                    db.execute(text("""
+                        UPDATE usuarios_admin 
+                        SET username = :username, email = :email, papel = :papel 
+                        WHERE id = :id
+                    """), {'username': username, 'email': email, 'papel': papel, 'id': usuario_id})
+            
+            # Se o bloco 'with' terminar sem erros, o commit é automático
+            flash("Usuário atualizado com sucesso!", "success")
+            return redirect(url_for('listar_usuarios'))
+
+        except ValueError as e:
+            flash(str(e), "danger") # Mostra a mensagem de erro específica
+        except Exception as e:
+            app.logger.error(f"Erro ao editar usuário ID {usuario_id}: {e}", exc_info=True)
+            flash("Ocorreu um erro ao atualizar o usuário.", "danger")
+        
+        return redirect(url_for('editar_usuario', usuario_id=usuario_id))
+
+    # Lógica GET para carregar a página (sem alterações)
+    else:
+        usuario_bruto = db.execute(text("SELECT id, username, email, papel FROM usuarios_admin WHERE id = :id"), {'id': usuario_id}).fetchone()
+        if not usuario_bruto:
+            flash("Usuário não encontrado.", "danger")
+            return redirect(url_for('listar_usuarios'))
+            
+        usuario = usuario_bruto._asdict()
+        return render_template('editar_usuario.html', usuario=usuario)
+    
+# ----------------Excluir Usuários do Sistema------------------------------    
+@app.route('/usuario/excluir/<int:usuario_id>', methods=['POST'])
+@admin_required
+def excluir_usuario(usuario_id):
+    # Trava de segurança 1: Impede que o usuário se autoexclua.
+    if usuario_id == session.get('user_id'):
+        flash("Você não pode excluir sua própria conta enquanto estiver logado.", "danger")
+        return redirect(url_for('listar_usuarios'))
+
+    db = get_db()
+    try:
+        with db.begin():
+            # Trava de segurança 2: Verifica se este é o último administrador.
+            total_admins = db.execute(text("SELECT COUNT(id) FROM usuarios_admin WHERE papel = 'admin'")).scalar_one()
+            
+            if total_admins <= 1:
+                usuario_a_excluir = db.execute(text("SELECT papel FROM usuarios_admin WHERE id = :id"), {'id': usuario_id}).fetchone()
+                if usuario_a_excluir and usuario_a_excluir.papel == 'admin':
+                    flash("Não é possível excluir o último administrador do sistema.", "danger")
+                    return redirect(url_for('listar_usuarios'))
+
+            # Se passar por todas as travas de segurança, exclui o usuário.
+            db.execute(text("DELETE FROM usuarios_admin WHERE id = :id"), {'id': usuario_id})
+
+        flash("Usuário excluído com sucesso.", "success")
+
+    except Exception as e:
+        app.logger.error(f"Erro ao excluir usuário ID {usuario_id}: {e}", exc_info=True)
+        flash("Ocorreu um erro ao tentar excluir o usuário.", "danger")
+
+    return redirect(url_for('listar_usuarios'))
 
 #----------Editar Consumidor (VERSÃO FINAL COM VALIDAÇÕES)---------------------
 @app.route('/cliente/editar/<int:id>', methods=['GET', 'POST'])
