@@ -2694,21 +2694,6 @@ def selecionar_comprovante():
 def relatorios():
     return render_template('relatorios.html')
 
-@app.route('/backup-db')
-@admin_required
-def baixar_db():
-    try:
-        # Apenas permite download se o arquivo existir
-        if os.path.exists(DATABASE):
-            return send_file(DATABASE, as_attachment=True)
-        else:
-            flash("Arquivo de banco de dados não encontrado.", "error")
-            return redirect(url_for('dashboard'))
-    except Exception as e:
-        app.logger.error(f"Erro ao baixar DB: {e}", exc_info=True)
-        flash("Erro ao tentar baixar o banco de dados.", "error")
-        return redirect(url_for('dashboard'))
-
 
 # --- Relatório de Inadimplência (VERSÃO REESTRUTURADA) ---
 @app.route('/relatorio-inadimplencia')
