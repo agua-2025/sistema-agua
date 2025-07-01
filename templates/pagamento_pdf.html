@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Extrato de Fatura - {{ leitura.cliente_nome }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 9.5pt;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #004a99;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #004a99;
+            font-size: 18pt;
+        }
+        .header p {
+            margin: 0;
+            font-size: 10pt;
+        }
+        .section {
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+        .section-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #004a99;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td, th {
+            padding: 5px;
+            text-align: left;
+            font-size: 9pt;
+        }
+        .info-table td {
+            padding-bottom: 8px;
+        }
+        .label {
+            color: #555;
+            width: 150px;
+        }
+        .value {
+            font-weight: bold;
+        }
+        .summary-table td, .summary-table th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+        .summary-table thead {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .summary-table tfoot td {
+            font-weight: bold;
+            background-color: #f2f2f2;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .highlight {
+            font-size: 10pt;
+        }
+        .text-success { color: #155724; }
+        .text-danger { color: #721c24; }
+        .chart-container {
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Águas de Santa Maria</h1>
+        <p>Extrato de Fatura e Comprovante de Pagamento</p>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Dados da Fatura</h2>
+        <table class="info-table">
+            <tr><td class="label">CLIENTE:</td><td class="value">{{ leitura.cliente_nome }}</td></tr>
+            <tr><td class="label">ENDEREÇO:</td><td class="value">{{ leitura.unidade_endereco }}</td></tr>
+            <tr><td class="label">FATURA REF.:</td><td class="value">#{{ leitura.id }}</td></tr>
+        </table>
+    </div>
+    
+    {% if grafico_consumo_base64 %}
+    <div class="section">
+        <h2 class="section-title">Histórico de Consumo (Últimos Meses)</h2>
+        <div class="chart-container">
+            <img src="{{ grafico_consumo_base64 }}" style="max-width: 100%; height: auto;" alt="Gráfico de Consumo">
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <h2 class="section-title">Detalhes da Medição</h2>
+        <table class="summary-table">
+             <thead>
+                <tr>
+                    <th style="text-align: center;">Leitura Anterior</th>
+                    <th style="text-align: center;">Data</th>
+                    <th style="text-align: center;">Leitura Atual</th>
+                    <th style="text-align: center;">Data</th>
+                    <th style="text-align: center;">Dias</th>
+                    <th style="text-align: center;">Média/Dia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center;">{{ "%g"|format(leitura.leitura_anterior|int) }} m³</td>
+                    <td style="text-align: center;">{{ leitura.data_leitura_anterior.strftime('%d/%m/%Y') if leitura.data_leitura_anterior else 'Início' }}</td>
+                    <td style="text-align: center;">{{ "%g"|format(leitura.leitura_atual|int) }} m³</td>
+                    <td style="text-align: center;">{{ data_leitura_atual_formatada }}</td>
+                    <td style="text-align: center;">{{ dias_no_periodo }}</td>
+                    <td style="text-align: center;">{{ "%.3f"|format(media_diaria_consumo|float) | replace('.',',') }} m³</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Demonstrativo Financeiro</h2>
+        <table class="summary-table">
+            <tbody>
+                <tr><td>Valor Original da Fatura</td><td class="text-right">R$ {{ "%.2f"|format(leitura.valor_original|float) | replace('.', ',') }}</td></tr>
+                <tr><td>(+) Total de Juros e Multas Pagos</td><td class="text-right">R$ {{ "%.2f"|format(total_juros_multa_pago|float) | replace('.', ',') }}</td></tr>
+                <tr><td>(-) Total de Pagamentos Recebidos</td><td class="text-right text-success">- R$ {{ "%.2f"|format(total_pago_acumulado|float) | replace('.', ',') }}</td></tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><strong>SALDO ATUAL DA FATURA</strong></td>
+                    <td class="text-right highlight {% if saldo_final > 0.01 %}text-danger{% else %}text-success{% endif %}">
+                        <strong>R$ {{ "%.2f"|format(saldo_final|float) | replace('.', ',') }}</strong>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        <p style="text-align: right; font-size: 8pt; color: #555; margin-top: 5px;">* Saldo atualizado em: {{ data_emissao }}.</p>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Histórico de Pagamentos nesta Fatura</h2>
+        <table class="summary-table">
+            <thead><tr><th>Data</th><th class="text-right">Valor Pago</th><th>Forma</th></tr></thead>
+            <tbody>
+                {% for pagamento in pagamentos_feitos %}
+                <tr><td>{{ pagamento.data_pagamento | date_format }}</td><td class="text-right">R$ {{ "%.2f"|format(pagamento.valor_pago|float) | replace('.', ',') }}</td><td class="text-right">{{ pagamento.forma_pagamento }}</td></tr>
+                {% else %}
+                <tr><td colspan="3" style="text-align: center;">Nenhum pagamento registrado para esta fatura.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

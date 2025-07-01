@@ -33,6 +33,11 @@ import requests
 import re
 from io import BytesIO
 from mimetypes import guess_type
+import matplotlib
+matplotlib.use('Agg') # Configura o Matplotlib para rodar sem interface gráfica
+import matplotlib.pyplot as plt
+from io import BytesIO
+
 
 # --- NOVO: O "Tradutor" de JSON Definitivo ---
 class CustomJSONEncoder(json.JSONEncoder):
@@ -1891,7 +1896,7 @@ def excluir_consumidor(id):
 
     return redirect(url_for('listar_consumidores'))
 
-#----------------- Get_Fatura_Contexto (VERSÃO CORRIGIDA) ----------------
+#----------------- Get_Fatura_Contexto----------------
 def _get_fatura_contexto(leitura_id):
     """
     Busca e calcula todos os dados para um extrato de fatura/comprovante.
@@ -2025,6 +2030,14 @@ def _get_fatura_contexto(leitura_id):
         'dias_no_periodo': dias_no_periodo,
         'media_diaria_consumo': media_diaria_consumo
     }
+    # Gera a imagem do gráfico e a adiciona ao contexto
+    if historico_dicts:
+        labels = [item['mes_ano'] for item in historico_dicts]
+        data_values = [float(item['consumo_total']) for item in historico_dicts]
+        contexto['grafico_consumo_base64'] = _gerar_grafico_consumo_base64(labels, data_values)
+    else:
+        contexto['grafico_consumo_base64'] = None
+
     return contexto
     
 # -------Função Safe_float-----------
@@ -2118,6 +2131,75 @@ def comprovante_leitura(leitura_id):
     
     return render_template('comprovante_leitura.html', **contexto)
 
+
+#-------Download Comprovante Pagamento PDF-------------
+@app.route('/download-pagamento-pdf/<int:leitura_id>')
+@login_required
+def download_pagamento_pdf(leitura_id):
+    """
+    Gera e força o download de um PDF para o comprovante de pagamento.
+    """
+    contexto = _get_fatura_contexto(leitura_id)
+    if not contexto:
+        return "Fatura não encontrada.", 404
+
+    # --- AJUSTE APLICADO AQUI ---
+    # Adicionamos a variável 'ano_atual' que estava a faltar no contexto.
+    contexto['ano_atual'] = datetime.now().year
+    # --- FIM DO AJUSTE ---
+
+    try:
+        leitura = contexto['leitura']
+        nome_cliente_formatado = re.sub(r'[\s/]+', '_', leitura.get('cliente_nome', 'Cliente')).strip()
+        data_pagamento = contexto['pagamentos_feitos'][-1]['data_pagamento'].strftime('%d-%m-%Y') if contexto['pagamentos_feitos'] else date.today().strftime('%d-%m-%Y')
+        nome_arquivo_dinamico = f"Pagamento-{nome_cliente_formatado}-{data_pagamento}.pdf"
+    except Exception:
+        nome_arquivo_dinamico = f"pagamento_fatura_{leitura_id}.pdf"
+
+    # Usa o template de PDF com o contexto completo
+    html_string = render_template('pagamento_pdf.html', **contexto)
+    
+    try:
+        pdf = HTML(string=html_string).write_pdf()
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename="{nome_arquivo_dinamico}"'
+        return response
+    except Exception as e:
+        app.logger.error(f"Erro ao gerar PDF de pagamento para leitura {leitura_id}: {e}", exc_info=True)
+        return "Erro ao gerar PDF.", 500 
+
+#------Gerar Gráfico de consumo relatório pdf/Pamento-----------
+def _gerar_grafico_consumo_base64(labels, data):
+    """Gera um gráfico de barras de consumo e retorna como uma imagem base64."""
+    try:
+        fig, ax = plt.subplots(figsize=(6, 2.5)) # Tamanho da imagem em polegadas
+        bars = ax.bar(labels, data, color='#0056b3')
+        
+        ax.set_ylabel('Consumo (m³)', fontsize=8)
+        ax.tick_params(axis='x', labelsize=8)
+        ax.tick_params(axis='y', labelsize=8)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        
+        # Adiciona os valores no topo das barras
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2.0, yval, f'{yval:.0f}', va='bottom', ha='center', fontsize=8)
+
+        # Salva o gráfico em um buffer de memória
+        buf = BytesIO()
+        plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+        plt.close(fig)
+        buf.seek(0)
+        
+        # Converte para base64
+        image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        return f"data:image/png;base64,{image_base64}"
+    except Exception as e:
+        app.logger.error(f"Erro ao gerar gráfico de consumo: {e}")
+        return None
+    
 #-----------------Funçao para mostrar imagem do hidrometro PDF whatsapp
 def get_image_base64_string(foto_filename):
     """
